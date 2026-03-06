@@ -1,5 +1,5 @@
 
-#include "stepper.h"
+#include "../library/stepper.h"
 
 
 StepperMotor motorX = {X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, 0, false};

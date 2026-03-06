@@ -5,7 +5,7 @@
  */
 
 #include "config.h"
-#include "serial_protocol.h"
+#include "../library/serial_protocol.h"
 
 // Satır tamponu
 static char		rxBuffer[64];

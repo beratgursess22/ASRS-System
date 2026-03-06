@@ -1,4 +1,4 @@
-#include "axes.h"
+#include "../library/axes.h"
 
 // Homing işleminde beklenen maksimum adım sayısı (güvenlik timeout)
 // X: 1300 mm × 80 adım/mm × 1.2 güvenlik katsayısı ≈ 124800

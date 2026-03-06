@@ -1,0 +1,31 @@
+1. RFID kart okutulur
+        ↓
+2. Raspberry Pi UID'yi alır: "947382615"
+        ↓
+3. Raspberry Pi → Web sunucusuna HTTP isteği gönderir:
+   POST http://sunucu.com/api/rfid
+   Body: {"uid": "947382615", "action": "store"}
+        ↓
+4. Web sunucusu veritabanına bakar, boş raf bulur
+   Cevap verir: {"col": 1, "row": 0}
+        ↓
+5. Raspberry Pi cevabı alır
+        ↓
+6. Raspberry Pi → Arduino'ya USB üzerinden:
+   "STORE:1:0\n"
+        ↓
+7. Arduino motoru çalıştırır
+
+┌─────────────┐     HTTP      ┌─────────────┐
+│ Raspberry   │ ←──────────→ │  Web        │
+│ Pi (Python) │               │  Sunucusu   │
+│             │               │  (Node/PHP) │
+│  RFID okur  │               │  + Veritab. │
+│  USB yazar  │               └─────────────┘
+└──────┬──────┘
+       │ USB Serial
+       ↓
+┌─────────────┐
+│   Arduino   │
+│   Mega      │
+└─────────────┘
