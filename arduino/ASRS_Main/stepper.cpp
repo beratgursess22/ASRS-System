@@ -73,9 +73,6 @@ void stepperMoveSteps(StepperMotor &motor, long steps, uint8_t dir, unsigned int
     stepperEnable(motor);
     for (long i = 0; i < steps; i++) 
         stepperStep(motor, dir, delayUs);
-
-    // Hareketten sonra motoru devre dışı bırakma (titreşim azaltmak için)
-    // İsteğe bağlı: uygulama katmanında yönetilmek üzere açık bırakılıyor
 }
 
 long mmToSteps(float mm) 
