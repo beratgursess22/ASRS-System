@@ -32,7 +32,7 @@
 // Teorik değer: (200 * 16) / (20 * 2.0) = 80 adım/mm
 # define STEPS_PER_MM 80.0f
 
-// HIZ AYARLARI (microsaniye cinsinden adımlar arası gecikme) 
+// HIZ AYARLARI (microsaniye cinsinden adımlar arası gecikme)
 //
 // Formül: delay_us = 1_000_000 / (hız_mm_s * STEPS_PER_MM)
 //   - 5 mm/s  → 1.000.000 / (5  * 80) = 2500 µs
@@ -50,7 +50,7 @@
 # define Z_MAX_MM 1000.0f   // Z ekseni maksimum mesafe
 # define Y_TRAVEL_MM 160.0f // Y ekseni tek yön hareket mesafesi
 
-// RAF KONUMLARİ 
+// RAF KONUMLARİ
 # define SHELF_COLS 4
 # define SHELF_ROWS 3
 
@@ -73,18 +73,18 @@ static const float	SHELF_Z_POS[SHELF_ROWS] = {
 // Paketi rafa bırakırken / raftan alırken Z ekseninde yapılan kısa hareket
 # define Z_DROP_LIFT_MM 15.0f
 
-// SERİ HABERLEŞME 
+// SERİ HABERLEŞME
 # define SERIAL_BAUD_RATE 9600
 
-// YÖN SABİTLERİ 
+// YÖN SABİTLERİ
 # define DIR_POSITIVE HIGH // Eksende pozitif yön (X: sol, Z: yukarı, Y: ileri)
 # define DIR_NEGATIVE LOW  // Eksende negatif yön (X: sağ, Z: aşağı, Y: geri)
 
-// MOTOR ENABLE 
+// MOTOR ENABLE
 # define MOTOR_ENABLE LOW   // A4988: LOW = etkin
 # define MOTOR_DISABLE HIGH // A4988: HIGH = devre dışı
 
-// LIMIT SWITCH MANTIGI 
+// LIMIT SWITCH MANTIGI
 # define LIMIT_TRIGGERED LOW
 # define LIMIT_FREE HIGH
 

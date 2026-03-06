@@ -10,19 +10,18 @@
  */
 
 #ifndef OPERATIONS_H
-#define OPERATIONS_H
+# define OPERATIONS_H
 
-#include <Arduino.h>
-#include "config.h"
-#include "axes.h"
+# include "axes.h"
+# include "config.h"
+# include <Arduino.h>
 
-
-void storePackage(uint8_t col, uint8_t row);
-void retrievePackage(uint8_t col, uint8_t row);
+void	storePackage(uint8_t col, uint8_t row);
+void	retrievePackage(uint8_t col, uint8_t row);
 void	pickupFromEntryPoint(void);
 void	placeOnShelf(void);
 void	liftFromShelf(void);
 void	placeAtExitPoint(void);
-bool isValidShelfPosition(uint8_t col, uint8_t row);
+bool	isValidShelfPosition(uint8_t col, uint8_t row);
 
-#endif 
+#endif
