@@ -22,78 +22,44 @@
  */
 
 #ifndef SERIAL_PROTOCOL_H
-#define SERIAL_PROTOCOL_H
+# define SERIAL_PROTOCOL_H
 
-#include <Arduino.h>
+# include <Arduino.h>
 
-// ─── PAROTOKOl SABİTLERİ ─────────────────────────────────────────────────────
+# define CMD_STORE "STORE"
+# define CMD_RETRIEVE "RETRIEVE"
+# define CMD_HOME "HOME"
+# define CMD_STATUS "STATUS"
 
-#define CMD_STORE       "STORE"
-#define CMD_RETRIEVE    "RETRIEVE"
-#define CMD_HOME        "HOME"
-#define CMD_STATUS      "STATUS"
+# define RESP_READY "READY"
+# define RESP_BUSY "BUSY"
+# define RESP_OK "OK"
+# define RESP_ERROR "ERR"
 
-#define RESP_READY      "READY"
-#define RESP_BUSY       "BUSY"
-#define RESP_OK         "OK"
-#define RESP_ERROR      "ERR"
+# define SERIAL_TIMEOUT_MS 100
 
-#define SERIAL_TIMEOUT_MS   100   // Komut parçaları arası maksimum bekleme
-
-// ─── KOMUT YAPISI ────────────────────────────────────────────────────────────
-
-enum class CommandType {
-    NONE,
-    STORE,
-    RETRIEVE,
-    HOME,
-    STATUS,
-    UNKNOWN
+enum class CommandType
+{
+	NONE,
+	STORE,
+	RETRIEVE,
+	HOME,
+	STATUS,
+	UNKNOWN
+};
+struct			Command
+{
+	CommandType	type;
+	uint8_t		col;
+	uint8_t		row;
+	bool		valid;
 };
 
-struct Command {
-    CommandType type;
-    uint8_t     col;   // 0–3
-    uint8_t     row;   // 0–2
-    bool        valid;
-};
+void			serialProtocolInit(void);
+bool			serialReadCommand(Command &cmd);
+void			serialSendReady(void);
+void			serialSendBusy(void);
+void			serialSendOK(const char *msg = "");
+void			serialSendError(const char *msg);
 
-// ─── FONKSİYON PROTOTİPLERİ ──────────────────────────────────────────────────
-
-/**
- * @brief Seri portu başlatır.
- */
-void serialProtocolInit();
-
-/**
- * @brief Seri tamponda bekleyen tam bir satır var mı kontrol eder.
- *        Satır varsa komut yapısına ayrıştırır.
- *
- * @param cmd  Doldurulacak komut yapısı
- * @return     true: geçerli komut geldi, false: henüz tam komut yok
- */
-bool serialReadCommand(Command &cmd);
-
-/**
- * @brief "READY\n" yanıtı gönderir.
- */
-void serialSendReady();
-
-/**
- * @brief "BUSY\n" yanıtı gönderir.
- */
-void serialSendBusy();
-
-/**
- * @brief "OK:<mesaj>\n" yanıtı gönderir.
- * @param msg  Ek açıklama mesajı
- */
-void serialSendOK(const char *msg = "");
-
-/**
- * @brief "ERR:<mesaj>\n" yanıtı gönderir.
- * @param msg  Hata açıklaması
- */
-void serialSendError(const char *msg);
-
-#endif // SERIAL_PROTOCOL_H
+#endif
