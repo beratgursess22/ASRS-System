@@ -1,0 +1,6 @@
+@ASRS.API_HostAddress = http://localhost:5217
+
+GET {{ASRS.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
