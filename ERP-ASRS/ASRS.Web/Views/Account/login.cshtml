@@ -1,60 +1,255 @@
 @model ASRS.Core.DTOs.LoginDto
-
 @{
     ViewData["Title"] = "Giriş Yap";
     Layout = null;
 }
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ASRS — Giriş</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/login.css" />
 </head>
-<body class="bg-light">
+<body>
 
-<div class="container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-4">
+<div class="grid-overlay"></div>
 
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
+<div class="login-card">
 
-                    <h4 class="text-center mb-4">ASRS Sistemi</h4>
-
-                    <form asp-action="Login" method="post">
-
-                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
-
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label">E-posta</label>
-                            <input asp-for="Email" class="form-control" placeholder="ornek@sirket.com" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label">Şifre</label>
-                            <input asp-for="Password" type="password" class="form-control" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input asp-for="RememberMe" class="form-check-input" />
-                            <label asp-for="RememberMe" class="form-check-label">Beni hatırla</label>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
-
-                    </form>
-
+    <!-- Sol Panel -->
+    <div class="brand-panel">
+        <div>
+            <div class="brand-logo">
+                <div class="brand-logo-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                              stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="brand-name">ASRS</span>
+                    <span class="brand-sub">Enterprise Platform</span>
                 </div>
             </div>
-
+            <h1 class="brand-headline">
+                İş Süreçlerinizi<br>
+                <span>Akıllıca Yönetin</span>
+            </h1>
+            <p class="brand-desc">
+                ASRS ile tüm iş süreçlerinizi tek platformdan yönetin.
+            </p>
+        </div>
+        <!-- Orbital Departman Diyagramı -->
+        <div>
+            @* <p class="orbital-hint" id="orbital-hint">tıkla · duraklat</p> *@
+            <div class="orbital-wrap" id="orbital-wrap">
+                <svg id="orbital-svg" width="290" height="290" viewBox="0 0 290 290" style="overflow:visible">
+                    <defs>
+                        <radialGradient id="cg" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#6366f1" stop-opacity="1"/>
+                            <stop offset="100%" stop-color="#1e1b4b" stop-opacity="1"/>
+                        </radialGradient>
+                        <filter id="cglow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="5" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="nglow" x="-80%" y="-80%" width="260%" height="260%">
+                            <feGaussianBlur stdDeviation="4" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                    <circle cx="145" cy="145" r="105" fill="none"
+                        stroke="rgba(129,140,248,0.2)" stroke-width="1" stroke-dasharray="4 7"/>
+                    <g id="nodes"></g>
+                    <circle cx="145" cy="145" r="60" fill="rgba(99,102,241,0.12)" filter="url(#cglow)"/>
+                    <circle cx="145" cy="145" r="49" fill="none" stroke="rgba(129,140,248,0.35)"
+                        stroke-width="1" stroke-dasharray="3 5"/>
+                    <circle cx="145" cy="145" r="45" fill="none" stroke="rgba(129,140,248,0.7)" stroke-width="1.5"/>
+                    <circle cx="145" cy="145" r="44" fill="url(#cg)"/>
+                    <g transform="translate(129,127)" fill="none" stroke="rgba(199,210,254,0.9)"
+                       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="7" width="26" height="24" rx="1.5"
+                              fill="rgba(129,140,248,0.15)" stroke="rgba(199,210,254,0.9)" stroke-width="1.5"/>
+                        <path d="M11 31V22h10v9"/>
+                        <rect x="6"  y="12" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
+                        <rect x="14" y="12" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
+                        <rect x="22" y="12" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
+                        <rect x="6"  y="19" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
+                        <rect x="22" y="19" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
+                    </g>
+                    <text x="145" y="185" text-anchor="middle" font-size="8" fill="rgba(165,180,252,0.7)"
+                        style="font-family:system-ui,sans-serif;font-weight:600;letter-spacing:0.1em">ASRS</text>
+                </svg>
+            </div>
         </div>
     </div>
+
+    <!-- Sağ Panel: Form -->
+    <div class="form-panel">
+        <h2 class="form-title">Hoş Geldiniz</h2>
+        <p class="form-subtitle">Hesabınıza giriş yapın</p>
+
+        <form asp-controller="Account" asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <!-- E-posta -->
+            <div class="form-group">
+                <label asp-for="Email" class="form-label">E-posta Adresi</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                                  stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M22 6l-10 7L2 6" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </span>
+                    <input asp-for="Email" class="form-control" placeholder="ornek@sirket.com" autocomplete="email" />
+                </div>
+                <span asp-validation-for="Email" class="field-validation-error"></span>
+            </div>
+
+            <!-- Şifre -->
+            <div class="form-group">
+                <label asp-for="Password" class="form-label">Şifre</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <input asp-for="Password" type="password" id="Password"
+                           class="form-control" placeholder="••••••••"
+                           style="padding-right:2.75rem"
+                           autocomplete="current-password" />
+                    <button type="button" class="pw-toggle" onclick="togglePassword()">
+                        <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                                  stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="field-validation-error"></span>
+            </div>
+
+            <!-- Beni Hatırla + Şifremi Unuttum -->
+            <div class="form-row">
+                <label class="form-check">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <span class="form-check-label">Beni hatırla</span>
+                </label>
+                <a href="#" class="forgot-link">Şifremi unuttum?</a>
+            </div>
+
+            <button type="submit" class="btn-submit">Giriş Yap</button>
+        </form>
+
+        <p class="form-footer">© 2026 ASRS Enterprise Platform. Asude Hazal Peker ve İbrahim Berat Gürses tarafından geliştirilmektedir. Tüm hakları saklıdır.</p>
+    </div>
+
 </div>
+
+<script>
+    // ── Şifre göster/gizle ──────────────────────────────────────────
+    function togglePassword() {
+        var input = document.getElementById('Password');
+        var icon  = document.getElementById('eye-icon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+        } else {
+            input.type = 'password';
+            icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>';
+        }
+    }
+    // ── Orbital departman animasyonu ─────────────────────────────────
+    (function () {
+        var CX = 145, CY = 145, R = 105, NR = 27;
+        var spinning = true;
+        var angle = 0;
+        var last = performance.now();
+        var depts = [
+            { color: '#818cf8', paths: ['M3 9.5L12 4l9 5.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z', 'M9 21V13h6v8'] },
+            { color: '#a5b4fc', paths: ['M1 8h13v10H1z', 'M14 10h4l3 4v4h-7V10z'], rects: [{x:1,y:8,w:13,h:10,rx:1.5}] },
+            { color: '#c4b5fd', paths: ['M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z'] },
+            { color: '#818cf8', circle: {cx:12,cy:8,r:3.5}, paths: ['M4 20c0-4 3.6-7 8-7s8 3 8 7'] },
+            { color: '#a5b4fc', paths: ['M2 20h20M4 20V10l6-6 6 6v10'], rects: [{x:9,y:14,w:6,h:6,rx:0.5}] },
+            { color: '#c4b5fd', paths: ['M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z', 'M3 6h18M16 10a4 4 0 01-8 0'] },
+            { color: '#818cf8', circle2: {cx:12,cy:12,r:9}, paths: ['M9 9c0-1.1.9-2 3-2s3 .9 3 2-1.3 2-3 2-3 .9-3 2 .9 2 3 2 3-.9 3-2', 'M12 5v2m0 10v2'] },
+            { color: '#a5b4fc', paths: ['M8 21h8M12 17v4', 'M9 8l2 2-2 2M13 12h2'], rects: [{x:2,y:3,w:20,h:14,rx:2}] }
+        ];
+        var n = depts.length;
+        var nodesG = document.getElementById('nodes');
+        var wrap   = document.getElementById('orbital-wrap');
+        var hint   = document.getElementById('orbital-hint');
+        var nodeEls = depts.map(function(d) {
+            var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('stroke', 'rgba(129,140,248,0.22)');
+            line.setAttribute('stroke-width', '0.6');
+            line.setAttribute('stroke-dasharray', '3 6');
+            g.appendChild(line);
+            var border = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            border.setAttribute('r', NR);
+            border.setAttribute('fill', 'none');
+            border.setAttribute('stroke', d.color);
+            border.setAttribute('stroke-width', '1');
+            border.setAttribute('stroke-opacity', '0.65');
+            g.appendChild(border);
+            var fill = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            fill.setAttribute('r', NR - 2);
+            fill.setAttribute('fill', 'rgba(15,12,50,0.85)');
+            g.appendChild(fill);
+            var ig = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            ig.setAttribute('stroke', d.color);
+            ig.setAttribute('fill', 'none');
+            ig.setAttribute('stroke-width', '1.5');
+            ig.setAttribute('stroke-linecap', 'round');
+            ig.setAttribute('stroke-linejoin', 'round');
+            ig.setAttribute('stroke-opacity', '0.9');
+            if (d.circle)  { var c = document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',d.circle.cx); c.setAttribute('cy',d.circle.cy); c.setAttribute('r',d.circle.r); ig.appendChild(c); }
+            if (d.circle2) { var c2 = document.createElementNS('http://www.w3.org/2000/svg','circle'); c2.setAttribute('cx',d.circle2.cx); c2.setAttribute('cy',d.circle2.cy); c2.setAttribute('r',d.circle2.r); ig.appendChild(c2); }
+            if (d.rects)   { d.rects.forEach(function(r){ var rect=document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',r.x); rect.setAttribute('y',r.y); rect.setAttribute('width',r.w); rect.setAttribute('height',r.h); rect.setAttribute('rx',r.rx||0); ig.appendChild(rect); }); }
+            if (d.paths)   { d.paths.forEach(function(p){ var path=document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('d',p); ig.appendChild(path); }); }
+            g.appendChild(ig);
+            nodesG.appendChild(g);
+            return { g: g, line: line, border: border, fill: fill, ig: ig };
+        });
+        function render(ang) {
+            var rad = Math.PI / 180;
+            nodeEls.forEach(function(el, i) {
+                var theta = (ang + (360 / n) * i) * rad;
+                var nx = CX + R * Math.cos(theta);
+                var ny = CY + R * Math.sin(theta);
+                el.line.setAttribute('x1', CX); el.line.setAttribute('y1', CY);
+                el.line.setAttribute('x2', nx); el.line.setAttribute('y2', ny);
+                el.border.setAttribute('cx', nx); el.border.setAttribute('cy', ny);
+                el.fill.setAttribute('cx', nx);   el.fill.setAttribute('cy', ny);
+                var scale = 17 / 24;
+                el.ig.setAttribute('transform',
+                    'translate(' + nx + ',' + ny + ') ' +
+                    'rotate(' + (-ang) + ') ' +
+                    'scale(' + scale + ') ' +
+                    'translate(-12,-12)'
+                );
+            });
+        }
+        function tick(now) {
+            var dt = now - last; last = now;
+            if (spinning) angle = (angle + dt * 0.005) % 360;
+            render(angle);
+            requestAnimationFrame(tick);
+        }
+        wrap.addEventListener('click', function() {
+            spinning = !spinning;
+            hint.textContent = spinning ? 'tıkla · duraklat' : 'tıkla · devam et';
+        });
+        requestAnimationFrame(tick);
+    })();
+</script>
 
 </body>
 </html>
