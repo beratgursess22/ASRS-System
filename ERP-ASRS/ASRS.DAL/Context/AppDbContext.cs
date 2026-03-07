@@ -1,32 +1,31 @@
+using ASRS.Core.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+
 namespace ASRS.DAL.Context;
 
-using ASRS.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using System.Reflection.Metadata;
-using System.Reflection.Emit;
-
-public class AppDbContext : IdentityDbContext<Appuser, AppRole, string>
+public class AppDbContext : IdentityDbContext<AppUser, AppRole, string>
 {
-	public AppContext(DbContextOptions<AppContext> options) : base(options) { }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-	public DbSet<Department> Departments { get; set; }
-	protected override void OnModelCreating(ModelBuilder modelBuilder)
-	{
-		base.OnModelCreating(modelBuilder);
+    public DbSet<Department> Departments { get; set; }
 
-		builder.Entity<AppUser>().ToTable("Users");
-		builder.Entity<AppRole>().ToTable("Roles");
-		builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<string>>().ToTable("UserRoles");
-		builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<string>>().ToTable("UserClaims");
-		builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<string>>().ToTable("UserLogins");
-		builder.Entity<Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>>().ToTable("RoleClaims");
-		builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<string>>().ToTable("UserTokens");
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
 
-		builder.Entity<AppUser>()
-			.HasOne(u => u.Department)
-			.WithMany(d => d.Users)
-			.HasForeignKey(u => u.DepartmentId)
-			.OnDelete(DeleteBehavior.SetNull);
-	}
+        modelBuilder.Entity<AppUser>().ToTable("Users");
+        modelBuilder.Entity<AppRole>().ToTable("Roles");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<string>>().ToTable("UserRoles");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<string>>().ToTable("UserClaims");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<string>>().ToTable("UserLogins");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>>().ToTable("RoleClaims");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<string>>().ToTable("UserTokens");
+
+        modelBuilder.Entity<AppUser>()
+            .HasOne(u => u.Department)
+            .WithMany(d => d.Users)
+            .HasForeignKey(u => u.DepartmentId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
 }

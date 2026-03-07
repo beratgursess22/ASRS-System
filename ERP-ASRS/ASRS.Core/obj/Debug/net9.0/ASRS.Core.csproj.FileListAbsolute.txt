@@ -1,0 +1,13 @@
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/bin/Debug/net9.0/ASRS.Core.deps.json
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/bin/Debug/net9.0/ASRS.Core.dll
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/bin/Debug/net9.0/ASRS.Core.pdb
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/ASRS.Core.csproj.AssemblyReference.cache
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/ASRS.Core.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/ASRS.Core.AssemblyInfoInputs.cache
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/ASRS.Core.AssemblyInfo.cs
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/ASRS.Core.csproj.CoreCompileInputs.cache
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/ASRS.Core.sourcelink.json
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/ASRS.Core.dll
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/refint/ASRS.Core.dll
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/ASRS.Core.pdb
+/Users/ibrahimberatgurses/Desktop/ASRS-System/ERP-ASRS/ASRS.Core/obj/Debug/net9.0/ref/ASRS.Core.dll
