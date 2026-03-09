@@ -1,0 +1,130 @@
+@model IEnumerable<ASRS.Core.DTOs.UserListDto>
+
+@{
+    ViewData["Title"] = "Kullanıcı Yönetimi";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert-box alert-error">@ViewBag.Error</div>
+}
+
+<!-- Arama Çubuğu -->
+<div class="db-section-label">Kullanıcı Ara</div>
+<div class="panel" style="margin-bottom:1.5rem;">
+    <div style="padding:1rem 1.25rem;">
+        <form asp-controller="User" asp-action="Index" method="get">
+            <div style="display:flex;gap:0.75rem;align-items:center;">
+                <input type="text" name="search" class="form-input" placeholder="Ad soyad veya e-posta ile ara..."
+                       value="@ViewBag.Search" />
+                <button type="submit" class="btn-primary">Ara</button>
+                @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+                {
+                    <a asp-controller="User" asp-action="Index" class="btn-edit">Temizle</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Kullanıcı Ekle Formu -->
+<div class="db-section-label">Yeni Kullanıcı Ekle</div>
+<div class="panel" style="margin-bottom:1.5rem;">
+    <div class="panel-header">
+        <div class="panel-title"><span class="panel-title-dot"></span>Kullanıcı Bilgileri</div>
+    </div>
+    <div style="padding:1.25rem;">
+        <form asp-controller="User" asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ad Soyad</label>
+                    <input type="text" name="FullName" class="form-input" placeholder="Ahmet Yılmaz" required />
+                </div>
+                <div class="form-group">
+                    <label>E-posta</label>
+                    <input type="email" name="Email" class="form-input" placeholder="ahmet@asrs.com" required />
+                </div>
+                <div class="form-group">
+                    <label>Şifre</label>
+                    <input type="password" name="Password" class="form-input" placeholder="Min. 6 karakter" required />
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select name="Role" class="form-input" required>
+                        <option value="">-- Rol Seç --</option>
+                        @foreach (var rol in ViewBag.Roles as IEnumerable<string> ?? new List<string>())
+                        {
+                            <option value="@rol">@rol</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary">Kullanıcı Ekle</button>
+        </form>
+    </div>
+</div>
+
+<!-- Kullanıcı Listesi -->
+<div class="db-section-label">Tüm Kullanıcılar</div>
+<div class="panel">
+    <div class="panel-header">
+        <div class="panel-title"><span class="panel-title-dot"></span>Kullanıcı Listesi</div>
+        @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+        {
+            <span class="topbar-badge">@Model.Count() sonuç — "@ViewBag.Search"</span>
+        }
+        else
+        {
+            <span class="topbar-badge">@Model.Count() kullanıcı</span>
+        }
+    </div>
+    <table class="mv-table">
+        <thead>
+            <tr>
+                <th>Ad Soyad</th>
+                <th>E-posta</th>
+                <th>Rol</th>
+                <th>Durum</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div class="ua-avatar">@user.FullName.Substring(0, 1).ToUpper()</div>
+                            @user.FullName
+                        </div>
+                    </td>
+                    <td>@user.Email</td>
+                    <td><span class="badge badge-transfer">@user.Role</span></td>
+                    <td>
+                        @if (user.IsActive)
+                        {
+                            <span class="badge badge-in">Aktif</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-out">Pasif</span>
+                        }
+                    </td>
+                    <td style="display:flex;gap:6px;">
+                        <a asp-controller="User" asp-action="Edit" asp-route-id="@user.Id" class="btn-edit">Düzenle</a>
+                        <form asp-controller="User" asp-action="Delete" asp-route-id="@user.Id" method="post"
+                              onsubmit="return confirm('@user.FullName silinsin mi?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-delete">Sil</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

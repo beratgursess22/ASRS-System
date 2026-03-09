@@ -1,0 +1,339 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    bool isAdmin    = User.IsInRole("Yönetici");
+    bool isDepo     = User.IsInRole("Depo");
+    bool isLojistik = User.IsInRole("Lojistik");
+    bool isUretim   = User.IsInRole("Üretim");
+    bool isKalite   = User.IsInRole("Kalite");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
+<!-- ══════════════════════════════════════════
+     1. SİSTEM DURUMU — Herkes görür
+     ══════════════════════════════════════════ -->
+<div class="db-section-label">Sistem Durumu</div>
+<div class="sys-banner">
+    <div class="sys-banner-item">
+        <div class="sys-banner-dot dot-green"></div>
+        <div>
+            <div class="sys-banner-name">ASRS Sistemi</div>
+            <div class="sys-banner-sub">Aktif</div>
+        </div>
+    </div>
+    <div class="sys-banner-divider"></div>
+    <div class="sys-banner-item">
+        <div class="sys-banner-dot dot-red"></div>
+        <div>
+            <div class="sys-banner-name">Arduino Bağlantısı</div>
+            <div class="sys-banner-sub">Bağlantı Yok</div>
+        </div>
+    </div>
+    <div class="sys-banner-divider"></div>
+    <div class="sys-banner-item">
+        <div class="sys-banner-dot dot-yellow"></div>
+        <div>
+            <div class="sys-banner-name">Raspberry Pi</div>
+            <div class="sys-banner-sub">192.168.1.42 — Bekleniyor</div>
+        </div>
+    </div>
+    <div class="sys-banner-divider"></div>
+    <div class="sys-banner-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div>
+            <div class="sys-banner-name">Son Çalıştırma</div>
+            <div class="sys-banner-sub">Bugün, 08:30</div>
+        </div>
+    </div>
+    <div class="sys-banner-divider"></div>
+    <div class="sys-banner-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fb7185" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+            <div class="sys-banner-name">Son Hata</div>
+            <div class="sys-banner-sub">Serial timeout — 07:58</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     9. ARDUINO / ROBOT DURUMU — Herkes görür
+     ══════════════════════════════════════════ -->
+<div class="db-section-label" style="margin-top:1.5rem;">Arduino & Robot Durumu</div>
+<div class="stats-grid" style="margin-bottom:1.5rem;">
+    <div class="stat-card">
+        <div class="stat-icon icon-indigo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/>
+                <line x1="9" y1="2" x2="9" y2="4"/><line x1="15" y1="2" x2="15" y2="4"/>
+                <line x1="9" y1="20" x2="9" y2="22"/><line x1="15" y1="20" x2="15" y2="22"/>
+                <line x1="20" y1="9" x2="22" y2="9"/><line x1="20" y1="14" x2="22" y2="14"/>
+                <line x1="2" y1="9" x2="4" y2="9"/><line x1="2" y1="14" x2="4" y2="14"/>
+            </svg>
+        </div>
+        <div class="stat-body">
+            <div class="stat-label">Arduino</div>
+            <div class="stat-value" style="color:#fb7185;font-size:1rem;">Bağlı Değil</div>
+            <div class="stat-sub">COM3 — Serial</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-violet">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><line x1="5" y1="5" x2="19" y2="5"/><line x1="5" y1="19" x2="19" y2="19"/>
+            </svg>
+        </div>
+        <div class="stat-body">
+            <div class="stat-label">Gantry Konumu</div>
+            <div class="stat-value" style="font-size:1rem;">X:12 Y:04 Z:02</div>
+            <div class="stat-sub">Son alınan konum</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-emerald">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>
+            </svg>
+        </div>
+        <div class="stat-body">
+            <div class="stat-label">Tamamlanan Komut</div>
+            <div class="stat-value">284</div>
+            <div class="stat-sub">Bu oturumda</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-rose">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+        </div>
+        <div class="stat-body">
+            <div class="stat-label">Hata Sayısı</div>
+            <div class="stat-value" style="color:#fb7185;">3</div>
+            <div class="stat-sub">Son 24 saatte</div>
+        </div>
+    </div>
+</div>
+
+@* ── Depo + Lojistik + Yönetici görür ── *@
+@if (isAdmin || isDepo || isLojistik)
+{
+<!-- ══════════════════════════════════════════
+     3. GÜNLÜK İŞLEM SAYISI
+     ══════════════════════════════════════════ -->
+<div class="db-section-label">Günlük İşlem Sayısı</div>
+<div class="stats-grid" style="margin-bottom:1.5rem;">
+    <div class="stat-card">
+        <div class="stat-icon icon-emerald">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+            </svg>
+        </div>
+        <div class="stat-body">
+            <div class="stat-label">Depoya Giren</div>
+            <div class="stat-value">47</div>
+            <div class="stat-sub">ürün / paket</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-rose">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+            </svg>
+        </div>
+        <div class="stat-body">
+            <div class="stat-label">Depodan Çıkan</div>
+            <div class="stat-value">31</div>
+            <div class="stat-sub">ürün / paket</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-amber">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13" rx="1"/>
+                <path d="M16 8h4l3 3v5h-7V8z"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+        </div>
+        <div class="stat-body">
+            <div class="stat-label">Taşınan Paket</div>
+            <div class="stat-value">93</div>
+            <div class="stat-sub">robot tarafından</div>
+        </div>
+    </div>
+</div>
+}
+
+@* ── Sadece Depo + Yönetici görür ── *@
+@if (isAdmin || isDepo)
+{
+<!-- ══════════════════════════════════════════
+     2. DEPO DOLULUK ORANI
+     ══════════════════════════════════════════ -->
+<div class="db-section-label">Depo Doluluk Oranı</div>
+<div class="depo-row" style="margin-bottom:1.5rem;">
+    <div class="depo-occ-card">
+        <div class="depo-occ-header">
+            <span class="depo-occ-title">Genel Doluluk</span>
+            <span class="depo-occ-pct">%68</span>
+        </div>
+        <div class="occ-bar-track">
+            <div class="occ-bar-fill" style="width:68%;"></div>
+        </div>
+        <div class="depo-occ-stats">
+            <div class="depo-occ-stat">
+                <span class="depo-stat-val">240</span>
+                <span class="depo-stat-lbl">Toplam Raf</span>
+            </div>
+            <div class="depo-occ-stat">
+                <span class="depo-stat-val" style="color:#34d399;">163</span>
+                <span class="depo-stat-lbl">Dolu</span>
+            </div>
+            <div class="depo-occ-stat">
+                <span class="depo-stat-val" style="color:#818cf8;">77</span>
+                <span class="depo-stat-lbl">Boş</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. En çok kullanılan raflar -->
+    <div class="panel" style="flex:1;">
+        <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-dot"></span>En Çok Kullanılan Raflar</div>
+        </div>
+        <div style="padding:0.75rem 1.25rem;display:flex;flex-direction:column;gap:0.55rem;">
+            @{
+                var raflar = new[] {
+                    new { Ad = "A-01", Pct = 94 },
+                    new { Ad = "B-03", Pct = 87 },
+                    new { Ad = "C-02", Pct = 76 },
+                    new { Ad = "A-04", Pct = 65 },
+                    new { Ad = "D-01", Pct = 52 },
+                };
+            }
+            @foreach (var r in raflar)
+            {
+                <div class="raf-row">
+                    <span class="raf-name">@r.Ad</span>
+                    <div class="raf-bar-track">
+                        <div class="raf-bar-fill" style="width:@(r.Pct)%;"></div>
+                    </div>
+                    <span class="raf-pct">%@r.Pct</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+}
+
+@* ── Sadece Yönetici görür ── *@
+@if (isAdmin)
+{
+<div class="dashboard-grid" style="margin-bottom:1.5rem;">
+
+    <!-- 6. Son İşlemler -->
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-dot"></span>Son İşlemler</div>
+            <span class="admin-only-badge">Sadece Yönetici</span>
+        </div>
+        <table class="mv-table">
+            <thead>
+                <tr>
+                    <th>Ürün</th>
+                    <th>İşlem</th>
+                    <th>Miktar</th>
+                    <th>Lokasyon</th>
+                    <th>Tarih</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Motor Kasnak A4</td>
+                    <td><span class="badge badge-in">Giriş</span></td>
+                    <td>24</td><td>A-03-02</td><td>Bugün, 09:14</td>
+                </tr>
+                <tr>
+                    <td>Vida M8x30</td>
+                    <td><span class="badge badge-out">Çıkış</span></td>
+                    <td>150</td><td>B-01-07</td><td>Bugün, 08:55</td>
+                </tr>
+                <tr>
+                    <td>Flanş DN50</td>
+                    <td><span class="badge badge-transfer">Transfer</span></td>
+                    <td>6</td><td>C-02-01</td><td>Dün, 17:30</td>
+                </tr>
+                <tr>
+                    <td>Rulman 6205</td>
+                    <td><span class="badge badge-in">Giriş</span></td>
+                    <td>80</td><td>A-01-05</td><td>Dün, 16:10</td>
+                </tr>
+                <tr>
+                    <td>Kablo 2.5mm²</td>
+                    <td><span class="badge badge-out">Çıkış</span></td>
+                    <td>200</td><td>D-04-03</td><td>Dün, 14:42</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Sağ kolon: Kullanıcı Aktivitesi + Mini Chart -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+
+        <!-- 7. Kullanıcı Aktivitesi -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title"><span class="panel-title-dot"></span>Kullanıcı Aktivitesi</div>
+                <span class="admin-only-badge">Sadece Yönetici</span>
+            </div>
+            <div style="padding:0.75rem 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
+                @{
+                    var aktivite = new[] {
+                        new { Ad = "admin@asrs.com",   Rol = "Yönetici", Zaman = "09:14" },
+                        new { Ad = "depo1@asrs.com",   Rol = "Depo",     Zaman = "08:55" },
+                        new { Ad = "kalite@asrs.com",  Rol = "Kalite",   Zaman = "08:30" },
+                        new { Ad = "loj@asrs.com",     Rol = "Lojistik", Zaman = "Dün" },
+                    };
+                }
+                @foreach (var u in aktivite)
+                {
+                    <div class="ua-row">
+                        <div class="ua-avatar">@u.Ad.Substring(0,1).ToUpper()</div>
+                        <div class="ua-info">
+                            <div class="ua-name">@u.Ad</div>
+                            <div class="ua-role">@u.Rol</div>
+                        </div>
+                        <div class="ua-time">@u.Zaman</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Mini chart -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title"><span class="panel-title-dot"></span>Haftalık Hareket</div>
+            </div>
+            <div class="chart-wrap">
+                <div class="chart-bar-group">
+                    <div class="chart-bar" style="height:55%;" title="Pzt: 42"></div>
+                    <div class="chart-bar" style="height:72%;" title="Sal: 65"></div>
+                    <div class="chart-bar" style="height:48%;" title="Çar: 38"></div>
+                    <div class="chart-bar" style="height:90%;" title="Per: 81"></div>
+                    <div class="chart-bar" style="height:63%;" title="Cum: 55"></div>
+                    <div class="chart-bar" style="height:35%;" title="Cmt: 28"></div>
+                    <div class="chart-bar" style="height:80%;" title="Paz: 70"></div>
+                </div>
+                <div class="chart-labels">
+                    <span>Pzt</span><span>Sal</span><span>Çar</span>
+                    <span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+}
