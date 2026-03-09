@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ASRS.DAL.Context;
 
-public class AppDbContext : IdentityDbContext<AppUser, AppRole, string>
+public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "IdentityDbContext" sınıfından türetilmiş bir DbContext sınıfı, kullanıcı ve rol yönetimi için gerekli tabloları içerir
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

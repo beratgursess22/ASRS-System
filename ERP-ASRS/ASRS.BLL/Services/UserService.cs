@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ASRS.BLL.Services;
 
-public class UserService : IUserService
+public class UserService : IUserService // kullanıcı işlemlerini gerçekleştiren servis sınıfı
 {
 	private readonly UserManager<AppUser> _userManager;
 	private readonly SignInManager<AppUser> _signInManager;

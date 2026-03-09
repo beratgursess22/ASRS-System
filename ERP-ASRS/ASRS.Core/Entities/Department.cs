@@ -5,7 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace ASRS.Core.Entities;
 
-public class Department
+public class Department // departmanları temsil eden entity
 {
 	public int Id { get; set; }
 	public string Name { get; set; } = string.Empty; // null olmaması için string.Empty atandı

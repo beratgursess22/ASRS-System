@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace ASRS.DAL.Context;
 
-public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext> // tasarım zamanında DbContext oluşturmak için kullanılan bir fabrika sınıfı, genellikle EF Core araçları tarafından kullanılır
 {
     public AppDbContext CreateDbContext(string[] args)
     {

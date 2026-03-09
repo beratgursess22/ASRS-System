@@ -1,6 +1,6 @@
 namespace ASRS.Core.DTOs;
 
-public class UserDto
+public class UserDto // kullanıcı bilgilerini döndürmek için kullanılan DTO
 {
     public string Id { get; set; } = string.Empty;
 	public string FullName { get; set; } = string.Empty;

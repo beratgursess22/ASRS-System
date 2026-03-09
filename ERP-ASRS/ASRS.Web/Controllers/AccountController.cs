@@ -7,7 +7,7 @@ using ASRS.Core.Entities;
 
 namespace ASRS.Web.Controllers;
 
-public class AccountController : Controller
+public class AccountController : Controller // kullanıcı girişi, çıkışı ve erişim reddi işlemlerini yöneten controller
 {
     private readonly IUserService _userService;
     private readonly SignInManager<AppUser> _signInManager;

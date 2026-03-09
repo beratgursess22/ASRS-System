@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASRS.Core.DTOs;
 
-public class CreateUserDto
+public class CreateUserDto // kullanıcı oluşturmak için kullanılan DTO
 {
 	[Required(ErrorMessage = "Ad soyad zorunludur.")]
 	public string FullName { get; set; } = string.Empty;

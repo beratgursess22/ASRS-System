@@ -7,13 +7,12 @@
     bool isKalite   = User.IsInRole("Kalite");
 }
 
+@* // Dashboard sayfası, kullanıcıların rollerine göre farklı bölümler görebileceği bir ana sayfadır. Sistemin genel durumunu, depo doluluk oranını, günlük işlem sayılarını ve diğer önemli bilgileri görsel olarak sunar. Yönetici, Depo ve Lojistik rollerine sahip kullanıcılar daha fazla bilgiye erişebilirken, Üretim ve Kalite rollerine sahip kullanıcılar daha sınırlı bir görünüm elde ederler. *@
+
 @section Styles {
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
 }
 
-<!-- ══════════════════════════════════════════
-     1. SİSTEM DURUMU — Herkes görür
-     ══════════════════════════════════════════ -->
 <div class="db-section-label">Sistem Durumu</div>
 <div class="sys-banner">
     <div class="sys-banner-item">
@@ -57,9 +56,6 @@
     </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     9. ARDUINO / ROBOT DURUMU — Herkes görür
-     ══════════════════════════════════════════ -->
 <div class="db-section-label" style="margin-top:1.5rem;">Arduino & Robot Durumu</div>
 <div class="stats-grid" style="margin-bottom:1.5rem;">
     <div class="stat-card">
@@ -119,9 +115,6 @@
 @* ── Depo + Lojistik + Yönetici görür ── *@
 @if (isAdmin || isDepo || isLojistik)
 {
-<!-- ══════════════════════════════════════════
-     3. GÜNLÜK İŞLEM SAYISI
-     ══════════════════════════════════════════ -->
 <div class="db-section-label">Günlük İşlem Sayısı</div>
 <div class="stats-grid" style="margin-bottom:1.5rem;">
     <div class="stat-card">
@@ -170,9 +163,7 @@
 @* ── Sadece Depo + Yönetici görür ── *@
 @if (isAdmin || isDepo)
 {
-<!-- ══════════════════════════════════════════
-     2. DEPO DOLULUK ORANI
-     ══════════════════════════════════════════ -->
+
 <div class="db-section-label">Depo Doluluk Oranı</div>
 <div class="depo-row" style="margin-bottom:1.5rem;">
     <div class="depo-occ-card">

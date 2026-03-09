@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ASRS.Web.Controllers;
 
 [Authorize(Roles = "Yönetici")]
-public class UserController : Controller
+public class UserController : Controller // kullanıcı yönetimi işlemlerini yöneten controller, sadece "Yönetici" rolüne sahip kullanıcılar erişebilir
 {
     private readonly IUserService _userService;
 

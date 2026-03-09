@@ -2,7 +2,7 @@ using ASRS.Core.DTOs;
 
 namespace ASRS.Core.Interfaces;
 
-public interface IUserService
+public interface IUserService // kullanıcı işlemlerini tanımlayan servis arayüzü
 {
     Task<UserDto?> LoginAsync(LoginDto dto); 
     Task<IEnumerable<UserListDto>> GetAllUsersAsync();

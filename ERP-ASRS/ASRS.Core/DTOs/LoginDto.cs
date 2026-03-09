@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASRS.Core.DTOs;
 
-public class LoginDto
+public class LoginDto // kullanıcı girişi için kullanılan DTO
 {
     [Required(ErrorMessage = "E-posta zorunludur.")]
     [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi girin.")]
