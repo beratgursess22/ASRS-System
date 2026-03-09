@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using ASRS.Core.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<Department> Departments { get; set; }
+	public DbSet<Product> Products { get; set; } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

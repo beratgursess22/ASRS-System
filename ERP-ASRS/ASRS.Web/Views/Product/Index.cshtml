@@ -1,0 +1,140 @@
+@model IEnumerable<ASRS.Core.DTOs.ProductListDto>
+@{
+    ViewData["Title"] = "Ürün Yönetimi";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <h1 class="page-title">Ürün Yönetimi</h1>
+</div>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert-box alert-error">@ViewBag.Error</div>
+}
+
+@if (User.IsInRole("Yönetici") || User.IsInRole("Depo"))
+{
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+            <h2 class="card-title">Yeni Ürün Ekle</h2>
+        </div>
+        <form method="post" asp-action="Create">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ürün Kodu</label>
+                    <input type="text" name="Code" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label>Ürün Adı</label>
+                    <input type="text" name="Name" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <input type="text" name="Category" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label>Birim</label>
+                    <input type="text" name="Unit" class="form-input" placeholder="adet, kg, lt..." required />
+                </div>
+                <div class="form-group">
+                    <label>Stok Miktarı</label>
+                    <input type="number" name="StockQuantity" class="form-input" value="0" min="0" />
+                </div>
+                <div class="form-group">
+                    <label>Min. Stok Seviyesi</label>
+                    <input type="number" name="MinStockLevel" class="form-input" value="0" min="0" />
+                </div>
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <input type="text" name="Description" class="form-input" />
+                </div>
+            </div>
+            <button type="submit" class="btn-primary">Ürün Ekle</button>
+        </form>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            @if (!string.IsNullOrEmpty(ViewBag.Search))
+            {
+                <span>@Model.Count() sonuç — "@ViewBag.Search"</span>
+            }
+            else
+            {
+                <span>@Model.Count() ürün</span>
+            }
+        </h2>
+        <form method="get" asp-action="Index" style="display:flex; gap:0.5rem;">
+            <input type="text" name="search" class="form-input" placeholder="Ara..." value="@ViewBag.Search" style="width:200px;" />
+            <button type="submit" class="btn-primary">Ara</button>
+            @if (!string.IsNullOrEmpty(ViewBag.Search))
+            {
+                <a asp-action="Index" class="btn-edit">Temizle</a>
+            }
+        </form>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Kod</th>
+                <th>Ürün Adı</th>
+                <th>Kategori</th>
+                <th>Birim</th>
+                <th>Stok</th>
+                <th>Min. Stok</th>
+                <th>Durum</th>
+                @if (User.IsInRole("Yönetici") || User.IsInRole("Depo"))
+                {
+                    <th>İşlem</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td><span style="font-family:monospace; color:var(--accent);">@p.Code</span></td>
+                    <td>@p.Name</td>
+                    <td>@p.Category</td>
+                    <td>@p.Unit</td>
+                    <td>
+                        @if (p.StockQuantity <= p.MinStockLevel)
+                        {
+                            <span style="color:#f87171; font-weight:600;">@p.StockQuantity</span>
+                        }
+                        else
+                        {
+                            <span>@p.StockQuantity</span>
+                        }
+                    </td>
+                    <td>@p.MinStockLevel</td>
+                    <td>
+                        @if (p.IsActive)
+                        {
+                            <span class="badge badge-active">Aktif</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-inactive">Pasif</span>
+                        }
+                    </td>
+                    @if (User.IsInRole("Yönetici") || User.IsInRole("Depo"))
+                    {
+                        <td style="display:flex; gap:0.5rem;">
+                            <a asp-action="Edit" asp-route-id="@p.Id" class="btn-edit">Düzenle</a>
+                            <form method="post" asp-action="Delete" asp-route-id="@p.Id" onsubmit="return confirm('@p.Name silinecek. Emin misiniz?')">
+                                <button type="submit" class="btn-delete">Sil</button>
+                            </form>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

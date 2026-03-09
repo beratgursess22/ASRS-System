@@ -500,3 +500,79 @@
     border: 1px solid rgba(16,185,129,0.25);
     color: #34d399;
 }
+
+/* ── Page header ── */
+.page-header {
+    margin-bottom: 1.5rem;
+}
+.page-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ── Card ── */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+.card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ── Data table ── */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+.data-table th {
+    text-align: left;
+    padding: 0.55rem 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+}
+.data-table td {
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+    vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ── Status badges ── */
+.badge-active {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    background: rgba(16,185,129,0.12);
+    color: #34d399;
+}
+.badge-inactive {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-muted);
+}

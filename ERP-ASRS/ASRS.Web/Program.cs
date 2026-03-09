@@ -35,6 +35,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // Servis kayıtları
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddControllersWithViews();
 
