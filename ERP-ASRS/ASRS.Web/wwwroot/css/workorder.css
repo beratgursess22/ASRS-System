@@ -1,0 +1,89 @@
+/* ── Order number ── */
+.order-number {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 0.03em;
+}
+
+/* ── Product cell ── */
+.product-code {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-right: 0.4rem;
+}
+.product-name {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+}
+
+/* ── Priority badges ── */
+.priority {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+.priority-high {
+    background: rgba(244, 63, 94, 0.12);
+    color: #f87171;
+}
+.priority-medium {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+}
+.priority-low {
+    background: rgba(107, 114, 128, 0.12);
+    color: #9ca3af;
+}
+
+/* ── Status badges ── */
+.wo-status {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.status-draft {
+    background: rgba(107, 114, 128, 0.12);
+    color: #9ca3af;
+}
+.status-approved {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+}
+.status-waiting {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+}
+.status-inprogress {
+    background: rgba(99, 102, 241, 0.12);
+    color: #818cf8;
+}
+.status-completed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.status-cancelled {
+    background: rgba(244, 63, 94, 0.12);
+    color: #fb7185;
+}
+
+/* ── Action cell ── */
+.action-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+/* ── Status select in table ── */
+.status-select {
+    width: 150px !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+}

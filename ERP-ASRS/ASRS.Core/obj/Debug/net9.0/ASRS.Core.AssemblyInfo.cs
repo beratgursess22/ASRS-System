@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ASRS.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3254d27aec579a0bf02d66bd7433403edf1d6209")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0236e4faad9ca730846468d121f9b0cd5e8184c2")]
 [assembly: System.Reflection.AssemblyProductAttribute("ASRS.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ASRS.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

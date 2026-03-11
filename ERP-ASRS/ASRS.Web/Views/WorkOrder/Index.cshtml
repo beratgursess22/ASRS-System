@@ -1,0 +1,187 @@
+@model IEnumerable<ASRS.Core.DTOs.WorkOrderListDto>
+@using ASRS.Core.Enums
+@{
+    ViewData["Title"] = "İş Emirleri";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <h1 class="page-title">İş Emirleri</h1>
+</div>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert-box alert-error">@ViewBag.Error</div>
+}
+
+@if (User.IsInRole("Yönetici") || User.IsInRole("Üretim"))
+{
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+            <h2 class="card-title">Yeni İş Emri Oluştur</h2>
+        </div>
+        <form method="post" asp-action="Create">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Başlık</label>
+                    <input type="text" name="Title" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label>Ürün</label>
+                    <select name="ProductId" class="form-input" required>
+                        <option value="">Seçin...</option>
+                        @foreach (var p in ViewBag.Products)
+                        {
+                            <option value="@p.Id">@p.Code — @p.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Miktar</label>
+                    <input type="number" name="Quantity" class="form-input" min="1" value="1" required />
+                </div>
+                <div class="form-group">
+                    <label>Öncelik</label>
+                    <select name="Priority" class="form-input">
+                        <option value="0">Düşük</option>
+                        <option value="1" selected>Orta</option>
+                        <option value="2">Yüksek</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Planlanan Başlangıç</label>
+                    <input type="date" name="PlannedStartDate" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label>Planlanan Bitiş</label>
+                    <input type="date" name="PlannedEndDate" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label>Notlar</label>
+                    <input type="text" name="Notes" class="form-input" />
+                </div>
+            </div>
+            <button type="submit" class="btn-primary">İş Emri Oluştur</button>
+        </form>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">@Model.Count() iş emri</h2>
+        <form method="get" asp-action="Index" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <input type="text" name="search" class="form-input" placeholder="Ara..." value="@ViewBag.Search" style="width:180px;" />
+            <select name="status" class="form-input" style="width:170px;">
+                <option value="">Tüm Durumlar</option>
+                <option value="0" selected="@(ViewBag.Status?.ToString() == "0" ? "selected" : null)">Taslak</option>
+                <option value="1" selected="@(ViewBag.Status?.ToString() == "1" ? "selected" : null)">Onaylandı</option>
+                <option value="2" selected="@(ViewBag.Status?.ToString() == "2" ? "selected" : null)">Malzeme Bekleniyor</option>
+                <option value="3" selected="@(ViewBag.Status?.ToString() == "3" ? "selected" : null)">Devam Ediyor</option>
+                <option value="4" selected="@(ViewBag.Status?.ToString() == "4" ? "selected" : null)">Tamamlandı</option>
+                <option value="5" selected="@(ViewBag.Status?.ToString() == "5" ? "selected" : null)">İptal</option>
+            </select>
+            <button type="submit" class="btn-primary">Filtrele</button>
+            <a asp-action="Index" class="btn-edit">Temizle</a>
+        </form>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Başlık</th>
+                <th>Ürün</th>
+                <th>Miktar</th>
+                <th>Öncelik</th>
+                <th>Durum</th>
+                <th>Başlangıç</th>
+                <th>Bitiş</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var w in Model)
+            {
+                <tr>
+                    <td><span class="order-number">@w.OrderNumber</span></td>
+                    <td>@w.Title</td>
+                    <td>
+                        <span class="product-code">@w.ProductCode</span>
+                        <span class="product-name">@w.ProductName</span>
+                    </td>
+                    <td>@w.Quantity</td>
+                    <td>
+                        @if (w.Priority == WorkOrderPriority.High)
+                        {
+                            <span class="priority priority-high">Yüksek</span>
+                        }
+                        else if (w.Priority == WorkOrderPriority.Medium)
+                        {
+                            <span class="priority priority-medium">Orta</span>
+                        }
+                        else
+                        {
+                            <span class="priority priority-low">Düşük</span>
+                        }
+                    </td>
+                    <td>
+                        @if (w.Status == WorkOrderStatus.Draft)
+                        {
+                            <span class="wo-status status-draft">Taslak</span>
+                        }
+                        else if (w.Status == WorkOrderStatus.Approved)
+                        {
+                            <span class="wo-status status-approved">Onaylandı</span>
+                        }
+                        else if (w.Status == WorkOrderStatus.WaitingForMaterial)
+                        {
+                            <span class="wo-status status-waiting">Malzeme Bekleniyor</span>
+                        }
+                        else if (w.Status == WorkOrderStatus.InProgress)
+                        {
+                            <span class="wo-status status-inprogress">Devam Ediyor</span>
+                        }
+                        else if (w.Status == WorkOrderStatus.Completed)
+                        {
+                            <span class="wo-status status-completed">Tamamlandı</span>
+                        }
+                        else
+                        {
+                            <span class="wo-status status-cancelled">İptal</span>
+                        }
+                    </td>
+                    <td>@w.PlannedStartDate.ToString("dd.MM.yyyy")</td>
+                    <td>@w.PlannedEndDate.ToString("dd.MM.yyyy")</td>
+                    <td>
+                        <div class="action-cell">
+                            @if (User.IsInRole("Yönetici") || User.IsInRole("Üretim") || User.IsInRole("Depo"))
+                            {
+                                <form method="post" asp-action="UpdateStatus" asp-route-id="@w.Id" style="display:flex; gap:0.4rem; align-items:center;">
+                                    <select name="status" class="form-input status-select">
+                                        <option value="0" selected="@(w.Status == WorkOrderStatus.Draft ? "selected" : null)">Taslak</option>
+                                        <option value="1" selected="@(w.Status == WorkOrderStatus.Approved ? "selected" : null)">Onaylandı</option>
+                                        <option value="2" selected="@(w.Status == WorkOrderStatus.WaitingForMaterial ? "selected" : null)">Malzeme Bekleniyor</option>
+                                        <option value="3" selected="@(w.Status == WorkOrderStatus.InProgress ? "selected" : null)">Devam Ediyor</option>
+                                        <option value="4" selected="@(w.Status == WorkOrderStatus.Completed ? "selected" : null)">Tamamlandı</option>
+                                        <option value="5" selected="@(w.Status == WorkOrderStatus.Cancelled ? "selected" : null)">İptal</option>
+                                    </select>
+                                    <button type="submit" class="btn-edit">Güncelle</button>
+                                </form>
+                            }
+                            @if (User.IsInRole("Yönetici"))
+                            {
+                                <form method="post" asp-action="Delete" asp-route-id="@w.Id" onsubmit="return confirm('@w.OrderNumber silinecek. Emin misiniz?')">
+                                    <button type="submit" class="btn-delete">Sil</button>
+                                </form>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
