@@ -88,7 +88,15 @@ public class UserController : Controller // kullanıcı yönetimi işlemlerini y
     [HttpPost]
     public async Task<IActionResult> Delete(string id)
     {
-        await _userService.DeleteUserAsync(id);
+        var result = await _userService.DeleteUserAsync(id);
+        if (!result)
+        {
+            var users = await _userService.GetAllUsersAsync();
+            var roles = await _userService.GetRolesAsync();
+            ViewBag.Roles = roles;
+            ViewBag.Error = "Kullanıcı silinemedi.";
+            return View("Index", users);
+        }
         return RedirectToAction("Index");
     }
 }

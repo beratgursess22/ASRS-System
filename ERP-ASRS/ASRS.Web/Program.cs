@@ -17,10 +17,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Identity tanımı
 builder.Services.AddIdentity<AppUser, AppRole>(options =>
 {
-    options.Password.RequireDigit = true;
+    options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();

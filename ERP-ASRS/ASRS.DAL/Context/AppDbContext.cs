@@ -11,6 +11,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 
     public DbSet<Department> Departments { get; set; }
 	public DbSet<Product> Products { get; set; } 
+	public DbSet<WorkOrder> WorkOrders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
