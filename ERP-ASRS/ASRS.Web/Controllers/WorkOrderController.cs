@@ -12,23 +12,31 @@ public class WorkOrderController : Controller
 {
     private readonly IWorkOrderService _workOrderService;
     private readonly IProductService _productService;
+    private readonly IBomService _bomService;
 
-    public WorkOrderController(IWorkOrderService workOrderService, IProductService productService)
+    public WorkOrderController(IWorkOrderService workOrderService, IProductService productService, IBomService bomService)
     {
         _workOrderService = workOrderService;
         _productService = productService;
+        _bomService = bomService;
     }
 
     public async Task<IActionResult> Index(string? search, WorkOrderStatus? status)
     {
         var orders = await _workOrderService.GetAllAsync(search, status);
-        var products = await _productService.GetAllProductsAsync(null);
-
         ViewBag.Search = search;
         ViewBag.Status = status;
-        ViewBag.Products = products;
         ViewBag.Statuses = Enum.GetValues<WorkOrderStatus>();
         return View(orders);
+    }
+
+    [Authorize(Roles = "Yönetici,Üretim")]
+    [HttpGet]
+    public async Task<IActionResult> Create()
+    {
+        var products = await _productService.GetAllProductsAsync(null);
+        ViewBag.Products = products;
+        return View();
     }
 
     [Authorize(Roles = "Yönetici,Üretim")]
@@ -37,17 +45,23 @@ public class WorkOrderController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var orders = await _workOrderService.GetAllAsync(null, null);
             var products = await _productService.GetAllProductsAsync(null);
             ViewBag.Products = products;
-            ViewBag.Statuses = Enum.GetValues<WorkOrderStatus>();
-            ViewBag.Error = "Tüm alanları doldurun.";
-            return View("Index", orders);
+            ViewBag.Error = "Tüm zorunlu alanları doldurun.";
+            return View(dto);
         }
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         await _workOrderService.CreateAsync(dto, userId);
         return RedirectToAction("Index");
+    }
+
+    // AJAX: Ürün seçilince BOM listesini döner
+    [HttpGet]
+    public async Task<IActionResult> GetBom(int productId)
+    {
+        var bom = await _bomService.GetBomByProductIdAsync(productId);
+        return Json(bom);
     }
 
     [Authorize(Roles = "Yönetici,Üretim,Depo")]

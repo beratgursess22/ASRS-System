@@ -17,4 +17,5 @@ public class WorkOrderListDto
     public DateTime PlannedStartDate { get; set; }
     public DateTime PlannedEndDate { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? CreatedByUserName { get; set; }
 }

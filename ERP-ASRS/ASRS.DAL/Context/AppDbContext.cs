@@ -12,6 +12,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
     public DbSet<Department> Departments { get; set; }
 	public DbSet<Product> Products { get; set; } 
 	public DbSet<WorkOrder> WorkOrders { get; set; }
+	public DbSet<BillOfMaterial> BillOfMaterials { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,5 +31,18 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
             .WithMany(d => d.Users)
             .HasForeignKey(u => u.DepartmentId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // BillOfMaterial: iki ayrı Product FK — EF Core'un otomatik çözmesi için explicit tanım
+        modelBuilder.Entity<BillOfMaterial>()
+            .HasOne(b => b.Product)
+            .WithMany()
+            .HasForeignKey(b => b.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<BillOfMaterial>()
+            .HasOne(b => b.ComponentProduct)
+            .WithMany()
+            .HasForeignKey(b => b.ComponentProductId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

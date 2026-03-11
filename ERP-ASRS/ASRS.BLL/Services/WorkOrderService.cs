@@ -22,6 +22,7 @@ public class WorkOrderService : IWorkOrderService
 			.Include(w => w.Product)
 			.Include(w => w.Department)
 			.Include(w => w.AssignedUser)
+			.Include(w => w.CreatedByUser)
 			.AsQueryable();
 
 		if (!string.IsNullOrWhiteSpace(search))
@@ -58,7 +59,10 @@ public class WorkOrderService : IWorkOrderService
 				AssignedUserName = assignedUserName,
 				PlannedStartDate = w.PlannedStartDate,
 				PlannedEndDate = w.PlannedEndDate,
-				CreatedAt = w.CreatedAt
+				CreatedAt = w.CreatedAt,
+				CreatedByUserName = w.CreatedByUser != null
+					? w.CreatedByUser.FirstName + " " + w.CreatedByUser.LastName
+					: null
 			});
 		}
 
@@ -71,6 +75,7 @@ public class WorkOrderService : IWorkOrderService
 			.Include(w => w.Product)
 			.Include(w => w.Department)
 			.Include(w => w.AssignedUser)
+			.Include(w => w.CreatedByUser)
 			.FirstOrDefaultAsync(w => w.Id == id);
 
 		if (w == null)
@@ -94,7 +99,10 @@ public class WorkOrderService : IWorkOrderService
 			AssignedUserName = assignedUserName,
 			PlannedStartDate = w.PlannedStartDate,
 			PlannedEndDate = w.PlannedEndDate,
-			CreatedAt = w.CreatedAt
+			CreatedAt = w.CreatedAt,
+			CreatedByUserName = w.CreatedByUser != null
+				? w.CreatedByUser.FirstName + " " + w.CreatedByUser.LastName
+				: null
 		};
 	}
 

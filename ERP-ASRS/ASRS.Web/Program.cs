@@ -39,6 +39,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
+builder.Services.AddScoped<IBomService, BomService>();
 
 builder.Services.AddControllersWithViews();
 
@@ -61,6 +62,39 @@ app.UseStaticFiles();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
+
+// // BOM seed — ürünlere örnek reçete ekler
+// using (var scope = app.Services.CreateScope())
+// {
+//     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+//     if (!db.BillOfMaterials.Any() && db.Products.Count() >= 5)
+//     {
+//         var products = db.Products.OrderBy(p => p.Id).ToList();
+
+//         // Servo Motor 24V (products[1]) için reçete
+//         // products[0] req=1  → Yeterli  (neredeyse her stokta karşılanır)
+//         // products[3] req=9999 → Yetersiz
+//         // products[4] req=9999 → Yetersiz
+//         db.BillOfMaterials.AddRange(
+//             new BillOfMaterial { ProductId = products[1].Id, ComponentProductId = products[0].Id, RequiredQuantity = 1,    Notes = "Motor muhafazası için profil" },
+//             new BillOfMaterial { ProductId = products[1].Id, ComponentProductId = products[3].Id, RequiredQuantity = 9999, Notes = "Motor kimlik kartı — stok yetersiz!" },
+//             new BillOfMaterial { ProductId = products[1].Id, ComponentProductId = products[4].Id, RequiredQuantity = 9999, Notes = "Sürücü step motor — stok yetersiz!" }
+//         );
+
+//         // Konveyör Bant (products[2]) için reçete
+//         // products[0] req=9999 → Yetersiz
+//         // products[1] req=1  → Yeterli
+//         // products[4] req=1  → Yeterli
+//         db.BillOfMaterials.AddRange(
+//             new BillOfMaterial { ProductId = products[2].Id, ComponentProductId = products[0].Id, RequiredQuantity = 9999, Notes = "Konveyör taşıyıcı profil — stok yetersiz!" },
+//             new BillOfMaterial { ProductId = products[2].Id, ComponentProductId = products[1].Id, RequiredQuantity = 1,    Notes = "Tahrik motoru" },
+//             new BillOfMaterial { ProductId = products[2].Id, ComponentProductId = products[4].Id, RequiredQuantity = 1,    Notes = "Gergi step motoru" }
+//         );
+
+//         await db.SaveChangesAsync();
+//     }
+// }
 
 // // Seed: Roller ve Admin kullanıcı
 // using (var scope = app.Services.CreateScope())

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ASRS.DAL")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0236e4faad9ca730846468d121f9b0cd5e8184c2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+30a4b7369f00d11bb4475018307a099a9a1fbba5")]
 [assembly: System.Reflection.AssemblyProductAttribute("ASRS.DAL")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ASRS.DAL")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

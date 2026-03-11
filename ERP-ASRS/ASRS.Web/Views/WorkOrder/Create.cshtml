@@ -1,0 +1,185 @@
+@model ASRS.Core.DTOs.CreateWorkOrderDto
+@{
+    ViewData["Title"] = "Yeni İş Emri Oluştur";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <h1 class="page-title">Yeni İş Emri Oluştur</h1>
+    <a asp-action="Index" class="btn-edit">← Geri Dön</a>
+</div>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert-box alert-error">@ViewBag.Error</div>
+}
+
+<form method="post" asp-action="Create">
+
+    @* İş Emri Bilgileri *@
+    <div class="card" style="margin-bottom:1.5rem;">
+        <div class="card-header">
+            <h2 class="card-title">İş Emri Bilgileri</h2>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Başlık <span style="color:var(--danger)">*</span></label>
+                <input type="text" name="Title" class="form-input" placeholder="İş emri başlığı" required />
+            </div>
+            <div class="form-group">
+                <label>Ürün <span style="color:var(--danger)">*</span></label>
+                <select name="ProductId" id="productSelect" class="form-input" required onchange="loadBom(this.value)">
+                    <option value="">Seçin...</option>
+                    @foreach (var p in ViewBag.Products)
+                    {
+                        <option value="@p.Id">@p.Code — @p.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Miktar <span style="color:var(--danger)">*</span></label>
+                <input type="number" name="Quantity" class="form-input" min="1" value="1" required />
+            </div>
+            <div class="form-group">
+                <label>Öncelik</label>
+                <select name="Priority" class="form-input">
+                    <option value="0">Düşük</option>
+                    <option value="1" selected>Orta</option>
+                    <option value="2">Yüksek</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Planlanan Başlangıç <span style="color:var(--danger)">*</span></label>
+                <input type="date" name="PlannedStartDate" class="form-input" required />
+            </div>
+            <div class="form-group">
+                <label>Planlanan Bitiş <span style="color:var(--danger)">*</span></label>
+                <input type="date" name="PlannedEndDate" class="form-input" required />
+            </div>
+            <div class="form-group" style="flex:1 1 100%;">
+                <label>Notlar</label>
+                <input type="text" name="Notes" class="form-input" placeholder="Opsiyonel not..." />
+            </div>
+        </div>
+    </div>
+
+    @* BOM / Reçete Bölümü *@
+    <div class="card" style="margin-bottom:1.5rem;">
+        <div class="card-header">
+            <h2 class="card-title">Gerekli Malzemeler (Reçete)</h2>
+        </div>
+
+        <div id="bomEmpty" style="padding:1rem; color:var(--text-muted);">
+            Reçeteyi görmek için yukarıdan bir ürün seçin.
+        </div>
+
+        <div id="bomContent" style="display:none;">
+            <table class="data-table" id="bomTable">
+                <thead>
+                    <tr>
+                        <th>Ürün Kodu</th>
+                        <th>Malzeme Adı</th>
+                        <th>Gereken Miktar</th>
+                        <th>Stok Durumu</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody id="bomBody">
+                </tbody>
+            </table>
+
+            <div id="bomWarning" style="display:none; padding:0.75rem 1rem; margin:1rem; background:rgba(255,180,0,0.1); border-left:3px solid var(--warning, #f0a500); border-radius:4px; color:#f0a500;">
+                 Bazı malzemelerin stoğu yetersiz. İş emri oluşturulacak ancak eksik malzemeleri satın alma bölümünden talep etmeniz gerekebilir.
+            </div>
+
+            <div id="bomOk" style="display:none; padding:0.75rem 1rem; margin:1rem; background:rgba(0,200,100,0.1); border-left:3px solid #00c864; border-radius:4px; color:#00c864;">
+                 Tüm malzemelerin stoğu yeterli.
+            </div>
+        </div>
+
+        <div id="bomNone" style="display:none; padding:1rem; color:var(--text-muted);">
+            Bu ürün için tanımlı reçete bulunamadı. İş emri yine de oluşturulabilir.
+        </div>
+    </div>
+
+    <div style="display:flex; gap:1rem;">
+        <button type="submit" class="btn-primary">İş Emri Oluştur</button>
+        <a asp-action="Index" class="btn-edit">İptal</a>
+    </div>
+
+</form>
+
+@section Scripts {
+<script>
+    async function loadBom(productId) {
+        const bomEmpty   = document.getElementById('bomEmpty');
+        const bomContent = document.getElementById('bomContent');
+        const bomNone    = document.getElementById('bomNone');
+        const bomBody    = document.getElementById('bomBody');
+        const bomWarning = document.getElementById('bomWarning');
+        const bomOk      = document.getElementById('bomOk');
+
+        if (!productId) {
+            bomEmpty.style.display   = 'block';
+            bomContent.style.display = 'none';
+            bomNone.style.display    = 'none';
+            return;
+        }
+
+        const response = await fetch(`/WorkOrder/GetBom?productId=${productId}`);
+        const items    = await response.json();
+
+        bomEmpty.style.display = 'none';
+
+        if (!items || items.length === 0) {
+            bomContent.style.display = 'none';
+            bomNone.style.display    = 'block';
+            return;
+        }
+
+        bomContent.style.display = 'block';
+        bomNone.style.display    = 'none';
+        bomBody.innerHTML        = '';
+
+        let hasInsufficient = false;
+
+        items.forEach(item => {
+            const sufficient = item.isStockSufficient;
+            if (!sufficient) { hasInsufficient = true; }
+
+            const stockColor  = sufficient ? '#00c864' : '#f04e37';
+            const statusBadge = sufficient
+                ? '<span style="display:inline-block; background:#00c864; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yeterli</span>'
+                : '<span style="display:inline-block; background:#f04e37; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yetersiz</span>';
+
+            const purchaseBtn = sufficient ? '' :
+                `<a href="/Purchase/Create?productId=${item.componentProductId}&productName=${encodeURIComponent(item.componentProductName)}&requiredQuantity=${item.requiredQuantity}"
+                    style="display:inline-block; margin-left:0.5rem; background:#f59e0b; color:#fff; font-weight:600; font-size:0.75rem; padding:0.25rem 0.65rem; border-radius:50px; text-decoration:none; white-space:nowrap;">
+                    Satın Alma Talebi
+                 </a>`;
+
+            const row = `
+                <tr>
+                    <td><span class="product-code">${item.componentProductCode}</span></td>
+                    <td>${item.componentProductName}</td>
+                    <td><strong>${item.requiredQuantity}</strong></td>
+                    <td style="color:${stockColor}">${item.stockQuantity} adet</td>
+                    <td>${statusBadge}${purchaseBtn}</td>
+                </tr>`;
+            bomBody.insertAdjacentHTML('beforeend', row);
+        });
+
+        if (hasInsufficient) {
+            bomWarning.style.display = 'block';
+            bomOk.style.display      = 'none';
+        } else {
+            bomWarning.style.display = 'none';
+            bomOk.style.display      = 'block';
+        }
+    }
+</script>
+}
