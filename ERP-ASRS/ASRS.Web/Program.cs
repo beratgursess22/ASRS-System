@@ -40,6 +40,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 builder.Services.AddScoped<IBomService, BomService>();
+builder.Services.AddScoped<IMaterialService, MaterialService>();
 
 builder.Services.AddControllersWithViews();
 
@@ -151,6 +152,24 @@ app.MapControllerRoute(
 //         );
 //         await db.SaveChangesAsync();
 //     }
+
+// Malzeme Seed - Test verileri
+// using (var scope = app.Services.CreateScope())
+// {
+//     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    
+//     if (!db.Materials.Any())
+//     {
+//         db.Materials.AddRange(
+//             new Material { Code = "MAT-001", Name = "M6 Vida", Unit = "Adet", StockQuantity = 500, MinStockLevel = 100, Description = "M6x20 İmbus Vida" },
+//             new Material { Code = "MAT-002", Name = "T-Nut", Unit = "Adet", StockQuantity = 400, MinStockLevel = 80, Description = "M6 T-Nut" },
+//             new Material { Code = "MAT-003", Name = "Rulman 608", Unit = "Adet", StockQuantity = 50, MinStockLevel = 20, Description = "608ZZ Rulman" },
+//             new Material { Code = "MAT-004", Name = "Kablo 1mm²", Unit = "Metre", StockQuantity = 200, MinStockLevel = 50, Description = "Siyah Kablo" },
+//             new Material { Code = "MAT-005", Name = "Somun M6", Unit = "Adet", StockQuantity = 600, MinStockLevel = 150, Description = "Altı köşe somun" }
+//         );
+//         await db.SaveChangesAsync();
+//     }
+// }
 
 //     // İş emri seed
 //     if (!db.WorkOrders.Any())

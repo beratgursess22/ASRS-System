@@ -19,23 +19,46 @@ public class BomService : IBomService
     {
         var items = await _context.BillOfMaterials
             .Include(b => b.ComponentProduct)
+            .Include(b => b.Material)
             .Where(b => b.ProductId == productId)
             .ToListAsync();
 
         var result = new List<BomItemListDto>();
         foreach (var item in items)
         {
+            string code = string.Empty;
+            string name = string.Empty;
+            int stock = 0;
+            string type = string.Empty;
+
+            if (item.ComponentProduct != null)
+            {
+                code = item.ComponentProduct.Code;
+                name = item.ComponentProduct.Name;
+                stock = item.ComponentProduct.StockQuantity;
+                type = "Product";
+            }
+            else if (item.Material != null)
+            {
+                code = item.Material.Code;
+                name = item.Material.Name;
+                stock = item.Material.StockQuantity;
+                type = "Material";
+            }
+
             var dto = new BomItemListDto
             {
                 Id                   = item.Id,
                 ProductId            = item.ProductId,
                 ComponentProductId   = item.ComponentProductId,
-                ComponentProductCode = item.ComponentProduct.Code,
-                ComponentProductName = item.ComponentProduct.Name,
+                MaterialId           = item.MaterialId,
+                ComponentCode        = code,
+                ComponentName        = name,
                 RequiredQuantity     = item.RequiredQuantity,
-                StockQuantity        = item.ComponentProduct.StockQuantity,
-                IsStockSufficient    = item.ComponentProduct.StockQuantity >= item.RequiredQuantity,
-                Notes                = item.Notes
+                StockQuantity        = stock,
+                IsStockSufficient    = stock >= item.RequiredQuantity,
+                Notes                = item.Notes,
+                ComponentType        = type
             };
             result.Add(dto);
         }
@@ -48,6 +71,7 @@ public class BomService : IBomService
         {
             ProductId          = productId,
             ComponentProductId = dto.ComponentProductId,
+            MaterialId         = dto.MaterialId,
             RequiredQuantity   = dto.RequiredQuantity,
             Notes              = dto.Notes
         };

@@ -1,0 +1,177 @@
+@using ASRS.Core.DTOs
+@{
+	ViewData["Title"] = "BOM Yönetimi";
+	var product = (ASRS.Core.DTOs.ProductListDto)ViewBag.Product;
+	var bomItems = (IEnumerable<ASRS.Core.DTOs.BomItemListDto>)ViewBag.BomItems;
+	var allProducts = (IEnumerable<ASRS.Core.DTOs.ProductListDto>)ViewBag.AllProducts;
+	var allMaterials = (IEnumerable<ASRS.Core.DTOs.MaterialListDto>)ViewBag.AllMaterials;
+}
+
+@section Styles {
+	<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+	<h1 class="page-title">BOM / Reçete — @product.Name</h1>
+	<a asp-action="Index" class="btn-edit">← Ürünlere Dön</a>
+</div>
+
+@if (ViewBag.Error != null)
+{
+	<div class="alert-box alert-error">@ViewBag.Error</div>
+}
+
+@* {{!-- Bileşen Ekle --}} *@
+<div class="card" style="margin-bottom:1.5rem;">
+	<div class="card-header">
+		<h2 class="card-title">Bileşen Ekle</h2>
+	</div>
+	<form method="post" asp-action="AddBomItem" id="bomForm">
+		<input type="hidden" name="productId" value="@product.Id" />
+		<div class="form-row">
+			<div class="form-group" style="grid-column: span 3;">
+				<label>Bileşen Tipi <span style="color:var(--danger)">*</span></label>
+				<div style="display:flex; gap:1rem; margin-top:0.5rem;">
+					<label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+						<input type="radio" name="componentType" value="Product" checked onchange="toggleComponentType()" />
+						<span>Ürün</span>
+					</label>
+					<label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+						<input type="radio" name="componentType" value="Material" onchange="toggleComponentType()" />
+						<span>Malzeme</span>
+					</label>
+				</div>
+			</div>
+		</div>
+		<div class="form-row">
+			<div class="form-group" id="productSelect">
+				<label>Bileşen Ürün <span style="color:var(--danger)">*</span></label>
+				<select name="ComponentProductId" class="form-input">
+					<option value="">Seçin...</option>
+					@foreach (var p in allProducts)
+					{
+						<option value="@p.Id">@p.Code — @p.Name</option>
+					}
+				</select>
+			</div>
+			<div class="form-group" id="materialSelect" style="display:none;">
+				<label>Bileşen Malzeme <span style="color:var(--danger)">*</span></label>
+				<select name="MaterialId" class="form-input">
+					<option value="">Seçin...</option>
+					@foreach (var m in allMaterials)
+					{
+						<option value="@m.Id">@m.Code — @m.Name</option>
+					}
+				</select>
+			</div>
+			<div class="form-group">
+				<label>Gereken Miktar <span style="color:var(--danger)">*</span></label>
+				<input type="number" name="RequiredQuantity" class="form-input" min="1" value="1" required />
+			</div>
+			<div class="form-group">
+				<label>Not</label>
+				<input type="text" name="Notes" class="form-input" placeholder="Opsiyonel..." />
+			</div>
+		</div>
+		<button type="submit" class="btn-primary">+ Ekle</button>
+	</form>
+</div>
+
+<script>
+function toggleComponentType() {
+	const componentType = document.querySelector('input[name="componentType"]:checked').value;
+	const productSelect = document.getElementById('productSelect');
+	const materialSelect = document.getElementById('materialSelect');
+	const productDropdown = document.querySelector('select[name="ComponentProductId"]');
+	const materialDropdown = document.querySelector('select[name="MaterialId"]');
+	
+	if (componentType === 'Product') {
+		productSelect.style.display = 'block';
+		materialSelect.style.display = 'none';
+		productDropdown.required = true;
+		materialDropdown.required = false;
+		materialDropdown.value = '';
+	} else {
+		productSelect.style.display = 'none';
+		materialSelect.style.display = 'block';
+		productDropdown.required = false;
+		materialDropdown.required = true;
+		productDropdown.value = '';
+	}
+}
+</script>
+
+@* {{!-- BOM Listesi --}} *@
+<div class="card">
+	<div class="card-header">
+		<h2 class="card-title">Mevcut Reçete (@bomItems.Count() kalem)</h2>
+	</div>
+
+	@if (!bomItems.Any())
+	{
+		<p style="padding:1rem; color:var(--text-muted);">Henüz bileşen eklenmedi.</p>
+	}
+	else
+	{
+		<table class="data-table">
+			<thead>
+				<tr>
+					<th>Tip</th>
+					<th>Kod</th>
+					<th>Bileşen Adı</th>
+					<th>Gereken Miktar</th>
+					<th>Mevcut Stok</th>
+					<th>Durum</th>
+					<th>Not</th>
+					<th>İşlem</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var item in bomItems)
+				{
+					<tr>
+						<td>
+							@if (item.ComponentType == "Product")
+							{
+								<span style="display:inline-block; background:#3b82f6; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Ürün</span>
+							}
+							else
+							{
+								<span style="display:inline-block; background:#8b5cf6; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Malzeme</span>
+							}
+						</td>
+						<td><span class="product-code">@item.ComponentCode</span></td>
+						<td>@item.ComponentName</td>
+						<td><strong>@item.RequiredQuantity</strong></td>
+						<td>@item.StockQuantity</td>
+						<td>
+							@if (item.IsStockSufficient)
+							{
+								<span
+								style="display:inline-block; background:#00c864; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yeterli</span>
+							}
+							else
+							{
+								<span
+								style="display:inline-block; background:#f04e37; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yetersiz</span>
+							}
+						</td>
+						<td>@(item.Notes ?? "-")</td>
+						<td>
+							<form method="post" asp-action="DeleteBomItem"
+								  onsubmit="return confirm('@item.ComponentName silinecek. Emin misiniz?')">
+								<input type="hidden" name="id" value="@item.Id" />
+								<input type="hidden" name="productId" value="@product.Id" />
+								<button type="submit" class="btn-delete">Sil</button>
+							</form>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	}
+</div>
+
+<div style="margin-top:1rem;">
+	<a asp-action="Index" class="btn-edit">← Ürünlere Dön</a>
+</div>
