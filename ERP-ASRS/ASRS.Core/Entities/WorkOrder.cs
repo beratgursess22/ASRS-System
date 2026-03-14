@@ -26,4 +26,6 @@ public class WorkOrder
 	public int? PurchaseRequestId { get; set; }
 	public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 	public DateTime? CompletedAt { get; set; }
+	public bool IsStockConsumed { get; set; } = false;
+	public DateTime? StockConsumedAt { get; set; }
 }

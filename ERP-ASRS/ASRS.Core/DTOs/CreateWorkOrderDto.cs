@@ -12,6 +12,7 @@ public class CreateWorkOrderDto
     public int ProductId { get; set; }
 
     [Required]
+    [Range(1, int.MaxValue, ErrorMessage = "Miktar 1 veya daha büyük olmalıdır.")]
     public int Quantity { get; set; }
 
     public WorkOrderPriority Priority { get; set; } = WorkOrderPriority.Medium;

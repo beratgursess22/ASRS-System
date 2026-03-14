@@ -56,7 +56,6 @@ public class WorkOrderController : Controller
         return RedirectToAction("Index");
     }
 
-    // AJAX: Ürün seçilince BOM listesini döner
     [HttpGet]
     public async Task<IActionResult> GetBom(int productId)
     {
@@ -70,8 +69,7 @@ public class WorkOrderController : Controller
     {
         var updated = await _workOrderService.UpdateStatusAsync(id, status);
         if (!updated)
-            TempData["Error"] = "Stok yetersiz olduğu için iş emri tamamlanamadı veya iş emri bulunamadı.";
-
+            TempData["Error"] = "Durum güncellenemedi. Geçersiz durum geçişi, stok yetersizliği veya terminal durum kısıtı nedeniyle işlem reddedildi.";
         return RedirectToAction("Index");
     }
 

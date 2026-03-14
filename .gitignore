@@ -8,6 +8,8 @@
 *.userosscache
 *.sln.docstates
 .vs/
+.vscode/
+.idea/
 
 # NuGet
 *.nupkg
@@ -16,10 +18,17 @@
 
 # dotnet publish
 **/publish/
+**/TestResults/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Local database and temp files
+*.db
+*.sqlite
+*.sqlite3
+*.tmp
 
 # Logs
 *.log

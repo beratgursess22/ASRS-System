@@ -139,27 +139,71 @@ public class WorkOrderService : IWorkOrderService
 		if (workOrder == null)
 			return false;
 
-		var alreadyConsumed = workOrder.Status == WorkOrderStatus.Approved
-						   || workOrder.Status == WorkOrderStatus.InProgress
-						   || workOrder.Status == WorkOrderStatus.Completed;
+		var previousStatus = workOrder.Status;
 
-		var shouldConsumeNow = newStatus == WorkOrderStatus.Approved
-							|| newStatus == WorkOrderStatus.InProgress
-							|| newStatus == WorkOrderStatus.Completed;
+		if (previousStatus == newStatus)
+			return true;
 
-		if (shouldConsumeNow && !alreadyConsumed)
+		if (!IsTransitionAllowed(previousStatus, newStatus))
+			return false;
+
+		// Üretim akışına ilk girişte stok tüket (taslak / malzeme bekleniyor -> onaylandı)
+		if ((previousStatus == WorkOrderStatus.Draft || previousStatus == WorkOrderStatus.WaitingForMaterial)
+			&& newStatus == WorkOrderStatus.Approved
+			&& !workOrder.IsStockConsumed)
 		{
 			var consumed = await ConsumeBomStockAsync(workOrder);
 			if (!consumed)
 				return false;
+
+			workOrder.IsStockConsumed = true;
+			workOrder.StockConsumedAt = DateTime.UtcNow;
 		}
 
-		if (newStatus == WorkOrderStatus.Completed)
+		// Onaylandı / Devam Ediyor -> İptal dönüşünde stok iade et
+		if ((previousStatus == WorkOrderStatus.Approved || previousStatus == WorkOrderStatus.InProgress)
+			&& newStatus == WorkOrderStatus.Cancelled
+			&& workOrder.IsStockConsumed)
+		{
+			await RestoreBomStockAsync(workOrder);
+			workOrder.IsStockConsumed = false;
+			workOrder.StockConsumedAt = null;
+		}
+
+		if (newStatus == WorkOrderStatus.Completed && workOrder.CompletedAt == null)
 			workOrder.CompletedAt = DateTime.UtcNow;
 
 		workOrder.Status = newStatus;
 		await _context.SaveChangesAsync();
 		return true;
+	}
+
+	private static bool IsTransitionAllowed(WorkOrderStatus currentStatus, WorkOrderStatus newStatus)
+	{
+		return currentStatus switch
+		{
+			WorkOrderStatus.Draft =>
+				newStatus == WorkOrderStatus.Approved ||
+				newStatus == WorkOrderStatus.WaitingForMaterial ||
+				newStatus == WorkOrderStatus.Cancelled,
+
+			WorkOrderStatus.WaitingForMaterial =>
+				newStatus == WorkOrderStatus.Approved ||
+				newStatus == WorkOrderStatus.Cancelled,
+
+			WorkOrderStatus.Approved =>
+				newStatus == WorkOrderStatus.InProgress ||
+				newStatus == WorkOrderStatus.Completed ||
+				newStatus == WorkOrderStatus.Cancelled,
+
+			WorkOrderStatus.InProgress =>
+				newStatus == WorkOrderStatus.Completed ||
+				newStatus == WorkOrderStatus.Cancelled,
+
+			WorkOrderStatus.Completed => false,
+			WorkOrderStatus.Cancelled => false,
+			_ => false
+		};
 	}
 
 	private async Task<bool> ConsumeBomStockAsync(WorkOrder workOrder)
@@ -198,6 +242,26 @@ public class WorkOrderService : IWorkOrderService
 
 		return true;
 	}
+
+	private async Task RestoreBomStockAsync(WorkOrder workOrder)
+	{
+		var bomItems = await _context.BillOfMaterials
+			.Include(b => b.ComponentProduct)
+			.Include(b => b.Material)
+			.Where(b => b.ProductId == workOrder.ProductId)
+			.ToListAsync();
+
+		foreach (var item in bomItems)
+		{
+			var totalRequired = item.RequiredQuantity * workOrder.Quantity;
+
+			if (item.ComponentProductId.HasValue && item.ComponentProduct != null)
+				item.ComponentProduct.StockQuantity += totalRequired;
+			else if (item.MaterialId.HasValue && item.Material != null)
+				item.Material.StockQuantity += totalRequired;
+		}
+	}
+
 	public async Task<bool> DeleteAsync(int id)
 	{
 		var workOrder = await _context.WorkOrders.FindAsync(id);
