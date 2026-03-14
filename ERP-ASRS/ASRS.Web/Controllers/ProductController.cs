@@ -80,6 +80,7 @@ public class ProductController : Controller
         ViewBag.BomItems = bomItems;
         ViewBag.AllProducts = allProducts.Where(p => p.Id != id).ToList();
         ViewBag.AllMaterials = allMaterials.ToList();
+        ViewBag.Error = TempData["BomError"] as string;
         return View();
     }
 
@@ -90,7 +91,21 @@ public class ProductController : Controller
         if (!ModelState.IsValid)
             return RedirectToAction("Bom", new { id = productId });
 
-        await _bomService.AddBomItemAsync(productId, dto);
+        var isAdded = await _bomService.AddBomItemAsync(productId, dto);
+        if (!isAdded)
+            TempData["BomError"] = "Bileşen eklenemedi. Aynı bileşen zaten ekli olabilir veya seçim/miktar geçersizdir.";
+
+        return RedirectToAction("Bom", new { id = productId });
+    }
+
+    [Authorize(Roles = "Yönetici,Depo")]
+    [HttpPost]
+    public async Task<IActionResult> UpdateBomItem(int id, int productId, int requiredQuantity, string? notes)
+    {
+        var updated = await _bomService.UpdateBomItemAsync(id, requiredQuantity, notes);
+        if (!updated)
+            TempData["BomError"] = "BOM satırı güncellenemedi. Miktar geçersiz veya satır bulunamadı.";
+
         return RedirectToAction("Bom", new { id = productId });
     }
 

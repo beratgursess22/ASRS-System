@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
 }
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert-box alert-error">@TempData["Error"]</div>
+}
+
 <div class="page-header">
     <h1 class="page-title">İş Emirleri</h1>
     @if (User.IsInRole("Yönetici") || User.IsInRole("Üretim"))

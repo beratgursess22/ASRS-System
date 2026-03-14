@@ -68,7 +68,10 @@ public class WorkOrderController : Controller
     [HttpPost]
     public async Task<IActionResult> UpdateStatus(int id, WorkOrderStatus status)
     {
-        await _workOrderService.UpdateStatusAsync(id, status);
+        var updated = await _workOrderService.UpdateStatusAsync(id, status);
+        if (!updated)
+            TempData["Error"] = "Stok yetersiz olduğu için iş emri tamamlanamadı veya iş emri bulunamadı.";
+
         return RedirectToAction("Index");
     }
 

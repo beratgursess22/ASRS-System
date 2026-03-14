@@ -9,6 +9,104 @@
 
 @section Styles {
 	<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+	<style>
+			.bom-edit-banner {
+				display: none;
+				margin: 0 0 1rem;
+				padding: 1rem;
+				border: 1px solid rgba(123, 112, 255, 0.35);
+				border-radius: 10px;
+				background: rgba(123, 112, 255, 0.08);
+			}
+
+			.bom-edit-banner.active {
+				display: block;
+			}
+
+			.bom-edit-title {
+				margin: 0 0 0.75rem;
+				font-size: 0.95rem;
+				font-weight: 700;
+				color: #d9ddff;
+			}
+
+			.bom-edit-form {
+				display: grid;
+				grid-template-columns: 90px 1fr auto auto;
+				gap: 0.5rem;
+				align-items: center;
+				margin: 0;
+			}
+
+			.bom-edit-form .form-input {
+				height: 34px;
+				padding: 0.35rem 0.55rem;
+				font-size: 0.85rem;
+			}
+
+			.bom-edit-form .qty-input {
+				text-align: center;
+			}
+
+			.bom-edit-form .btn-edit {
+				height: 34px;
+				padding: 0 0.75rem;
+				white-space: nowrap;
+			}
+
+			.bom-actions {
+				min-width: 170px;
+			}
+
+			.bom-action-buttons {
+				display: flex;
+				gap: 0.45rem;
+				align-items: center;
+			}
+
+			.bom-action-buttons .btn-edit,
+			.bom-action-buttons .btn-delete {
+				height: 30px;
+				padding: 0 0.7rem;
+				font-size: 0.78rem;
+			}
+
+			.bom-action-buttons .btn-edit {
+				min-width: 76px;
+			}
+
+			.bom-edit-close {
+				height: 34px;
+				padding: 0 0.75rem;
+				white-space: nowrap;
+			}
+
+			@@media (max-width: 1200px) {
+				.bom-edit-form {
+					grid-template-columns: 74px 1fr auto;
+				}
+
+				.bom-edit-form .bom-edit-close {
+					grid-column: span 3;
+				}
+			}
+
+			@@media (max-width: 900px) {
+				.bom-edit-form {
+					grid-template-columns: 1fr;
+				}
+
+				.bom-edit-form .form-input,
+				.bom-edit-form .btn-edit,
+				.bom-edit-form .bom-edit-close {
+					width: 100%;
+				}
+
+				.bom-actions {
+					min-width: 150px;
+				}
+			}
+	</style>
 }
 
 <div class="page-header">
@@ -33,7 +131,8 @@
 				<label>Bileşen Tipi <span style="color:var(--danger)">*</span></label>
 				<div style="display:flex; gap:1rem; margin-top:0.5rem;">
 					<label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-						<input type="radio" name="componentType" value="Product" checked onchange="toggleComponentType()" />
+						<input type="radio" name="componentType" value="Product" checked
+							   onchange="toggleComponentType()" />
 						<span>Ürün</span>
 					</label>
 					<label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
@@ -78,27 +177,27 @@
 </div>
 
 <script>
-function toggleComponentType() {
-	const componentType = document.querySelector('input[name="componentType"]:checked').value;
-	const productSelect = document.getElementById('productSelect');
-	const materialSelect = document.getElementById('materialSelect');
-	const productDropdown = document.querySelector('select[name="ComponentProductId"]');
-	const materialDropdown = document.querySelector('select[name="MaterialId"]');
-	
-	if (componentType === 'Product') {
-		productSelect.style.display = 'block';
-		materialSelect.style.display = 'none';
-		productDropdown.required = true;
-		materialDropdown.required = false;
-		materialDropdown.value = '';
-	} else {
-		productSelect.style.display = 'none';
-		materialSelect.style.display = 'block';
-		productDropdown.required = false;
-		materialDropdown.required = true;
-		productDropdown.value = '';
+	function toggleComponentType() {
+		const componentType = document.querySelector('input[name="componentType"]:checked').value;
+		const productSelect = document.getElementById('productSelect');
+		const materialSelect = document.getElementById('materialSelect');
+		const productDropdown = document.querySelector('select[name="ComponentProductId"]');
+		const materialDropdown = document.querySelector('select[name="MaterialId"]');
+
+		if (componentType === 'Product') {
+			productSelect.style.display = 'block';
+			materialSelect.style.display = 'none';
+			productDropdown.required = true;
+			materialDropdown.required = false;
+			materialDropdown.value = '';
+		} else {
+			productSelect.style.display = 'none';
+			materialSelect.style.display = 'block';
+			productDropdown.required = false;
+			materialDropdown.required = true;
+			productDropdown.value = '';
+		}
 	}
-}
 </script>
 
 @* {{!-- BOM Listesi --}} *@
@@ -113,6 +212,19 @@ function toggleComponentType() {
 	}
 	else
 	{
+		<div id="bomEditBanner" class="bom-edit-banner">
+			<p class="bom-edit-title">BOM Kalemi Güncelle: <span id="bomEditComponent">-</span></p>
+			<form method="post" asp-action="UpdateBomItem" class="bom-edit-form">
+				<input type="hidden" name="id" id="bomEditId" />
+				<input type="hidden" name="productId" value="@product.Id" />
+				<input type="number" name="requiredQuantity" id="bomEditQty" class="form-input qty-input" min="1"
+					   required />
+				<input type="text" name="notes" id="bomEditNotes" class="form-input" placeholder="Not..." />
+				<button type="submit" class="btn-edit">Güncelle</button>
+				<button type="button" class="btn-delete bom-edit-close" onclick="closeBomEditPanel()">Vazgeç</button>
+			</form>
+		</div>
+
 		<table class="data-table">
 			<thead>
 				<tr>
@@ -133,11 +245,13 @@ function toggleComponentType() {
 						<td>
 							@if (item.ComponentType == "Product")
 							{
-								<span style="display:inline-block; background:#3b82f6; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Ürün</span>
+								<span
+								style="display:inline-block; background:#3b82f6; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Ürün</span>
 							}
 							else
 							{
-								<span style="display:inline-block; background:#8b5cf6; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Malzeme</span>
+								<span
+								style="display:inline-block; background:#8b5cf6; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Malzeme</span>
 							}
 						</td>
 						<td><span class="product-code">@item.ComponentCode</span></td>
@@ -157,13 +271,19 @@ function toggleComponentType() {
 							}
 						</td>
 						<td>@(item.Notes ?? "-")</td>
-						<td>
-							<form method="post" asp-action="DeleteBomItem"
-								  onsubmit="return confirm('@item.ComponentName silinecek. Emin misiniz?')">
-								<input type="hidden" name="id" value="@item.Id" />
-								<input type="hidden" name="productId" value="@product.Id" />
-								<button type="submit" class="btn-delete">Sil</button>
-							</form>
+						<td class="bom-actions">
+							<div class="bom-action-buttons">
+								<button type="button" class="btn-edit" data-id="@item.Id" data-code="@item.ComponentCode"
+										data-name="@item.ComponentName" data-qty="@item.RequiredQuantity"
+										data-notes="@(item.Notes ?? string.Empty)"
+										onclick="openBomEditPanel(this)">Güncelle</button>
+								<form method="post" asp-action="DeleteBomItem"
+									  onsubmit="return confirm('@item.ComponentName silinecek. Emin misiniz?')">
+									<input type="hidden" name="id" value="@item.Id" />
+									<input type="hidden" name="productId" value="@product.Id" />
+									<button type="submit" class="btn-delete">Sil</button>
+								</form>
+							</div>
 						</td>
 					</tr>
 				}
@@ -171,6 +291,31 @@ function toggleComponentType() {
 		</table>
 	}
 </div>
+
+<script>
+	function openBomEditPanel(triggerButton) {
+		const panel = document.getElementById('bomEditBanner');
+		const component = document.getElementById('bomEditComponent');
+		const idInput = document.getElementById('bomEditId');
+		const qtyInput = document.getElementById('bomEditQty');
+		const notesInput = document.getElementById('bomEditNotes');
+		const data = triggerButton.dataset;
+
+		component.textContent = `${data.code} - ${data.name}`;
+		idInput.value = data.id;
+		qtyInput.value = data.qty;
+		notesInput.value = data.notes || '';
+
+		panel.classList.add('active');
+		qtyInput.focus();
+		panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	}
+
+	function closeBomEditPanel() {
+		const panel = document.getElementById('bomEditBanner');
+		panel.classList.remove('active');
+	}
+</script>
 
 <div style="margin-top:1rem;">
 	<a asp-action="Index" class="btn-edit">← Ürünlere Dön</a>

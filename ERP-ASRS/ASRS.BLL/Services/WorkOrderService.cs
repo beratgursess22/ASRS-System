@@ -139,15 +139,65 @@ public class WorkOrderService : IWorkOrderService
 		if (workOrder == null)
 			return false;
 
-		workOrder.Status = newStatus;
+		var alreadyConsumed = workOrder.Status == WorkOrderStatus.Approved
+						   || workOrder.Status == WorkOrderStatus.InProgress
+						   || workOrder.Status == WorkOrderStatus.Completed;
+
+		var shouldConsumeNow = newStatus == WorkOrderStatus.Approved
+							|| newStatus == WorkOrderStatus.InProgress
+							|| newStatus == WorkOrderStatus.Completed;
+
+		if (shouldConsumeNow && !alreadyConsumed)
+		{
+			var consumed = await ConsumeBomStockAsync(workOrder);
+			if (!consumed)
+				return false;
+		}
 
 		if (newStatus == WorkOrderStatus.Completed)
 			workOrder.CompletedAt = DateTime.UtcNow;
 
+		workOrder.Status = newStatus;
 		await _context.SaveChangesAsync();
 		return true;
 	}
 
+	private async Task<bool> ConsumeBomStockAsync(WorkOrder workOrder)
+	{
+		var bomItems = await _context.BillOfMaterials
+			.Include(b => b.ComponentProduct)
+			.Include(b => b.Material)
+			.Where(b => b.ProductId == workOrder.ProductId)
+			.ToListAsync();
+
+		foreach (var item in bomItems)
+		{
+			var totalRequired = item.RequiredQuantity * workOrder.Quantity;
+
+			if (item.ComponentProductId.HasValue)
+			{
+				if (item.ComponentProduct == null || item.ComponentProduct.StockQuantity < totalRequired)
+					return false;
+			}
+			else if (item.MaterialId.HasValue)
+			{
+				if (item.Material == null || item.Material.StockQuantity < totalRequired)
+					return false;
+			}
+		}
+
+		foreach (var item in bomItems)
+		{
+			var totalRequired = item.RequiredQuantity * workOrder.Quantity;
+
+			if (item.ComponentProductId.HasValue && item.ComponentProduct != null)
+				item.ComponentProduct.StockQuantity -= totalRequired;
+			else if (item.MaterialId.HasValue && item.Material != null)
+				item.Material.StockQuantity -= totalRequired;
+		}
+
+		return true;
+	}
 	public async Task<bool> DeleteAsync(int id)
 	{
 		var workOrder = await _context.WorkOrders.FindAsync(id);
