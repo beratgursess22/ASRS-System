@@ -65,6 +65,111 @@ public class BomService : IBomService
         return result;
     }
 
+
+    public async Task<IReadOnlyList<BomRequirementNodeDto>> GetNestedBomRequirementsAsync(int productId, int workOrderQuantity)
+    {
+        if (workOrderQuantity <= 0)
+            return new List<BomRequirementNodeDto>();
+
+        var path = new HashSet<int>();
+        var nodes = await BuildNodesForProductAsync(productId, workOrderQuantity, path);
+        return nodes;
+
+        async Task<List<BomRequirementNodeDto>> BuildNodesForProductAsync(int currentProductId, int multiplier, HashSet<int> visiting)
+        {
+            if (multiplier <= 0)
+                return new List<BomRequirementNodeDto>();
+
+            // Path-level cycle guard: A -> B -> A
+            if (!visiting.Add(currentProductId))
+            {
+                return new List<BomRequirementNodeDto>
+            {
+                new BomRequirementNodeDto
+                {
+                    ComponentProductId = currentProductId,
+                    ComponentType = "Product",
+                    ComponentCode = "CYCLE",
+                    ComponentName = "Döngü tespit edildi",
+                    RequiredPerParent = 0,
+                    TotalRequired = 0,
+                    StockQuantity = 0,
+                    IsStockSufficient = false,
+                    IsCycleDetected = true
+                }
+            };
+            }
+
+            try
+            {
+                var items = await _context.BillOfMaterials
+                    .Include(b => b.ComponentProduct)
+                    .Include(b => b.Material)
+                    .Where(b => b.ProductId == currentProductId)
+                    .ToListAsync();
+
+                var result = new List<BomRequirementNodeDto>();
+
+                foreach (var item in items)
+                {
+                    var totalRequiredLong = (long)item.RequiredQuantity * multiplier;
+                    if (totalRequiredLong <= 0 || totalRequiredLong > int.MaxValue)
+                        continue;
+
+                    var totalRequired = (int)totalRequiredLong;
+
+                    if (item.ComponentProductId.HasValue && item.ComponentProduct != null)
+                    {
+                        var componentId = item.ComponentProductId.Value;
+                        var cycleDetected = visiting.Contains(componentId);
+
+                        var node = new BomRequirementNodeDto
+                        {
+                            ComponentProductId = componentId,
+                            ComponentType = "Product",
+                            ComponentCode = item.ComponentProduct.Code,
+                            ComponentName = item.ComponentProduct.Name,
+                            RequiredPerParent = item.RequiredQuantity,
+                            TotalRequired = totalRequired,
+                            StockQuantity = item.ComponentProduct.StockQuantity,
+                            IsStockSufficient = item.ComponentProduct.StockQuantity >= totalRequired,
+                            IsCycleDetected = cycleDetected
+                        };
+
+                        if (!cycleDetected)
+                        {
+                            node.Children = await BuildNodesForProductAsync(componentId, totalRequired, visiting);
+                            if (node.Children.Any(c => c.IsCycleDetected))
+                                node.IsCycleDetected = true;
+                        }
+
+                        result.Add(node);
+                    }
+                    else if (item.MaterialId.HasValue && item.Material != null)
+                    {
+                        result.Add(new BomRequirementNodeDto
+                        {
+                            MaterialId = item.MaterialId.Value,
+                            ComponentType = "Material",
+                            ComponentCode = item.Material.Code,
+                            ComponentName = item.Material.Name,
+                            RequiredPerParent = item.RequiredQuantity,
+                            TotalRequired = totalRequired,
+                            StockQuantity = item.Material.StockQuantity,
+                            IsStockSufficient = item.Material.StockQuantity >= totalRequired,
+                            IsCycleDetected = false
+                        });
+                    }
+                }
+
+                return result;
+            }
+            finally
+            {
+                visiting.Remove(currentProductId);
+            }
+        }
+    }
     public async Task<bool> AddBomItemAsync(int productId, BomItemDto dto)
     {
         if (dto.RequiredQuantity <= 0)
@@ -81,9 +186,15 @@ public class BomService : IBomService
         {
             if (componentProductId == productId)
                 return false;
+
             var componentExists = await _context.Products.AnyAsync(p => p.Id == componentProductId);
             if (!componentExists)
                 return false;
+
+            var createsCycle = await CreatesCycleAsync(productId, componentProductId);
+            if (createsCycle)
+                return false;
+
             var duplicateProductComponent = await _context.BillOfMaterials
                 .AnyAsync(b => b.ProductId == productId && b.ComponentProductId == componentProductId);
             if (duplicateProductComponent)
@@ -113,6 +224,39 @@ public class BomService : IBomService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    private async Task<bool> CreatesCycleAsync(int parentProductId, int childProductId)
+    {
+        if (parentProductId == childProductId)
+            return true;
+
+        var visited = new HashSet<int>();
+        return await HasPathToTargetAsync(childProductId, parentProductId, visited);
+    }
+
+    private async Task<bool> HasPathToTargetAsync(int currentProductId, int targetProductId, HashSet<int> visited)
+    {
+        if (currentProductId == targetProductId)
+            return true;
+
+        if (!visited.Add(currentProductId))
+            return false;
+
+        var nextProductIds = await _context.BillOfMaterials
+            .Where(b => b.ProductId == currentProductId && b.ComponentProductId.HasValue)
+            .Select(b => b.ComponentProductId!.Value)
+            .ToListAsync();
+
+        foreach (var nextId in nextProductIds)
+        {
+            var found = await HasPathToTargetAsync(nextId, targetProductId, visited);
+            if (found)
+                return true;
+        }
+
+        return false;
+    }
+
 
     public async Task<bool> UpdateBomItemAsync(int id, int requiredQuantity, string? notes)
     {

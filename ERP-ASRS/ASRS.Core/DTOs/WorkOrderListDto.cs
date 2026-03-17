@@ -5,6 +5,7 @@ namespace ASRS.Core.DTOs;
 public class WorkOrderListDto
 {
     public int Id { get; set; }
+    public int ProductId { get; set; }
     public string OrderNumber { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string ProductName { get; set; } = string.Empty;

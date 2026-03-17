@@ -4,6 +4,13 @@
     font-size: 0.8rem;
     color: var(--accent);
     letter-spacing: 0.03em;
+    text-decoration: none;
+    border-bottom: 1px dashed transparent;
+    transition: border-color 0.2s ease;
+}
+
+.order-number:hover {
+    border-bottom-color: var(--accent);
 }
 
 /* ── Product cell ── */
@@ -86,4 +93,152 @@
     width: 150px !important;
     padding: 0.25rem 0.5rem !important;
     font-size: 0.75rem !important;
+}
+
+/* ── WorkOrder Details / BOM Tree ── */
+.wo-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    padding: 1rem;
+}
+
+.wo-detail-kpi {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    padding: 0.7rem 0.8rem;
+}
+
+.wo-detail-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+}
+
+.wo-detail-value {
+    font-weight: 700;
+}
+
+.bom-tree-container {
+    padding: 1rem;
+}
+
+.bom-node {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    margin-bottom: 0.65rem;
+    overflow: hidden;
+}
+
+.bom-node-head {
+    display: grid;
+    grid-template-columns: 100px 1fr 110px 110px 110px;
+    gap: 0.6rem;
+    align-items: center;
+    padding: 0.65rem 0.8rem;
+}
+
+.bom-node-head.is-product {
+    background: rgba(59, 130, 246, 0.09);
+}
+
+.bom-node-head.is-material {
+    background: rgba(16, 185, 129, 0.09);
+}
+
+.bom-col {
+    min-width: 0;
+}
+
+.bom-col.req,
+.bom-col.stock {
+    text-align: center;
+}
+
+.bom-col.req span,
+.bom-col.stock span {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.bom-pill {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(139, 92, 246, 0.18);
+    color: #b18cff;
+}
+
+.is-product .bom-pill {
+    background: rgba(59, 130, 246, 0.2);
+    color: #7fb0ff;
+}
+
+.is-material .bom-pill {
+    background: rgba(16, 185, 129, 0.2);
+    color: #66e3b3;
+}
+
+.bom-code {
+    font-family: monospace;
+    font-size: 0.76rem;
+    color: var(--accent);
+}
+
+.bom-name {
+    margin-top: 0.15rem;
+    font-weight: 600;
+}
+
+.bom-status {
+    display: inline-block;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.bom-status.status-ok {
+    background: rgba(16, 185, 129, 0.14);
+    color: #34d399;
+}
+
+.bom-status.status-bad {
+    background: rgba(244, 63, 94, 0.14);
+    color: #fb7185;
+}
+
+.bom-status.status-cycle {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
+.bom-node-actions {
+    padding: 0 0.8rem 0.65rem;
+}
+
+.bom-toggle {
+    padding: 0.25rem 0.6rem !important;
+    font-size: 0.74rem !important;
+}
+
+.bom-children {
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    padding-top: 0.6rem;
+}
+
+@media (max-width: 980px) {
+    .bom-node-head {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+    }
+
+    .bom-col.req,
+    .bom-col.stock {
+        text-align: left;
+    }
 }

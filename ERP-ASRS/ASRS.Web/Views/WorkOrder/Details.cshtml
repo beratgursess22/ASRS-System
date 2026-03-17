@@ -1,0 +1,133 @@
+@model ASRS.Core.DTOs.WorkOrderListDto
+@using ASRS.Core.DTOs
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Is Emri Detayi";
+    var tree = ViewBag.BomTree as IReadOnlyList<BomRequirementNodeDto> ?? new List<BomRequirementNodeDto>();
+    var treeJson = JsonSerializer.Serialize(tree, new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    });
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <h1 class="page-title">Is Emri Detayi - @Model.OrderNumber</h1>
+    <a asp-action="Index" class="btn-edit">&larr; Is Emirlerine Don</a>
+</div>
+
+<div class="card" style="margin-bottom:1rem;">
+    <div class="card-header">
+        <h2 class="card-title">@Model.ProductCode - @Model.ProductName</h2>
+    </div>
+    <div class="wo-detail-grid">
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Baslik</div>
+            <div class="wo-detail-value">@Model.Title</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Miktar</div>
+            <div class="wo-detail-value">@Model.Quantity</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Durum</div>
+            <div class="wo-detail-value">@Model.Status</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Plan Baslangic</div>
+            <div class="wo-detail-value">@Model.PlannedStartDate.ToString("dd.MM.yyyy")</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Plan Bitis</div>
+            <div class="wo-detail-value">@Model.PlannedEndDate.ToString("dd.MM.yyyy")</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">BOM Agaci (Toplam Gereksinim / Mevcut Stok)</h2>
+    </div>
+
+    <div id="bomTreeContainer" class="bom-tree-container"></div>
+</div>
+
+@section Scripts {
+<script>
+    const bomTree = @Html.Raw(treeJson);
+
+    function escapeHtml(value) {
+        if (value === null || value === undefined) return "";
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function toggleNode(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.display = el.style.display === "none" ? "block" : "none";
+    }
+
+    function renderNode(node, level, indexPath) {
+        const hasChildren = node.children && node.children.length > 0;
+        const typeClass = node.componentType === "Product" ? "is-product" : "is-material";
+        const statusClass = node.isCycleDetected
+            ? "status-cycle"
+            : (node.isStockSufficient ? "status-ok" : "status-bad");
+        const statusText = node.isCycleDetected
+            ? "Cycle"
+            : (node.isStockSufficient ? "Yeterli" : "Yetersiz");
+
+        const childId = `bom-node-${indexPath}`;
+        const indent = level * 18;
+
+        let html = `
+            <div class="bom-node" style="margin-left:${indent}px">
+                <div class="bom-node-head ${typeClass}">
+                    <div class="bom-col type"><span class="bom-pill">${escapeHtml(node.componentType)}</span></div>
+                    <div class="bom-col name">
+                        <div class="bom-code">${escapeHtml(node.componentCode)}</div>
+                        <div class="bom-name">${escapeHtml(node.componentName)}</div>
+                    </div>
+                    <div class="bom-col req"><strong>${node.totalRequired}</strong><span>Gereken</span></div>
+                    <div class="bom-col stock"><strong>${node.stockQuantity}</strong><span>Stok</span></div>
+                    <div class="bom-col status"><span class="bom-status ${statusClass}">${statusText}</span></div>
+                </div>`;
+
+        if (hasChildren) {
+            html += `
+                <div class="bom-node-actions">
+                    <button type="button" class="btn-edit bom-toggle" onclick="toggleNode('${childId}')">Alt Bilesenleri Ac/Kapat</button>
+                </div>
+                <div id="${childId}" class="bom-children" style="display:none;">`;
+
+            html += node.children
+                .map((child, idx) => renderNode(child, level + 1, `${indexPath}-${idx}`))
+                .join("");
+
+            html += `</div>`;
+        }
+
+        html += `</div>`;
+        return html;
+    }
+
+    const container = document.getElementById("bomTreeContainer");
+
+    if (!bomTree || bomTree.length === 0) {
+        container.innerHTML = '<p class="muted" style="padding:1rem;">Bu is emri urunu icin tanimli BOM bulunamadi.</p>';
+    } else {
+        container.innerHTML = bomTree
+            .map((node, idx) => renderNode(node, 0, `${idx}`))
+            .join("");
+    }
+</script>
+}

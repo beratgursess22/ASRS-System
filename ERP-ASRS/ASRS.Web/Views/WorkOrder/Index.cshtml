@@ -26,14 +26,18 @@
     <div class="card-header">
         <h2 class="card-title">@Model.Count() iş emri</h2>
         <form method="get" asp-action="Index" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <input type="text" name="search" class="form-input" placeholder="Ara..." value="@ViewBag.Search" style="width:180px;" />
+            <input type="text" name="search" class="form-input" placeholder="Ara..." value="@ViewBag.Search"
+                   style="width:180px;" />
             <select name="status" class="form-input" style="width:170px;">
                 <option value="">Tüm Durumlar</option>
                 <option value="0" selected="@(ViewBag.Status?.ToString() == "0" ? "selected" : null)">Taslak</option>
                 <option value="1" selected="@(ViewBag.Status?.ToString() == "1" ? "selected" : null)">Onaylandı</option>
-                <option value="2" selected="@(ViewBag.Status?.ToString() == "2" ? "selected" : null)">Malzeme Bekleniyor</option>
-                <option value="3" selected="@(ViewBag.Status?.ToString() == "3" ? "selected" : null)">Devam Ediyor</option>
-                <option value="4" selected="@(ViewBag.Status?.ToString() == "4" ? "selected" : null)">Tamamlandı</option>
+                <option value="2" selected="@(ViewBag.Status?.ToString() == "2" ? "selected" : null)">Malzeme Bekleniyor
+                </option>
+                <option value="3" selected="@(ViewBag.Status?.ToString() == "3" ? "selected" : null)">Devam Ediyor
+                </option>
+                <option value="4" selected="@(ViewBag.Status?.ToString() == "4" ? "selected" : null)">Tamamlandı
+                </option>
                 <option value="5" selected="@(ViewBag.Status?.ToString() == "5" ? "selected" : null)">İptal</option>
             </select>
             <button type="submit" class="btn-primary">Filtrele</button>
@@ -61,7 +65,7 @@
             @foreach (var w in Model)
             {
                 <tr>
-                    <td><span class="order-number">@w.OrderNumber</span></td>
+                    <td><a asp-action="Details" asp-route-id="@w.Id" class="order-number">@w.OrderNumber</a></td>
                     <td>@w.Title</td>
                     <td>
                         <span class="product-code">@w.ProductCode</span>
@@ -116,28 +120,41 @@
                         <div class="action-cell">
                             @if (User.IsInRole("Yönetici") || User.IsInRole("Üretim") || User.IsInRole("Depo"))
                             {
-                                <form method="post" asp-action="UpdateStatus" asp-route-id="@w.Id" style="display:flex; gap:0.4rem; align-items:center;">
+                                <form method="post" asp-action="UpdateStatus" asp-route-id="@w.Id"
+                                      style="display:flex; gap:0.4rem; align-items:center;">
                                     <select name="status" class="form-input status-select">
-                                        <option value="0" selected="@(w.Status == WorkOrderStatus.Draft ? "selected" : null)">Taslak</option>
-                                        <option value="1" selected="@(w.Status == WorkOrderStatus.Approved ? "selected" : null)">Onaylandı</option>
-                                        <option value="2" selected="@(w.Status == WorkOrderStatus.WaitingForMaterial ? "selected" : null)">Malzeme Bekleniyor</option>
-                                        <option value="3" selected="@(w.Status == WorkOrderStatus.InProgress ? "selected" : null)">Devam Ediyor</option>
-                                        <option value="4" selected="@(w.Status == WorkOrderStatus.Completed ? "selected" : null)">Tamamlandı</option>
-                                        <option value="5" selected="@(w.Status == WorkOrderStatus.Cancelled ? "selected" : null)">İptal</option>
-                                    </select>
-                                    <button type="submit" class="btn-edit">Güncelle</button>
-                                </form>
-                            }
-                            @if (User.IsInRole("Yönetici"))
-                            {
-                                <form method="post" asp-action="Delete" asp-route-id="@w.Id" onsubmit="return confirm('@w.OrderNumber silinecek. Emin misiniz?')">
-                                    <button type="submit" class="btn-delete">Sil</button>
-                                </form>
-                            }
-                        </div>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+                                        <option value="0" selected="@(w.Status == WorkOrderStatus.Draft ? "selected" : null)">
+                                            Taslak</option>
+                                            <option value="1"
+                                                    selected="@(w.Status == WorkOrderStatus.Approved ? "selected" : null)">Onaylandı
+                                            </option>
+                                            <option value="2"
+                                                    selected="@(w.Status == WorkOrderStatus.WaitingForMaterial ? "selected" : null)">
+                                                Malzeme Bekleniyor</option>
+                                                <option value="3"
+                                                        selected="@(w.Status == WorkOrderStatus.InProgress ? "selected" : null)">Devam
+                                                    Ediyor</option>
+                                                    <option value="4"
+                                                            selected="@(w.Status == WorkOrderStatus.Completed ? "selected" : null)">Tamamlandı
+                                                    </option>
+                                                    <option value="5"
+                                                            selected="@(w.Status == WorkOrderStatus.Cancelled ? "selected" : null)">İptal
+                                                    </option>
+                                                </select>
+                                                <button type="submit" class="btn-edit">Güncelle</button>
+                                            </form>
+                                        }
+                                        @if (User.IsInRole("Yönetici"))
+                                        {
+                                            <form method="post" asp-action="Delete" asp-route-id="@w.Id"
+                                                  onsubmit="return confirm('@w.OrderNumber silinecek. Emin misiniz?')">
+                                                <button type="submit" class="btn-delete">Sil</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>

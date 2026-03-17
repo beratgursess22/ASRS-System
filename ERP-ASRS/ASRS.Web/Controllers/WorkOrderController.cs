@@ -67,9 +67,26 @@ public class WorkOrderController : Controller
     [HttpPost]
     public async Task<IActionResult> UpdateStatus(int id, WorkOrderStatus status)
     {
-        var updated = await _workOrderService.UpdateStatusAsync(id, status);
-        if (!updated)
-            TempData["Error"] = "Durum güncellenemedi. Geçersiz durum geçişi, stok yetersizliği veya terminal durum kısıtı nedeniyle işlem reddedildi.";
+        var result = await _workOrderService.UpdateStatusAsync(id, status);
+
+        if (result != WorkOrderStatusUpdateResult.Success)
+        {
+            TempData["Error"] = result switch
+            {
+                WorkOrderStatusUpdateResult.WorkOrderNotFound =>
+                    "İş emri bulunamadı.",
+                WorkOrderStatusUpdateResult.InvalidTransition =>
+                    "Geçersiz durum geçişi.",
+                WorkOrderStatusUpdateResult.BomCycleDetected =>
+                    "BOM döngüsü tespit edildi (A -> B -> A). Reçeteyi düzeltmeden işlem yapılamaz.",
+                WorkOrderStatusUpdateResult.StockInsufficient =>
+                    "Stok yetersiz: iş emri için gerekli ürün/malzeme miktarı karşılanamıyor.",
+                WorkOrderStatusUpdateResult.RestoreFailed =>
+                    "Stok iadesi yapılamadı. BOM yapısı veya bileşen kayıtları kontrol edilmeli.",
+                _ =>
+                    "Durum güncellenemedi."
+            };
+        }
         return RedirectToAction("Index");
     }
 
@@ -79,5 +96,18 @@ public class WorkOrderController : Controller
     {
         await _workOrderService.DeleteAsync(id);
         return RedirectToAction("Index");
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> Details(int id)
+    {
+        var workOrder = await _workOrderService.GetByIdAsync(id);
+        if (workOrder == null)
+            return NotFound();
+
+        var tree = await _bomService.GetNestedBomRequirementsAsync(workOrder.ProductId, workOrder.Quantity);
+        ViewBag.BomTree = tree;
+        return View(workOrder);
     }
 }

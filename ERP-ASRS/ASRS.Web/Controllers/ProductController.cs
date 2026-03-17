@@ -93,8 +93,7 @@ public class ProductController : Controller
 
         var isAdded = await _bomService.AddBomItemAsync(productId, dto);
         if (!isAdded)
-            TempData["BomError"] = "Bileşen eklenemedi. Aynı bileşen zaten ekli olabilir veya seçim/miktar geçersizdir.";
-
+            TempData["BomError"] = "Bileşen eklenemedi. Aynı bileşen zaten ekli olabilir, seçim/miktar geçersiz olabilir veya döngüsel BOM ilişkisi oluşuyordur.";
         return RedirectToAction("Bom", new { id = productId });
     }
 

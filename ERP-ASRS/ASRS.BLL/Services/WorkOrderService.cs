@@ -48,6 +48,7 @@ public class WorkOrderService : IWorkOrderService
 			result.Add(new WorkOrderListDto
 			{
 				Id = w.Id,
+				ProductId = w.ProductId,
 				OrderNumber = w.OrderNumber,
 				Title = w.Title,
 				ProductName = w.Product.Name,
@@ -88,6 +89,7 @@ public class WorkOrderService : IWorkOrderService
 		return new WorkOrderListDto
 		{
 			Id = w.Id,
+			ProductId = w.ProductId,
 			OrderNumber = w.OrderNumber,
 			Title = w.Title,
 			ProductName = w.Product.Name,
@@ -133,49 +135,71 @@ public class WorkOrderService : IWorkOrderService
 		return true;
 	}
 
-	public async Task<bool> UpdateStatusAsync(int id, WorkOrderStatus newStatus)
+	public async Task<WorkOrderStatusUpdateResult> UpdateStatusAsync(int id, WorkOrderStatus newStatus)
 	{
 		var workOrder = await _context.WorkOrders.FindAsync(id);
 		if (workOrder == null)
-			return false;
+			return WorkOrderStatusUpdateResult.WorkOrderNotFound;
 
 		var previousStatus = workOrder.Status;
 
 		if (previousStatus == newStatus)
-			return true;
+			return WorkOrderStatusUpdateResult.Success;
 
 		if (!IsTransitionAllowed(previousStatus, newStatus))
-			return false;
+			return WorkOrderStatusUpdateResult.InvalidTransition;
 
-		// Üretim akışına ilk girişte stok tüket (taslak / malzeme bekleniyor -> onaylandı)
 		if ((previousStatus == WorkOrderStatus.Draft || previousStatus == WorkOrderStatus.WaitingForMaterial)
 			&& newStatus == WorkOrderStatus.Approved
 			&& !workOrder.IsStockConsumed)
 		{
+			var requiredProducts = new Dictionary<int, int>();
+			var requiredMaterials = new Dictionary<int, int>();
+
+			var expanded = await BuildNestedRequirementsAsync(
+				rootProductId: workOrder.ProductId,
+				workOrderQuantity: workOrder.Quantity,
+				requiredProducts: requiredProducts,
+				requiredMaterials: requiredMaterials);
+
+			if (!expanded)
+				return WorkOrderStatusUpdateResult.BomCycleDetected;
+
 			var consumed = await ConsumeBomStockAsync(workOrder);
 			if (!consumed)
-				return false;
+				return WorkOrderStatusUpdateResult.StockInsufficient;
 
 			workOrder.IsStockConsumed = true;
 			workOrder.StockConsumedAt = DateTime.UtcNow;
 		}
-
-		// Onaylandı / Devam Ediyor -> İptal dönüşünde stok iade et
 		if ((previousStatus == WorkOrderStatus.Approved || previousStatus == WorkOrderStatus.InProgress)
 			&& newStatus == WorkOrderStatus.Cancelled
 			&& workOrder.IsStockConsumed)
 		{
-			await RestoreBomStockAsync(workOrder);
+			var restoreProducts = new Dictionary<int, int>();
+			var restoreMaterials = new Dictionary<int, int>();
+
+			var restoreExpanded = await BuildNestedRequirementsAsync(
+				rootProductId: workOrder.ProductId,
+				workOrderQuantity: workOrder.Quantity,
+				requiredProducts: restoreProducts,
+				requiredMaterials: restoreMaterials);
+
+			if (!restoreExpanded)
+				return WorkOrderStatusUpdateResult.BomCycleDetected;
+
+			var restored = await RestoreBomStockAsync(workOrder);
+			if (!restored)
+				return WorkOrderStatusUpdateResult.RestoreFailed;
 			workOrder.IsStockConsumed = false;
 			workOrder.StockConsumedAt = null;
 		}
-
 		if (newStatus == WorkOrderStatus.Completed && workOrder.CompletedAt == null)
 			workOrder.CompletedAt = DateTime.UtcNow;
 
 		workOrder.Status = newStatus;
 		await _context.SaveChangesAsync();
-		return true;
+		return WorkOrderStatusUpdateResult.Success;
 	}
 
 	private static bool IsTransitionAllowed(WorkOrderStatus currentStatus, WorkOrderStatus newStatus)
@@ -208,58 +232,176 @@ public class WorkOrderService : IWorkOrderService
 
 	private async Task<bool> ConsumeBomStockAsync(WorkOrder workOrder)
 	{
-		var bomItems = await _context.BillOfMaterials
-			.Include(b => b.ComponentProduct)
-			.Include(b => b.Material)
-			.Where(b => b.ProductId == workOrder.ProductId)
-			.ToListAsync();
+		var requiredProducts = new Dictionary<int, int>();
+		var requiredMaterials = new Dictionary<int, int>();
 
-		foreach (var item in bomItems)
+		var expanded = await BuildNestedRequirementsAsync(
+		rootProductId: workOrder.ProductId,
+		workOrderQuantity: workOrder.Quantity,
+		requiredProducts: requiredProducts,
+		requiredMaterials: requiredMaterials);
+
+		if (!expanded)
+			return false;
+
+		var products = await _context.Products
+			.Where(p => requiredProducts.Keys.Contains(p.Id))
+			.ToDictionaryAsync(p => p.Id);
+
+		var materials = await _context.Materials
+			.Where(m => requiredMaterials.Keys.Contains(m.Id))
+			.ToDictionaryAsync(m => m.Id);
+
+		foreach (var kv in requiredProducts)
 		{
-			var totalRequired = item.RequiredQuantity * workOrder.Quantity;
+			if (!products.TryGetValue(kv.Key, out var product))
+				return false;
 
-			if (item.ComponentProductId.HasValue)
-			{
-				if (item.ComponentProduct == null || item.ComponentProduct.StockQuantity < totalRequired)
-					return false;
-			}
-			else if (item.MaterialId.HasValue)
-			{
-				if (item.Material == null || item.Material.StockQuantity < totalRequired)
-					return false;
-			}
+			if (product.StockQuantity < kv.Value)
+				return false;
 		}
 
-		foreach (var item in bomItems)
+		foreach (var kv in requiredMaterials)
 		{
-			var totalRequired = item.RequiredQuantity * workOrder.Quantity;
+			if (!materials.TryGetValue(kv.Key, out var material))
+				return false;
 
-			if (item.ComponentProductId.HasValue && item.ComponentProduct != null)
-				item.ComponentProduct.StockQuantity -= totalRequired;
-			else if (item.MaterialId.HasValue && item.Material != null)
-				item.Material.StockQuantity -= totalRequired;
+			if (material.StockQuantity < kv.Value)
+				return false;
+		}
+
+		foreach (var kv in requiredProducts)
+			products[kv.Key].StockQuantity -= kv.Value;
+
+		foreach (var kv in requiredMaterials)
+			materials[kv.Key].StockQuantity -= kv.Value;
+
+		return true;
+	}
+
+	private async Task<bool> RestoreBomStockAsync(WorkOrder workOrder)
+	{
+		var requiredProducts = new Dictionary<int, int>();
+		var requiredMaterials = new Dictionary<int, int>();
+
+		var expanded = await BuildNestedRequirementsAsync(
+			rootProductId: workOrder.ProductId,
+			workOrderQuantity: workOrder.Quantity,
+			requiredProducts: requiredProducts,
+			requiredMaterials: requiredMaterials);
+
+		if (!expanded)
+			return false;
+
+		var products = await _context.Products
+			.Where(p => requiredProducts.Keys.Contains(p.Id))
+			.ToDictionaryAsync(p => p.Id);
+
+		var materials = await _context.Materials
+			.Where(m => requiredMaterials.Keys.Contains(m.Id))
+			.ToDictionaryAsync(m => m.Id);
+
+		foreach (var kv in requiredProducts)
+		{
+			if (!products.TryGetValue(kv.Key, out var product))
+				return false;
+
+			product.StockQuantity += kv.Value;
+		}
+
+		foreach (var kv in requiredMaterials)
+		{
+			if (!materials.TryGetValue(kv.Key, out var material))
+				return false;
+
+			material.StockQuantity += kv.Value;
 		}
 
 		return true;
 	}
 
-	private async Task RestoreBomStockAsync(WorkOrder workOrder)
+	private async Task<bool> BuildNestedRequirementsAsync(int rootProductId, int workOrderQuantity, Dictionary<int, int> requiredProducts, Dictionary<int, int> requiredMaterials)
 	{
+		if (workOrderQuantity <= 0)
+			return false;
+
+		var visiting = new HashSet<int>();
+
+		return await ExpandProductBomAsync(
+			productId: rootProductId,
+			multiplier: workOrderQuantity,
+			consumeAsLeafProduct: false, // kök ürünü stoktan düşmüyoruz
+			visiting: visiting,
+			requiredProducts: requiredProducts,
+			requiredMaterials: requiredMaterials);
+	}
+
+	private async Task<bool> ExpandProductBomAsync(int productId, int multiplier, bool consumeAsLeafProduct, HashSet<int> visiting, Dictionary<int, int> requiredProducts, Dictionary<int, int> requiredMaterials)
+	{
+		if (multiplier <= 0)
+			return false;
+
 		var bomItems = await _context.BillOfMaterials
-			.Include(b => b.ComponentProduct)
-			.Include(b => b.Material)
-			.Where(b => b.ProductId == workOrder.ProductId)
+			.Where(b => b.ProductId == productId)
 			.ToListAsync();
+
+		// Alt BOM yoksa bu bir leaf ürün gibi tüketilir (kök ürün hariç)
+		if (bomItems.Count == 0)
+		{
+			if (consumeAsLeafProduct)
+				AddRequiredQuantity(requiredProducts, productId, multiplier);
+			return true;
+		}
+
+		// Döngü koruması: A -> B -> A
+		if (!visiting.Add(productId))
+			return false;
 
 		foreach (var item in bomItems)
 		{
-			var totalRequired = item.RequiredQuantity * workOrder.Quantity;
+			var requiredLong = (long)item.RequiredQuantity * multiplier;
+			if (requiredLong <= 0 || requiredLong > int.MaxValue)
+			{
+				visiting.Remove(productId);
+				return false;
+			}
 
-			if (item.ComponentProductId.HasValue && item.ComponentProduct != null)
-				item.ComponentProduct.StockQuantity += totalRequired;
-			else if (item.MaterialId.HasValue && item.Material != null)
-				item.Material.StockQuantity += totalRequired;
+			var requiredQty = (int)requiredLong;
+			if (item.ComponentProductId.HasValue)
+			{
+				var ok = await ExpandProductBomAsync(
+					productId: item.ComponentProductId.Value,
+					multiplier: requiredQty,
+					consumeAsLeafProduct: true,
+					visiting: visiting,
+					requiredProducts: requiredProducts,
+					requiredMaterials: requiredMaterials);
+				if (!ok)
+				{
+					visiting.Remove(productId);
+					return false;
+				}
+			}
+			else if (item.MaterialId.HasValue)
+			{
+				AddRequiredQuantity(requiredMaterials, item.MaterialId.Value, requiredQty);
+			}
+			else
+			{
+				visiting.Remove(productId);
+				return false;
+			}
 		}
+		visiting.Remove(productId);
+		return true;
+	}
+
+	private static void AddRequiredQuantity(Dictionary<int, int> map, int id, int amount)
+	{
+		if (map.TryGetValue(id, out var current))
+			map[id] = checked(current + amount);
+		else
+			map[id] = amount;
 	}
 
 	public async Task<bool> DeleteAsync(int id)

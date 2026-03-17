@@ -8,6 +8,6 @@ public interface IWorkOrderService
     Task<IEnumerable<WorkOrderListDto>> GetAllAsync(string? search, WorkOrderStatus? status);
     Task<WorkOrderListDto?> GetByIdAsync(int id);
     Task<bool> CreateAsync(CreateWorkOrderDto dto, string createdByUserId);
-    Task<bool> UpdateStatusAsync(int id, WorkOrderStatus newStatus);
+    Task<WorkOrderStatusUpdateResult> UpdateStatusAsync(int id, WorkOrderStatus newStatus);
     Task<bool> DeleteAsync(int id);
 }
