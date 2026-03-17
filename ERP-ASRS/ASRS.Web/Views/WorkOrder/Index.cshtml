@@ -2,6 +2,13 @@
 @using ASRS.Core.Enums
 @{
     ViewData["Title"] = "İş Emirleri";
+    var totalCount = Model.Count();
+    var completedCount = Model.Count(w => w.Status == WorkOrderStatus.Completed);
+    var inProcessCount = Model.Count(w =>
+        w.Status == WorkOrderStatus.Approved ||
+        w.Status == WorkOrderStatus.WaitingForMaterial ||
+        w.Status == WorkOrderStatus.InProgress);
+    var cancelledCount = Model.Count(w => w.Status == WorkOrderStatus.Cancelled);
 }
 
 @section Styles {
@@ -20,6 +27,25 @@
     {
         <a asp-action="Create" class="btn-primary">+ Yeni İş Emri Oluştur</a>
     }
+</div>
+
+<div class="wo-stats-grid">
+    <div class="wo-stat-card">
+        <div class="wo-stat-label">Toplam İş Emri</div>
+        <div class="wo-stat-value">@totalCount</div>
+    </div>
+    <div class="wo-stat-card stat-completed">
+        <div class="wo-stat-label">Tamamlanan</div>
+        <div class="wo-stat-value">@completedCount</div>
+    </div>
+    <div class="wo-stat-card stat-inprocess">
+        <div class="wo-stat-label">Süreçte</div>
+        <div class="wo-stat-value">@inProcessCount</div>
+    </div>
+    <div class="wo-stat-card stat-cancelled">
+        <div class="wo-stat-label">İptal Edilen</div>
+        <div class="wo-stat-value">@cancelledCount</div>
+    </div>
 </div>
 
 <div class="card">

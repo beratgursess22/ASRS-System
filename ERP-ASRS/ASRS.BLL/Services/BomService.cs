@@ -65,7 +65,6 @@ public class BomService : IBomService
         return result;
     }
 
-
     public async Task<IReadOnlyList<BomRequirementNodeDto>> GetNestedBomRequirementsAsync(int productId, int workOrderQuantity)
     {
         if (workOrderQuantity <= 0)
@@ -170,6 +169,7 @@ public class BomService : IBomService
             }
         }
     }
+  
     public async Task<bool> AddBomItemAsync(int productId, BomItemDto dto)
     {
         if (dto.RequiredQuantity <= 0)

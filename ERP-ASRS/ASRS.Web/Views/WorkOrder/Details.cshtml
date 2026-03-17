@@ -45,6 +45,14 @@
             <div class="wo-detail-label">Plan Bitis</div>
             <div class="wo-detail-value">@Model.PlannedEndDate.ToString("dd.MM.yyyy")</div>
         </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Is Emrini Veren</div>
+            <div class="wo-detail-value">@(Model.CreatedByUserName ?? "-")</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Olusturulma Zamani</div>
+            <div class="wo-detail-value">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+        </div>
     </div>
 </div>
 
@@ -52,8 +60,22 @@
     <div class="card-header">
         <h2 class="card-title">BOM Agaci (Toplam Gereksinim / Mevcut Stok)</h2>
     </div>
-
-    <div id="bomTreeContainer" class="bom-tree-container"></div>
+    <div class="bom-table-wrap">
+        <table class="data-table bom-data-table">
+            <thead>
+                <tr>
+                    <th>Tip</th>
+                    <th>Kod</th>
+                    <th>Bilesen</th>
+                    <th>Toplam Gereken</th>
+                    <th>Mevcut Stok</th>
+                    <th>Durum</th>
+                    <th>Islem</th>
+                </tr>
+            </thead>
+            <tbody id="bomTreeBody"></tbody>
+        </table>
+    </div>
 </div>
 
 @section Scripts {
@@ -71,14 +93,27 @@
     }
 
     function toggleNode(id) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.style.display = el.style.display === "none" ? "block" : "none";
+        const rows = document.querySelectorAll(`[data-parent="${id}"]`);
+        if (!rows.length) return;
+
+        const shouldOpen = Array.from(rows).some(r => r.style.display === 'none');
+
+        rows.forEach(row => {
+            row.style.display = shouldOpen ? '' : 'none';
+
+            // If collapsing a branch, collapse all descendants too.
+            if (!shouldOpen) {
+                const childId = row.dataset.node;
+                if (!childId) return;
+                const descendants = document.querySelectorAll(`[data-ancestor="${childId}"]`);
+                descendants.forEach(d => d.style.display = 'none');
+            }
+        });
     }
 
-    function renderNode(node, level, indexPath) {
+    function renderNode(node, level, indexPath, parentId, ancestorPath) {
         const hasChildren = node.children && node.children.length > 0;
-        const typeClass = node.componentType === "Product" ? "is-product" : "is-material";
+        const typeClass = node.componentType === "Product" ? "type-product" : "type-material";
         const statusClass = node.isCycleDetected
             ? "status-cycle"
             : (node.isStockSufficient ? "status-ok" : "status-bad");
@@ -86,47 +121,46 @@
             ? "Cycle"
             : (node.isStockSufficient ? "Yeterli" : "Yetersiz");
 
-        const childId = `bom-node-${indexPath}`;
-        const indent = level * 18;
+        const rowId = `row-${indexPath}`;
+        const depthPadding = level * 20;
+        const parentAttr = parentId ? `data-parent="${parentId}"` : "";
+        const ancestorAttr = ancestorPath ? `data-ancestor="${ancestorPath}"` : "";
+        const initialHidden = parentId ? 'style="display:none;"' : '';
 
         let html = `
-            <div class="bom-node" style="margin-left:${indent}px">
-                <div class="bom-node-head ${typeClass}">
-                    <div class="bom-col type"><span class="bom-pill">${escapeHtml(node.componentType)}</span></div>
-                    <div class="bom-col name">
-                        <div class="bom-code">${escapeHtml(node.componentCode)}</div>
-                        <div class="bom-name">${escapeHtml(node.componentName)}</div>
+            <tr id="${rowId}" data-node="${rowId}" ${parentAttr} ${ancestorAttr} ${initialHidden}>
+                <td><span class="bom-pill ${typeClass}">${escapeHtml(node.componentType)}</span></td>
+                <td><span class="bom-code">${escapeHtml(node.componentCode)}</span></td>
+                <td>
+                    <div class="bom-name" style="padding-left:${depthPadding}px;">
+                        ${escapeHtml(node.componentName)}
                     </div>
-                    <div class="bom-col req"><strong>${node.totalRequired}</strong><span>Gereken</span></div>
-                    <div class="bom-col stock"><strong>${node.stockQuantity}</strong><span>Stok</span></div>
-                    <div class="bom-col status"><span class="bom-status ${statusClass}">${statusText}</span></div>
-                </div>`;
+                </td>
+                <td><strong>${node.totalRequired}</strong></td>
+                <td>${node.stockQuantity}</td>
+                <td><span class="bom-status ${statusClass}">${statusText}</span></td>
+                <td>
+                    ${hasChildren ? `<button type="button" class="btn-edit bom-toggle" onclick="toggleNode('${rowId}')">Alt Ac/Kapat</button>` : '<span class="muted">-</span>'}
+                </td>
+            </tr>`;
 
         if (hasChildren) {
-            html += `
-                <div class="bom-node-actions">
-                    <button type="button" class="btn-edit bom-toggle" onclick="toggleNode('${childId}')">Alt Bilesenleri Ac/Kapat</button>
-                </div>
-                <div id="${childId}" class="bom-children" style="display:none;">`;
-
+            const nextAncestor = ancestorPath ? `${ancestorPath},${rowId}` : rowId;
             html += node.children
-                .map((child, idx) => renderNode(child, level + 1, `${indexPath}-${idx}`))
+                .map((child, idx) => renderNode(child, level + 1, `${indexPath}-${idx}`, rowId, nextAncestor))
                 .join("");
-
-            html += `</div>`;
         }
 
-        html += `</div>`;
         return html;
     }
 
-    const container = document.getElementById("bomTreeContainer");
+    const body = document.getElementById("bomTreeBody");
 
     if (!bomTree || bomTree.length === 0) {
-        container.innerHTML = '<p class="muted" style="padding:1rem;">Bu is emri urunu icin tanimli BOM bulunamadi.</p>';
+        body.innerHTML = '<tr><td colspan="7" class="muted" style="padding:1rem;">Bu is emri urunu icin tanimli BOM bulunamadi.</td></tr>';
     } else {
-        container.innerHTML = bomTree
-            .map((node, idx) => renderNode(node, 0, `${idx}`))
+        body.innerHTML = bomTree
+            .map((node, idx) => renderNode(node, 0, `${idx}`, "", ""))
             .join("");
     }
 </script>

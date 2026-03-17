@@ -95,6 +95,63 @@
     font-size: 0.75rem !important;
 }
 
+/* ── WorkOrder Summary Cards ── */
+.wo-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.wo-stat-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+}
+
+.wo-stat-label {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+}
+
+.wo-stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.wo-stat-card.stat-completed {
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.wo-stat-card.stat-completed .wo-stat-value {
+    color: #34d399;
+}
+
+.wo-stat-card.stat-inprocess {
+    border-color: rgba(245, 158, 11, 0.25);
+}
+
+.wo-stat-card.stat-inprocess .wo-stat-value {
+    color: #fbbf24;
+}
+
+.wo-stat-card.stat-cancelled {
+    border-color: rgba(244, 63, 94, 0.25);
+}
+
+.wo-stat-card.stat-cancelled .wo-stat-value {
+    color: #fb7185;
+}
+
+@media (max-width: 980px) {
+    .wo-stats-grid {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+    }
+}
+
 /* ── WorkOrder Details / BOM Tree ── */
 .wo-detail-grid {
     display: grid;
@@ -122,6 +179,27 @@
 
 .bom-tree-container {
     padding: 1rem;
+}
+
+.bom-table-wrap {
+    padding: 1rem;
+}
+
+.bom-data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.bom-data-table th:nth-child(1) { width: 11%; }
+.bom-data-table th:nth-child(2) { width: 14%; }
+.bom-data-table th:nth-child(3) { width: 31%; }
+.bom-data-table th:nth-child(4) { width: 12%; }
+.bom-data-table th:nth-child(5) { width: 12%; }
+.bom-data-table th:nth-child(6) { width: 11%; }
+.bom-data-table th:nth-child(7) { width: 9%; }
+
+.bom-data-table td {
+    vertical-align: middle;
 }
 
 .bom-node {
@@ -183,6 +261,16 @@
     color: #66e3b3;
 }
 
+.bom-pill.type-product {
+    background: rgba(59, 130, 246, 0.2);
+    color: #7fb0ff;
+}
+
+.bom-pill.type-material {
+    background: rgba(16, 185, 129, 0.2);
+    color: #66e3b3;
+}
+
 .bom-code {
     font-family: monospace;
     font-size: 0.76rem;
@@ -224,6 +312,7 @@
 .bom-toggle {
     padding: 0.25rem 0.6rem !important;
     font-size: 0.74rem !important;
+    white-space: nowrap;
 }
 
 .bom-children {
@@ -232,6 +321,14 @@
 }
 
 @media (max-width: 980px) {
+    .bom-table-wrap {
+        overflow-x: auto;
+    }
+
+    .bom-data-table {
+        min-width: 840px;
+    }
+
     .bom-node-head {
         grid-template-columns: 1fr;
         gap: 0.35rem;
