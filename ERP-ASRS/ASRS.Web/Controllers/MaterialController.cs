@@ -22,7 +22,7 @@ public class MaterialController : Controller
         return View(materials);
     }
 
-    [Authorize(Roles = "Yönetici,Depo")]
+    [Authorize(Roles = "Yönetici,Satın Alma")]
     [HttpPost]
     public async Task<IActionResult> Create(CreateMaterialDto dto)
     {
@@ -46,7 +46,7 @@ public class MaterialController : Controller
         return View(material);
     }
 
-    [Authorize(Roles = "Yönetici,Depo")]
+    [Authorize(Roles = "Yönetici,Depo,Satın Alma")]
     [HttpPost]
     public async Task<IActionResult> Edit(int id, CreateMaterialDto dto)
     {
@@ -55,6 +55,23 @@ public class MaterialController : Controller
             var material = await _materialService.GetMaterialByIdAsync(id);
             ViewBag.Error = "Tüm alanları doldurun.";
             return View(material);
+        }
+
+        var existing = await _materialService.GetMaterialByIdAsync(id);
+        if (existing == null)
+            return NotFound();
+
+        var stockChanged = existing.StockQuantity != dto.StockQuantity
+        || existing.MinStockLevel != dto.MinStockLevel;
+
+        var canChangeStock = User.IsInRole("Yönetici") || User.IsInRole("Satın Alma");
+
+        if (stockChanged && !canChangeStock)
+        {
+            ModelState.AddModelError(string.Empty, "Stok ve minimum stok sadece Yönetici veya Satın Alma tarafından değiştirilebilir.");
+            dto.StockQuantity = existing.StockQuantity;
+            dto.MinStockLevel = existing.MinStockLevel;
+            return View(existing);
         }
 
         await _materialService.UpdateMaterialAsync(id, dto);

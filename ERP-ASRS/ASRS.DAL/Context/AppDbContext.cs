@@ -14,7 +14,8 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 	public DbSet<WorkOrder> WorkOrders { get; set; }
 	public DbSet<BillOfMaterial> BillOfMaterials { get; set; }
 	public DbSet<Material> Materials { get; set; }
-
+	public DbSet<PurchaseRequest> PurchaseRequests { get; set; }
+	public DbSet<PurchaseRequestItem> PurchaseRequestItems { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		base.OnModelCreating(modelBuilder);
@@ -50,6 +51,36 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 			.HasOne(b => b.Material)
 			.WithMany()
 			.HasForeignKey(b => b.MaterialId)
+			.OnDelete(DeleteBehavior.Restrict);
+
+		modelBuilder.Entity<PurchaseRequest>()
+			.HasOne(pr => pr.WorkOrder)
+			.WithMany()
+			.HasForeignKey(pr => pr.WorkOrderId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		modelBuilder.Entity<PurchaseRequest>()
+			.HasOne(pr => pr.RequestedByUser)
+			.WithMany()
+			.HasForeignKey(pr => pr.RequestedByUserId)
+			.OnDelete(DeleteBehavior.Restrict);
+
+		modelBuilder.Entity<PurchaseRequestItem>()
+			.HasOne(i => i.PurchaseRequest)
+			.WithMany(pr => pr.Items)
+			.HasForeignKey(i => i.PurchaseRequestId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		modelBuilder.Entity<PurchaseRequestItem>()
+			.HasOne(i => i.Product)
+			.WithMany()
+			.HasForeignKey(i => i.ProductId)
+			.OnDelete(DeleteBehavior.Restrict);
+
+		modelBuilder.Entity<PurchaseRequestItem>()
+			.HasOne(i => i.Material)
+			.WithMany()
+			.HasForeignKey(i => i.MaterialId)
 			.OnDelete(DeleteBehavior.Restrict);
 	}
 }

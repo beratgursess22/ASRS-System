@@ -25,7 +25,7 @@ public class ProductController : Controller
         return View(products);
     }
 
-    [Authorize(Roles = "Yönetici,Depo")]
+    [Authorize(Roles = "Yönetici,Satın Alma")]
     [HttpPost]
     public async Task<IActionResult> Create(CreateProductDto dto)
     {
@@ -50,7 +50,7 @@ public class ProductController : Controller
         return View(product);
     }
 
-    [Authorize(Roles = "Yönetici,Depo")]
+    [Authorize(Roles = "Yönetici,Depo,Satın Alma")]
     [HttpPost]
     public async Task<IActionResult> Edit(int id, CreateProductDto dto)
     {
@@ -59,6 +59,23 @@ public class ProductController : Controller
             var product = await _productService.GetProductByIdAsync(id);
             ViewBag.Error = "Tüm alanları doldurun.";
             return View(product);
+        }
+
+        var existing = await _productService.GetProductByIdAsync(id);
+        if (existing == null)
+            return NotFound();
+
+        var stockChanged = existing.StockQuantity != dto.StockQuantity
+        || existing.MinStockLevel != dto.MinStockLevel;
+
+        var canChangeStock = User.IsInRole("Yönetici") || User.IsInRole("Satın Alma");
+
+        if (stockChanged && !canChangeStock)
+        {
+            ModelState.AddModelError(string.Empty, "Stok ve minimum stok sadece Yönetici veya Satın Alma tarafından değiştirilebilir.");
+            dto.StockQuantity = existing.StockQuantity;
+            dto.MinStockLevel = existing.MinStockLevel;
+            return View(existing);
         }
 
         await _productService.UpdateProductAsync(id, dto);
