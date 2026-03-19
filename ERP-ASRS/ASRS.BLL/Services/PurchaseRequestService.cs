@@ -144,56 +144,6 @@ public class PurchaseRequestService : IPurchaseRequestService
         return true;
     }
 
-    public async Task<bool> UpdateItemStockAsync(int purchaseRequestId, int purchaseRequestItemId)
-    {
-        var request = await _context.PurchaseRequests
-            .Include(pr => pr.Items)
-            .FirstOrDefaultAsync(pr => pr.Id == purchaseRequestId);
-
-        if (request == null)
-            return false;
-        if (request.Status != PurchaseRequestStatus.Ordered)
-            return false;
-
-        var item = request.Items.FirstOrDefault(i => i.Id == purchaseRequestItemId);
-        if (item == null)
-            return false;
-
-        if (item.MissingQuantity <= 0)
-            return false;
-        if (item.ProductId.HasValue)
-        {
-            var product = await _context.Products.FindAsync(item.ProductId.Value);
-            if (product == null)
-                return false;
-
-            product.StockQuantity += item.MissingQuantity;
-        }
-        else if (item.MaterialId.HasValue)
-        {
-            var material = await _context.Materials.FindAsync(item.MaterialId.Value);
-            if (material == null)
-                return false;
-
-            material.StockQuantity += item.MissingQuantity;
-        }
-        else
-        {
-            return false;
-        }
-
-        item.CurrentStockQuantity += item.MissingQuantity;
-        item.MissingQuantity = 0;
-        item.Notes = "Stok satin alma tarafindan guncellendi.";
-
-        if (request.Items.All(i => i.MissingQuantity <= 0))
-            request.Status = PurchaseRequestStatus.Received;
-
-        request.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
     private static bool IsTransitionAllowed(PurchaseRequestStatus currentStatus, PurchaseRequestStatus newStatus)
     {
         return currentStatus switch

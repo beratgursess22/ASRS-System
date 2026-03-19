@@ -1,6 +1,7 @@
 @model ASRS.Core.DTOs.MaterialListDto
 @{
     ViewData["Title"] = "Malzeme Düzenle";
+    var defaultCurrency = string.IsNullOrWhiteSpace(Model.DefaultCurrency) ? "TRY" : Model.DefaultCurrency;
 }
 
 @section Styles {
@@ -41,6 +42,14 @@
             <div class="form-group">
                 <label>Min. Stok Seviyesi</label>
                 <input type="number" name="MinStockLevel" class="form-input" value="@Model.MinStockLevel" min="0" />
+            </div>
+            <div class="form-group">
+                <label>Varsayilan Birim Fiyat</label>
+                <input type="number" name="DefaultUnitPrice" class="form-input" value="@Model.DefaultUnitPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" min="0" step="0.01" />
+            </div>
+            <div class="form-group">
+                <label>Varsayilan Para Birimi</label>
+                <input type="text" name="DefaultCurrency" class="form-input" value="@defaultCurrency" maxlength="10" />
             </div>
             <div class="form-group">
                 <label>Açıklama</label>

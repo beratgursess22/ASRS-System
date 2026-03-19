@@ -17,4 +17,5 @@ public class PurchaseOrderItemDto
 
 	public decimal UnitPrice { get; set; }
 	public string? Currency { get; set; }
+	public decimal LineTotal => OrderedQuantity * UnitPrice;
 }

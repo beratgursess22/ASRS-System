@@ -50,16 +50,50 @@ public class PurchaseOrderService : IPurchaseOrderService
 			Notes = dto.Notes
 		};
 
+		var productIds = pr.Items
+			.Where(i => i.ProductId.HasValue)
+			.Select(i => i.ProductId!.Value)
+			.Distinct()
+			.ToList();
+
+		var materialIds = pr.Items
+			.Where(i => i.MaterialId.HasValue)
+			.Select(i => i.MaterialId!.Value)
+			.Distinct()
+			.ToList();
+
+		var products = await _context.Products
+			.Where(x => productIds.Contains(x.Id))
+			.ToDictionaryAsync(x => x.Id);
+
+		var materials = await _context.Materials
+			.Where(x => materialIds.Contains(x.Id))
+			.ToDictionaryAsync(x => x.Id);
+
 		foreach (var item in pr.Items.Where(i => i.MissingQuantity > 0))
 		{
+			var unitPrice = 0m;
+			var currency = "TRY";
+
+			if (item.ProductId.HasValue && products.TryGetValue(item.ProductId.Value, out var product))
+			{
+				unitPrice = product.DefaultUnitPrice;
+				currency = string.IsNullOrWhiteSpace(product.DefaultCurrency) ? "TRY" : product.DefaultCurrency;
+			}
+			else if (item.MaterialId.HasValue && materials.TryGetValue(item.MaterialId.Value, out var material))
+			{
+				unitPrice = material.DefaultUnitPrice;
+				currency = string.IsNullOrWhiteSpace(material.DefaultCurrency) ? "TRY" : material.DefaultCurrency;
+			}
+
 			po.Items.Add(new PurchaseOrderItem
 			{
 				ProductId = item.ProductId,
 				MaterialId = item.MaterialId,
 				OrderedQuantity = item.MissingQuantity,
 				ReceivedQuantity = 0,
-				UnitPrice = 0m,
-				Currency = "TRY",
+				UnitPrice = unitPrice,
+				Currency = currency.Trim().ToUpperInvariant(),
 				Notes = "PurchaseRequest kaleminden olusturuldu."
 			});
 		}
@@ -182,6 +216,37 @@ public class PurchaseOrderService : IPurchaseOrderService
 			po.PurchaseRequest.Status = PurchaseRequestStatus.Received;
 			po.PurchaseRequest.UpdatedAt = DateTime.UtcNow;
 		}
+
+		await _context.SaveChangesAsync();
+		return true;
+	}
+
+	public async Task<bool> UpdateItemPricingAsync(UpdatePurchaseOrderItemPricingDto dto)
+	{
+		if (dto.UnitPrice < 0)
+			return false;
+
+		var po = await _context.PurchaseOrders
+			.Include(x => x.Items)
+			.FirstOrDefaultAsync(x => x.Id == dto.PurchaseOrderId);
+
+		if (po == null)
+			return false;
+
+		if (po.Status == PurchaseOrderStatus.Cancelled)
+			return false;
+
+		var item = po.Items.FirstOrDefault(i => i.Id == dto.PurchaseOrderItemId);
+		if (item == null)
+			return false;
+
+		item.UnitPrice = dto.UnitPrice;
+
+		var currency = string.IsNullOrWhiteSpace(dto.Currency)
+			? "TRY"
+			: dto.Currency.Trim().ToUpperInvariant();
+
+		item.Currency = currency.Length > 10 ? currency[..10] : currency;
 
 		await _context.SaveChangesAsync();
 		return true;

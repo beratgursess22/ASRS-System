@@ -12,4 +12,5 @@ public class PurchaseOrderListDto
 	public DateTime CreatedAt { get; set; }
 	public string? Notes { get; set; }
 	public List<PurchaseOrderItemDto> Items { get; set; } = new();
+	public decimal TotalAmount => Items.Sum(x => x.LineTotal);
 }

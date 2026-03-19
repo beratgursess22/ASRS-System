@@ -10,4 +10,5 @@ public interface IPurchaseOrderService
 	Task<PurchaseOrderListDto?> GetByIdAsync(int id);
 	Task<bool> UpdateStatusAsync(int id, PurchaseOrderStatus newStatus);
 	Task<bool> ReceiveItemAsync(ReceivePurchaseOrderItemDto dto);
+	Task<bool> UpdateItemPricingAsync(UpdatePurchaseOrderItemPricingDto dto);
 }

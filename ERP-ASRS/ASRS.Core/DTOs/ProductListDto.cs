@@ -9,5 +9,7 @@ public class ProductListDto
     public string Unit { get; set; } = string.Empty;
     public int StockQuantity { get; set; }
     public int MinStockLevel { get; set; }
+    public decimal DefaultUnitPrice { get; set; }
+    public string DefaultCurrency { get; set; } = "TRY";
     public bool IsActive { get; set; }
 }

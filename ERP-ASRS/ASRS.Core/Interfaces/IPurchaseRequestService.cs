@@ -9,5 +9,4 @@ public interface IPurchaseRequestService
     Task<PurchaseRequestListDto?> GetByIdAsync(int id);
     Task<bool> CreateFromWorkOrderAsync(int workOrderId, string requestedByUserId, string? notes);
     Task<bool> UpdateStatusAsync(int id, PurchaseRequestStatus status, string? notes);
-    Task<bool> UpdateItemStockAsync(int purchaseRequestId, int purchaseRequestItemId);
 }

@@ -36,6 +36,8 @@ public class ProductService : IProductService
 				Unit = p.Unit,
 				StockQuantity = p.StockQuantity,
 				MinStockLevel = p.MinStockLevel,
+				DefaultUnitPrice = p.DefaultUnitPrice,
+				DefaultCurrency = string.IsNullOrWhiteSpace(p.DefaultCurrency) ? "TRY" : p.DefaultCurrency,
 				IsActive = p.IsActive
 			});
 		}
@@ -57,6 +59,8 @@ public class ProductService : IProductService
 			Unit = p.Unit,
 			StockQuantity = p.StockQuantity,
 			MinStockLevel = p.MinStockLevel,
+			DefaultUnitPrice = p.DefaultUnitPrice,
+			DefaultCurrency = string.IsNullOrWhiteSpace(p.DefaultCurrency) ? "TRY" : p.DefaultCurrency,
 			IsActive = p.IsActive
 		};
 	}
@@ -71,6 +75,8 @@ public class ProductService : IProductService
 			Unit = dto.Unit,
 			StockQuantity = dto.StockQuantity,
 			MinStockLevel = dto.MinStockLevel,
+			DefaultUnitPrice = dto.DefaultUnitPrice,
+			DefaultCurrency = string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? "TRY" : dto.DefaultCurrency.Trim().ToUpperInvariant(),
 			Description = dto.Description,
 			IsActive = true,
 			CreatedAt = DateTime.UtcNow
@@ -93,6 +99,8 @@ public class ProductService : IProductService
 		product.Unit = dto.Unit;
 		product.StockQuantity = dto.StockQuantity;
 		product.MinStockLevel = dto.MinStockLevel;
+		product.DefaultUnitPrice = dto.DefaultUnitPrice;
+		product.DefaultCurrency = string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? "TRY" : dto.DefaultCurrency.Trim().ToUpperInvariant();
 		product.Description = dto.Description;
 
 		await _context.SaveChangesAsync();

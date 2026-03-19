@@ -30,6 +30,8 @@ public class MaterialService : IMaterialService
 			Unit = m.Unit,
 			StockQuantity = m.StockQuantity,
 			MinStockLevel = m.MinStockLevel,
+			DefaultUnitPrice = m.DefaultUnitPrice,
+			DefaultCurrency = string.IsNullOrWhiteSpace(m.DefaultCurrency) ? "TRY" : m.DefaultCurrency,
 			Description = m.Description,
 			IsActive = m.IsActive
 		});
@@ -49,6 +51,8 @@ public class MaterialService : IMaterialService
 			Unit = m.Unit,
 			StockQuantity = m.StockQuantity,
 			MinStockLevel = m.MinStockLevel,
+			DefaultUnitPrice = m.DefaultUnitPrice,
+			DefaultCurrency = string.IsNullOrWhiteSpace(m.DefaultCurrency) ? "TRY" : m.DefaultCurrency,
 			Description = m.Description,
 			IsActive = m.IsActive
 		};
@@ -63,6 +67,8 @@ public class MaterialService : IMaterialService
 			Unit = dto.Unit,
 			StockQuantity = dto.StockQuantity,
 			MinStockLevel = dto.MinStockLevel,
+			DefaultUnitPrice = dto.DefaultUnitPrice,
+			DefaultCurrency = string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? "TRY" : dto.DefaultCurrency.Trim().ToUpperInvariant(),
 			Description = dto.Description,
 			IsActive = true,
 			CreatedAt = DateTime.UtcNow
@@ -83,6 +89,8 @@ public class MaterialService : IMaterialService
 		material.Unit = dto.Unit;
 		material.StockQuantity = dto.StockQuantity;
 		material.MinStockLevel = dto.MinStockLevel;
+		material.DefaultUnitPrice = dto.DefaultUnitPrice;
+		material.DefaultCurrency = string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? "TRY" : dto.DefaultCurrency.Trim().ToUpperInvariant();
 		material.Description = dto.Description;
 
 		await _context.SaveChangesAsync();

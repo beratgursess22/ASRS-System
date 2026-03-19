@@ -44,6 +44,16 @@
 
     var allowedStatuses = AllowedStatuses(Model.Status);
     var canReceive = Model.Status == PurchaseOrderStatus.Approved || Model.Status == PurchaseOrderStatus.PartiallyReceived;
+    var canEditPricing = Model.Status != PurchaseOrderStatus.Cancelled;
+    var totalsByCurrency = Model.Items
+        .GroupBy(i => string.IsNullOrWhiteSpace(i.Currency) ? "TRY" : i.Currency!.Trim().ToUpperInvariant())
+        .Select(g => new
+        {
+            Currency = g.Key,
+            Total = g.Sum(x => x.LineTotal)
+        })
+        .OrderBy(x => x.Currency)
+        .ToList();
 }
 
 @section Styles {
@@ -84,6 +94,10 @@
             <div class="wo-detail-label">Not</div>
             <div class="wo-detail-value">@(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)</div>
         </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Genel Toplam</div>
+            <div class="wo-detail-value">@Model.TotalAmount.ToString("N2")</div>
+        </div>
     </div>
 
     <form method="post" asp-action="UpdateStatus" style="padding: 0 1rem 1rem 1rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
@@ -121,6 +135,7 @@
                 <th>Kalan</th>
                 <th>Birim Fiyat</th>
                 <th>Para Birimi</th>
+                <th>Kalem Toplam</th>
                 <th>Islem</th>
             </tr>
         </thead>
@@ -137,23 +152,51 @@
                     <td><strong>@item.RemainingQuantity</strong></td>
                     <td>@item.UnitPrice.ToString("N2")</td>
                     <td>@(string.IsNullOrWhiteSpace(item.Currency) ? "-" : item.Currency)</td>
+                    <td><strong>@item.LineTotal.ToString("N2")</strong></td>
                     <td>
-                        @if (canReceive && item.RemainingQuantity > 0)
-                        {
-                            <form method="post" asp-action="ReceiveItem" style="display:flex; gap:0.35rem; align-items:center;">
-                                <input type="hidden" name="PurchaseOrderId" value="@Model.Id" />
-                                <input type="hidden" name="PurchaseOrderItemId" value="@item.Id" />
-                                <input type="number" min="1" max="@item.RemainingQuantity" name="ReceivedQuantity" class="form-input" style="width:90px;" required />
-                                <button type="submit" class="btn-edit">Teslim Al</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <span class="muted">-</span>
-                        }
+                        <div style="display:flex; gap:0.35rem; flex-wrap:wrap; align-items:center;">
+                            @if (canEditPricing)
+                            {
+                                <form method="post" asp-action="UpdateItemPricing" style="display:flex; gap:0.35rem; align-items:center;">
+                                    <input type="hidden" name="PurchaseOrderId" value="@Model.Id" />
+                                    <input type="hidden" name="PurchaseOrderItemId" value="@item.Id" />
+                                    <input type="number" min="0" step="0.01" name="UnitPrice" class="form-input" value="@item.UnitPrice" style="width:110px;" required />
+                                    <input type="text" name="Currency" class="form-input" value="@(string.IsNullOrWhiteSpace(item.Currency) ? "TRY" : item.Currency)" maxlength="10" style="width:85px; text-transform:uppercase;" />
+                                    <button type="submit" class="btn-edit">Fiyat Kaydet</button>
+                                </form>
+                            }
+
+                            @if (canReceive && item.RemainingQuantity > 0)
+                            {
+                                <form method="post" asp-action="ReceiveItem" style="display:flex; gap:0.35rem; align-items:center;">
+                                    <input type="hidden" name="PurchaseOrderId" value="@Model.Id" />
+                                    <input type="hidden" name="PurchaseOrderItemId" value="@item.Id" />
+                                    <input type="number" min="1" max="@item.RemainingQuantity" name="ReceivedQuantity" class="form-input" style="width:90px;" required />
+                                    <button type="submit" class="btn-edit">Teslim Al</button>
+                                </form>
+                            }
+
+                            @if (!canEditPricing && !(canReceive && item.RemainingQuantity > 0))
+                            {
+                                <span class="muted">-</span>
+                            }
+                        </div>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
+
+    @if (totalsByCurrency.Count > 0)
+    {
+        <div style="padding:1rem; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:1rem; flex-wrap:wrap;">
+            @foreach (var total in totalsByCurrency)
+            {
+                <div class="wo-detail-kpi" style="min-width:200px; margin:0;">
+                    <div class="wo-detail-label">Toplam (@total.Currency)</div>
+                    <div class="wo-detail-value">@total.Total.ToString("N2")</div>
+                </div>
+            }
+        </div>
+    }
 </div>

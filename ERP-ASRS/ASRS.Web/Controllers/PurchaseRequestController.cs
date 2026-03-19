@@ -48,19 +48,4 @@ public class PurchaseRequestController : Controller
         TempData["Success"] = "Talep durumu güncellendi.";
         return RedirectToAction("Details", new { id });
     }
-
-    [HttpPost]
-    public async Task<IActionResult> UpdateItemStock(int requestId, int itemId)
-    {
-        var updated = await _purchaseRequestService.UpdateItemStockAsync(requestId, itemId);
-
-        if (!updated)
-        {
-            TempData["Error"] = "Stok guncellenemedi. Islem sadece Siparis Verildi asamasinda ve eksik kalemler icin yapilabilir.";
-            return RedirectToAction("Details", new { id = requestId });
-        }
-
-        TempData["Success"] = "Kalem stogu basariyla guncellendi.";
-        return RedirectToAction("Details", new { id = requestId });
-    }
 }

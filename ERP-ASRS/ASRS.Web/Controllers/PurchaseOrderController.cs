@@ -91,4 +91,18 @@ public class PurchaseOrderController : Controller
         TempData["Success"] = "Kalem teslimi kaydedildi.";
         return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
     }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateItemPricing(UpdatePurchaseOrderItemPricingDto dto)
+    {
+        var ok = await _purchaseOrderService.UpdateItemPricingAsync(dto);
+        if (!ok)
+        {
+            TempData["Error"] = "Kalem fiyati guncellenemedi. Durum veya girilen degerleri kontrol edin.";
+            return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
+        }
+
+        TempData["Success"] = "Kalem fiyati guncellendi.";
+        return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
+    }
 }
