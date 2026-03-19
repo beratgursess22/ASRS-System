@@ -8,6 +8,36 @@
     var completedCount = Model.Count(x => x.Status == PurchaseOrderStatus.Received);
     var cancelledCount = Model.Count(x => x.Status == PurchaseOrderStatus.Cancelled);
 
+    var openTotals = Model
+        .Where(x => x.Status == PurchaseOrderStatus.Approved || x.Status == PurchaseOrderStatus.PartiallyReceived)
+        .SelectMany(x => x.Items)
+        .GroupBy(i => string.IsNullOrWhiteSpace(i.Currency) ? "TRY" : i.Currency!.Trim().ToUpperInvariant())
+        .Select(g => new { Currency = g.Key, Total = g.Sum(i => i.LineTotal) })
+        .OrderBy(g => g.Currency)
+        .ToList();
+
+    var completedTotals = Model
+        .Where(x => x.Status == PurchaseOrderStatus.Received)
+        .SelectMany(x => x.Items)
+        .GroupBy(i => string.IsNullOrWhiteSpace(i.Currency) ? "TRY" : i.Currency!.Trim().ToUpperInvariant())
+        .Select(g => new { Currency = g.Key, Total = g.Sum(i => i.LineTotal) })
+        .OrderBy(g => g.Currency)
+        .ToList();
+
+    var cancelledTotals = Model
+        .Where(x => x.Status == PurchaseOrderStatus.Cancelled)
+        .SelectMany(x => x.Items)
+        .GroupBy(i => string.IsNullOrWhiteSpace(i.Currency) ? "TRY" : i.Currency!.Trim().ToUpperInvariant())
+        .Select(g => new { Currency = g.Key, Total = g.Sum(i => i.LineTotal) })
+        .OrderBy(g => g.Currency)
+        .ToList();
+
+    static string TotalsText(IEnumerable<dynamic> totals)
+    {
+        var values = totals.Select(x => $"{x.Total:N2} {x.Currency}").ToList();
+        return values.Count == 0 ? "0.00 TRY" : string.Join(" | ", values);
+    }
+
     static string StatusText(PurchaseOrderStatus status) => status switch
     {
         PurchaseOrderStatus.Draft => "Taslak",
@@ -57,6 +87,21 @@
     </div>
 </div>
 
+<div class="wo-stats-grid" style="margin-top:0.75rem;">
+    <div class="wo-stat-card">
+        <div class="wo-stat-label">Acik Tutar</div>
+        <div class="wo-stat-value" style="font-size:1.05rem;">@TotalsText(openTotals)</div>
+    </div>
+    <div class="wo-stat-card">
+        <div class="wo-stat-label">Tamamlanan Tutar</div>
+        <div class="wo-stat-value" style="font-size:1.05rem;">@TotalsText(completedTotals)</div>
+    </div>
+    <div class="wo-stat-card">
+        <div class="wo-stat-label">Iptal Tutar</div>
+        <div class="wo-stat-value" style="font-size:1.05rem;">@TotalsText(cancelledTotals)</div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">@Model.Count() siparis</h2>
@@ -87,6 +132,7 @@
                 <th>Talep No</th>
                 <th>Is Emri</th>
                 <th>Kalem Sayisi</th>
+                <th>Toplam Tutar</th>
                 <th>Durum</th>
                 <th>Olusturulma</th>
                 <th>Islem</th>
@@ -100,6 +146,10 @@
                     <td>#@order.PurchaseRequestId</td>
                     <td>@order.WorkOrderNumber</td>
                     <td>@order.Items.Count</td>
+                    <td>@(string.Join(" | ", order.Items
+                        .GroupBy(i => string.IsNullOrWhiteSpace(i.Currency) ? "TRY" : i.Currency!.Trim().ToUpperInvariant())
+                        .OrderBy(g => g.Key)
+                        .Select(g => $"{g.Sum(i => i.LineTotal):N2} {g.Key}")))</td>
                     <td><span class="badge">@StatusText(order.Status)</span></td>
                     <td>@order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
                     <td>

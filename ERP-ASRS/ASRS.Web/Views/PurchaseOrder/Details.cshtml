@@ -44,7 +44,7 @@
 
     var allowedStatuses = AllowedStatuses(Model.Status);
     var canReceive = Model.Status == PurchaseOrderStatus.Approved || Model.Status == PurchaseOrderStatus.PartiallyReceived;
-    var canEditPricing = Model.Status != PurchaseOrderStatus.Cancelled;
+    var canEditPricing = User.IsInRole("Yönetici") && Model.Status != PurchaseOrderStatus.Cancelled;
     var totalsByCurrency = Model.Items
         .GroupBy(i => string.IsNullOrWhiteSpace(i.Currency) ? "TRY" : i.Currency!.Trim().ToUpperInvariant())
         .Select(g => new

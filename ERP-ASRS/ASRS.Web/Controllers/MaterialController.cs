@@ -33,7 +33,14 @@ public class MaterialController : Controller
             return View("Index", materials);
         }
 
-        await _materialService.CreateMaterialAsync(dto);
+        var createdOk = await _materialService.CreateMaterialAsync(dto);
+        if (!createdOk)
+        {
+            var materials = await _materialService.GetAllMaterialsAsync(null);
+            ViewBag.Error = "Kayit basarisiz. Varsayilan para birimi TRY/USD/EUR olmali ve birim fiyat negatif olamaz.";
+            return View("Index", materials);
+        }
+
         return RedirectToAction("Index");
     }
 
@@ -74,7 +81,13 @@ public class MaterialController : Controller
             return View(existing);
         }
 
-        await _materialService.UpdateMaterialAsync(id, dto);
+        var updatedOk = await _materialService.UpdateMaterialAsync(id, dto);
+        if (!updatedOk)
+        {
+            ViewBag.Error = "Kayit basarisiz. Varsayilan para birimi TRY/USD/EUR olmali ve birim fiyat negatif olamaz.";
+            return View(existing);
+        }
+
         return RedirectToAction("Index");
     }
 

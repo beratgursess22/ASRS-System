@@ -9,6 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 public class MaterialService : IMaterialService
 {
+	private static readonly HashSet<string> AllowedCurrencies = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"TRY",
+		"USD",
+		"EUR"
+	};
+
 	private readonly AppDbContext _context;
 
 	public MaterialService(AppDbContext context)
@@ -31,7 +38,7 @@ public class MaterialService : IMaterialService
 			StockQuantity = m.StockQuantity,
 			MinStockLevel = m.MinStockLevel,
 			DefaultUnitPrice = m.DefaultUnitPrice,
-			DefaultCurrency = string.IsNullOrWhiteSpace(m.DefaultCurrency) ? "TRY" : m.DefaultCurrency,
+			DefaultCurrency = NormalizeCurrency(m.DefaultCurrency),
 			Description = m.Description,
 			IsActive = m.IsActive
 		});
@@ -52,7 +59,7 @@ public class MaterialService : IMaterialService
 			StockQuantity = m.StockQuantity,
 			MinStockLevel = m.MinStockLevel,
 			DefaultUnitPrice = m.DefaultUnitPrice,
-			DefaultCurrency = string.IsNullOrWhiteSpace(m.DefaultCurrency) ? "TRY" : m.DefaultCurrency,
+			DefaultCurrency = NormalizeCurrency(m.DefaultCurrency),
 			Description = m.Description,
 			IsActive = m.IsActive
 		};
@@ -60,6 +67,12 @@ public class MaterialService : IMaterialService
 
 	public async Task<bool> CreateMaterialAsync(CreateMaterialDto dto)
 	{
+		if (dto.DefaultUnitPrice < 0)
+			return false;
+
+		if (!TryNormalizeCurrency(dto.DefaultCurrency, out var normalizedCurrency))
+			return false;
+
 		var material = new Material
 		{
 			Code = dto.Code,
@@ -68,7 +81,7 @@ public class MaterialService : IMaterialService
 			StockQuantity = dto.StockQuantity,
 			MinStockLevel = dto.MinStockLevel,
 			DefaultUnitPrice = dto.DefaultUnitPrice,
-			DefaultCurrency = string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? "TRY" : dto.DefaultCurrency.Trim().ToUpperInvariant(),
+			DefaultCurrency = normalizedCurrency,
 			Description = dto.Description,
 			IsActive = true,
 			CreatedAt = DateTime.UtcNow
@@ -80,6 +93,12 @@ public class MaterialService : IMaterialService
 
 	public async Task<bool> UpdateMaterialAsync(int id, CreateMaterialDto dto)
 	{
+		if (dto.DefaultUnitPrice < 0)
+			return false;
+
+		if (!TryNormalizeCurrency(dto.DefaultCurrency, out var normalizedCurrency))
+			return false;
+
 		var material = await _context.Materials.FindAsync(id);
 		if (material == null)
 			return false;
@@ -90,7 +109,7 @@ public class MaterialService : IMaterialService
 		material.StockQuantity = dto.StockQuantity;
 		material.MinStockLevel = dto.MinStockLevel;
 		material.DefaultUnitPrice = dto.DefaultUnitPrice;
-		material.DefaultCurrency = string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? "TRY" : dto.DefaultCurrency.Trim().ToUpperInvariant();
+		material.DefaultCurrency = normalizedCurrency;
 		material.Description = dto.Description;
 
 		await _context.SaveChangesAsync();
@@ -106,5 +125,23 @@ public class MaterialService : IMaterialService
 		_context.Materials.Remove(material);
 		await _context.SaveChangesAsync();
 		return true;
+	}
+
+	private static bool TryNormalizeCurrency(string? currency, out string normalized)
+	{
+		normalized = string.IsNullOrWhiteSpace(currency)
+			? "TRY"
+			: currency.Trim().ToUpperInvariant();
+
+		return AllowedCurrencies.Contains(normalized);
+	}
+
+	private static string NormalizeCurrency(string? currency)
+	{
+		var normalized = string.IsNullOrWhiteSpace(currency)
+			? "TRY"
+			: currency.Trim().ToUpperInvariant();
+
+		return AllowedCurrencies.Contains(normalized) ? normalized : "TRY";
 	}
 }

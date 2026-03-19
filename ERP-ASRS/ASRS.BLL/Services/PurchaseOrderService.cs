@@ -9,6 +9,13 @@ namespace ASRS.BLL.Services;
 
 public class PurchaseOrderService : IPurchaseOrderService
 {
+	private static readonly HashSet<string> AllowedCurrencies = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"TRY",
+		"USD",
+		"EUR"
+	};
+
 	private readonly AppDbContext _context;
 
 	public PurchaseOrderService(AppDbContext context)
@@ -93,7 +100,7 @@ public class PurchaseOrderService : IPurchaseOrderService
 				OrderedQuantity = item.MissingQuantity,
 				ReceivedQuantity = 0,
 				UnitPrice = unitPrice,
-				Currency = currency.Trim().ToUpperInvariant(),
+				Currency = NormalizeCurrency(currency),
 				Notes = "PurchaseRequest kaleminden olusturuldu."
 			});
 		}
@@ -226,6 +233,9 @@ public class PurchaseOrderService : IPurchaseOrderService
 		if (dto.UnitPrice < 0)
 			return false;
 
+		if (!TryNormalizeCurrency(dto.Currency, out var normalizedCurrency))
+			return false;
+
 		var po = await _context.PurchaseOrders
 			.Include(x => x.Items)
 			.FirstOrDefaultAsync(x => x.Id == dto.PurchaseOrderId);
@@ -241,15 +251,28 @@ public class PurchaseOrderService : IPurchaseOrderService
 			return false;
 
 		item.UnitPrice = dto.UnitPrice;
-
-		var currency = string.IsNullOrWhiteSpace(dto.Currency)
-			? "TRY"
-			: dto.Currency.Trim().ToUpperInvariant();
-
-		item.Currency = currency.Length > 10 ? currency[..10] : currency;
+		item.Currency = normalizedCurrency;
 
 		await _context.SaveChangesAsync();
 		return true;
+	}
+
+	private static bool TryNormalizeCurrency(string? currency, out string normalized)
+	{
+		normalized = string.IsNullOrWhiteSpace(currency)
+			? "TRY"
+			: currency.Trim().ToUpperInvariant();
+
+		return AllowedCurrencies.Contains(normalized);
+	}
+
+	private static string NormalizeCurrency(string? currency)
+	{
+		var normalized = string.IsNullOrWhiteSpace(currency)
+			? "TRY"
+			: currency.Trim().ToUpperInvariant();
+
+		return AllowedCurrencies.Contains(normalized) ? normalized : "TRY";
 	}
 
 	private static bool IsTransitionAllowed(PurchaseOrderStatus current, PurchaseOrderStatus next)

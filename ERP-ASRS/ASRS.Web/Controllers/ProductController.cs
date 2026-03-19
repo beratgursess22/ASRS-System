@@ -36,7 +36,14 @@ public class ProductController : Controller
             return View("Index", products);
         }
 
-        await _productService.CreateProductAsync(dto);
+        var createdOk = await _productService.CreateProductAsync(dto);
+        if (!createdOk)
+        {
+            var products = await _productService.GetAllProductsAsync(null);
+            ViewBag.Error = "Kayit basarisiz. Varsayilan para birimi TRY/USD/EUR olmali ve birim fiyat negatif olamaz.";
+            return View("Index", products);
+        }
+
         var allProducts = await _productService.GetAllProductsAsync(null);
         var created = allProducts.OrderByDescending(p => p.Id).First();
         return RedirectToAction("Bom", new { id = created.Id });
@@ -78,7 +85,13 @@ public class ProductController : Controller
             return View(existing);
         }
 
-        await _productService.UpdateProductAsync(id, dto);
+        var updatedOk = await _productService.UpdateProductAsync(id, dto);
+        if (!updatedOk)
+        {
+            ViewBag.Error = "Kayit basarisiz. Varsayilan para birimi TRY/USD/EUR olmali ve birim fiyat negatif olamaz.";
+            return View(existing);
+        }
+
         return RedirectToAction("Index");
     }
 

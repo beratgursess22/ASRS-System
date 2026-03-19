@@ -39,16 +39,6 @@
         <h2 class="card-title">@Model.ProductCode - @Model.ProductName</h2>
     </div>
 
-    @if ((ViewBag.HasInsufficientStock as bool?) == true)
-    {
-        <form asp-action="CreatePurchaseRequest" method="post" style="padding:0 1rem 1rem 1rem;">
-            <input type="hidden" name="workOrderId" value="@Model.Id" />
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-                <button type="submit" class="btn-edit">Satin Almadan Talep Et</button>
-            </div>
-        </form>
-    }
-
     <div class="wo-detail-grid">
         <div class="wo-detail-kpi">
             <div class="wo-detail-label">Baslik</div>

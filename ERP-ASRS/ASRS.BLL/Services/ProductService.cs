@@ -8,6 +8,13 @@ namespace ASRS.BLL.Services;
 
 public class ProductService : IProductService
 {
+	private static readonly HashSet<string> AllowedCurrencies = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"TRY",
+		"USD",
+		"EUR"
+	};
+
 	private readonly AppDbContext _context;
 
 	public ProductService(AppDbContext context)
@@ -37,7 +44,7 @@ public class ProductService : IProductService
 				StockQuantity = p.StockQuantity,
 				MinStockLevel = p.MinStockLevel,
 				DefaultUnitPrice = p.DefaultUnitPrice,
-				DefaultCurrency = string.IsNullOrWhiteSpace(p.DefaultCurrency) ? "TRY" : p.DefaultCurrency,
+				DefaultCurrency = NormalizeCurrency(p.DefaultCurrency),
 				IsActive = p.IsActive
 			});
 		}
@@ -60,13 +67,19 @@ public class ProductService : IProductService
 			StockQuantity = p.StockQuantity,
 			MinStockLevel = p.MinStockLevel,
 			DefaultUnitPrice = p.DefaultUnitPrice,
-			DefaultCurrency = string.IsNullOrWhiteSpace(p.DefaultCurrency) ? "TRY" : p.DefaultCurrency,
+			DefaultCurrency = NormalizeCurrency(p.DefaultCurrency),
 			IsActive = p.IsActive
 		};
 	}
 
 	public async Task<bool> CreateProductAsync(CreateProductDto dto)
 	{
+		if (dto.DefaultUnitPrice < 0)
+			return false;
+
+		if (!TryNormalizeCurrency(dto.DefaultCurrency, out var normalizedCurrency))
+			return false;
+
 		var product = new Product
 		{
 			Code = dto.Code,
@@ -76,7 +89,7 @@ public class ProductService : IProductService
 			StockQuantity = dto.StockQuantity,
 			MinStockLevel = dto.MinStockLevel,
 			DefaultUnitPrice = dto.DefaultUnitPrice,
-			DefaultCurrency = string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? "TRY" : dto.DefaultCurrency.Trim().ToUpperInvariant(),
+			DefaultCurrency = normalizedCurrency,
 			Description = dto.Description,
 			IsActive = true,
 			CreatedAt = DateTime.UtcNow
@@ -89,6 +102,12 @@ public class ProductService : IProductService
 
 	public async Task<bool> UpdateProductAsync(int id, CreateProductDto dto)
 	{
+		if (dto.DefaultUnitPrice < 0)
+			return false;
+
+		if (!TryNormalizeCurrency(dto.DefaultCurrency, out var normalizedCurrency))
+			return false;
+
 		var product = await _context.Products.FindAsync(id);
 		if (product == null)
 			return false;
@@ -100,7 +119,7 @@ public class ProductService : IProductService
 		product.StockQuantity = dto.StockQuantity;
 		product.MinStockLevel = dto.MinStockLevel;
 		product.DefaultUnitPrice = dto.DefaultUnitPrice;
-		product.DefaultCurrency = string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? "TRY" : dto.DefaultCurrency.Trim().ToUpperInvariant();
+		product.DefaultCurrency = normalizedCurrency;
 		product.Description = dto.Description;
 
 		await _context.SaveChangesAsync();
@@ -116,5 +135,23 @@ public class ProductService : IProductService
 		_context.Products.Remove(product);
 		await _context.SaveChangesAsync();
 		return true;
+	}
+
+	private static bool TryNormalizeCurrency(string? currency, out string normalized)
+	{
+		normalized = string.IsNullOrWhiteSpace(currency)
+			? "TRY"
+			: currency.Trim().ToUpperInvariant();
+
+		return AllowedCurrencies.Contains(normalized);
+	}
+
+	private static string NormalizeCurrency(string? currency)
+	{
+		var normalized = string.IsNullOrWhiteSpace(currency)
+			? "TRY"
+			: currency.Trim().ToUpperInvariant();
+
+		return AllowedCurrencies.Contains(normalized) ? normalized : "TRY";
 	}
 }
