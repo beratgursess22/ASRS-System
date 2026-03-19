@@ -30,10 +30,14 @@ public class PurchaseRequestService : IPurchaseRequestService
         if (workOrder == null)
             return false;
 
-        var alreadyExists = await _context.PurchaseRequests
-            .AnyAsync(pr => pr.WorkOrderId == workOrderId);
+        // Ayni is emri icin sadece aktif talep varken yeni talep engellenir.
+        // Received veya Rejected olan eski talepler sonrasinda stok tekrar yetersiz kalirsa yeni talep acilabilir.
+        var hasActiveRequest = await _context.PurchaseRequests
+            .AnyAsync(pr => pr.WorkOrderId == workOrderId
+                && pr.Status != PurchaseRequestStatus.Received
+                && pr.Status != PurchaseRequestStatus.Rejected);
 
-        if (alreadyExists)
+        if (hasActiveRequest)
             return false;
 
         var tree = await _bomService.GetNestedBomRequirementsAsync(workOrder.ProductId, workOrder.Quantity);
@@ -148,7 +152,6 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         if (request == null)
             return false;
-        // Satin alma teslimat kaydi sadece siparis verildi asamasinda yapilabilir.
         if (request.Status != PurchaseRequestStatus.Ordered)
             return false;
 

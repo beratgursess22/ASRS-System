@@ -1,0 +1,159 @@
+@model ASRS.Core.DTOs.PurchaseOrderListDto
+@using ASRS.Core.Enums
+@{
+    ViewData["Title"] = "Siparis Detayi";
+
+    static string StatusText(PurchaseOrderStatus status) => status switch
+    {
+        PurchaseOrderStatus.Draft => "Taslak",
+        PurchaseOrderStatus.Approved => "Onaylandi",
+        PurchaseOrderStatus.PartiallyReceived => "Kismi Teslim",
+        PurchaseOrderStatus.Received => "Teslim Alindi",
+        PurchaseOrderStatus.Cancelled => "Iptal",
+        _ => status.ToString()
+    };
+
+    static List<PurchaseOrderStatus> AllowedStatuses(PurchaseOrderStatus current) => current switch
+    {
+        PurchaseOrderStatus.Draft => new List<PurchaseOrderStatus>
+        {
+            PurchaseOrderStatus.Draft,
+            PurchaseOrderStatus.Approved,
+            PurchaseOrderStatus.Cancelled
+        },
+        PurchaseOrderStatus.Approved => new List<PurchaseOrderStatus>
+        {
+            PurchaseOrderStatus.Approved,
+            PurchaseOrderStatus.Cancelled
+        },
+        PurchaseOrderStatus.PartiallyReceived => new List<PurchaseOrderStatus>
+        {
+            PurchaseOrderStatus.PartiallyReceived,
+            PurchaseOrderStatus.Cancelled
+        },
+        PurchaseOrderStatus.Received => new List<PurchaseOrderStatus>
+        {
+            PurchaseOrderStatus.Received
+        },
+        PurchaseOrderStatus.Cancelled => new List<PurchaseOrderStatus>
+        {
+            PurchaseOrderStatus.Cancelled
+        },
+        _ => new List<PurchaseOrderStatus> { current }
+    };
+
+    var allowedStatuses = AllowedStatuses(Model.Status);
+    var canReceive = Model.Status == PurchaseOrderStatus.Approved || Model.Status == PurchaseOrderStatus.PartiallyReceived;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <h1 class="page-title">Siparis Detayi - @Model.OrderNumber</h1>
+    <a asp-action="Index" class="btn-edit">&larr; Siparislere Don</a>
+</div>
+
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert-box alert-error">@errorMessage</div>
+}
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert-box" style="border:1px solid #166534; color:#166534; background:#dcfce7;">@successMessage</div>
+}
+
+<div class="card" style="margin-bottom:1rem;">
+    <div class="card-header">
+        <h2 class="card-title">Talep #@Model.PurchaseRequestId - @Model.WorkOrderNumber</h2>
+    </div>
+
+    <div class="wo-detail-grid">
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Durum</div>
+            <div class="wo-detail-value">@StatusText(Model.Status)</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Olusturulma</div>
+            <div class="wo-detail-value">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Not</div>
+            <div class="wo-detail-value">@(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)</div>
+        </div>
+    </div>
+
+    <form method="post" asp-action="UpdateStatus" style="padding: 0 1rem 1rem 1rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <select name="newStatus" class="form-input" style="width:220px;">
+            @foreach (var status in allowedStatuses)
+            {
+                if (Model.Status == status)
+                {
+                    <option value="@((int)status)" selected="selected">@StatusText(status)</option>
+                }
+                else
+                {
+                    <option value="@((int)status)">@StatusText(status)</option>
+                }
+            }
+        </select>
+        <button type="submit" class="btn-primary">Durum Guncelle</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Siparis Kalemleri (@Model.Items.Count)</h2>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Tip</th>
+                <th>Kod</th>
+                <th>Ad</th>
+                <th>Siparis Miktari</th>
+                <th>Teslim Alinan</th>
+                <th>Kalan</th>
+                <th>Birim Fiyat</th>
+                <th>Para Birimi</th>
+                <th>Islem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                var isProduct = item.ProductId.HasValue;
+                <tr>
+                    <td>@(isProduct ? "Urun" : "Malzeme")</td>
+                    <td>@(isProduct ? item.ProductCode : item.MaterialCode)</td>
+                    <td>@(isProduct ? item.ProductName : item.MaterialName)</td>
+                    <td>@item.OrderedQuantity</td>
+                    <td>@item.ReceivedQuantity</td>
+                    <td><strong>@item.RemainingQuantity</strong></td>
+                    <td>@item.UnitPrice.ToString("N2")</td>
+                    <td>@(string.IsNullOrWhiteSpace(item.Currency) ? "-" : item.Currency)</td>
+                    <td>
+                        @if (canReceive && item.RemainingQuantity > 0)
+                        {
+                            <form method="post" asp-action="ReceiveItem" style="display:flex; gap:0.35rem; align-items:center;">
+                                <input type="hidden" name="PurchaseOrderId" value="@Model.Id" />
+                                <input type="hidden" name="PurchaseOrderItemId" value="@item.Id" />
+                                <input type="number" min="1" max="@item.RemainingQuantity" name="ReceivedQuantity" class="form-input" style="width:90px;" required />
+                                <button type="submit" class="btn-edit">Teslim Al</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="muted">-</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

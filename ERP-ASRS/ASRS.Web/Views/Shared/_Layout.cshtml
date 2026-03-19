@@ -26,6 +26,8 @@
                              .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role)
                              .Select(c => c.Value)
                              .FirstOrDefault() ?? "Kullanıcı";
+
+        var isPurchaseActive = IsActive("PurchaseRequest") || IsActive("PurchaseOrder");
     }
 
     <!-- Sidebar -->
@@ -175,16 +177,33 @@
 
             @if (User.IsInRole("Yönetici") || User.IsInRole("Satın Alma"))
             {
-                <a class="nav-item @(IsActive("PurchaseRequest") ? "active" : "")" asp-controller="PurchaseRequest" asp-action="Index">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 12h6" />
-                        <path d="M12 9v6" />
-                        <path d="M3 7h18" />
-                        <path d="M5 7v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7" />
-                    </svg>
-                    <span>Satin Alma</span>
-                </a>
+                <details class="nav-group @(isPurchaseActive ? "active" : "")" @(isPurchaseActive ? "open" : null)>
+                    <summary class="nav-item nav-group-trigger">
+                        <span class="nav-group-main">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 7h18" />
+                                <path d="M5 7v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7" />
+                                <path d="M8 11h8" />
+                                <path d="M8 15h5" />
+                            </svg>
+                            <span>Satin Alma</span>
+                        </span>
+                        <svg class="nav-group-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </summary>
+
+                    <div class="nav-group-items">
+                        <a class="nav-item nav-sub-item @(IsActive("PurchaseRequest") ? "active" : "")" asp-controller="PurchaseRequest" asp-action="Index">
+                            <span>Satin Alma Talep</span>
+                        </a>
+
+                        <a class="nav-item nav-sub-item @(IsActive("PurchaseOrder") ? "active" : "")" asp-controller="PurchaseOrder" asp-action="Index">
+                            <span>Satin Alma Siparis</span>
+                        </a>
+                    </div>
+                </details>
             }
         </div>
 

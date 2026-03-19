@@ -69,6 +69,16 @@
     <div class="card-header">
         <h2 class="card-title">@Model.WorkOrderNumber - @Model.WorkOrderTitle</h2>
     </div>
+
+    @if (Model.Status == PurchaseRequestStatus.Approved)
+    {
+        <form method="post" asp-controller="PurchaseOrder" asp-action="CreateFromRequest" style="padding: 0 1rem 1rem 1rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+            <input type="hidden" name="purchaseRequestId" value="@Model.Id" />
+            <input type="text" name="notes" class="form-input" placeholder="Siparis notu (opsiyonel)" style="min-width:260px;" />
+            <button type="submit" class="btn-edit">Satin Alma Siparisi Olustur</button>
+        </form>
+    }
+
     <div class="wo-detail-grid">
         <div class="wo-detail-kpi">
             <div class="wo-detail-label">Talep Eden</div>
@@ -123,7 +133,6 @@
                 <th>Stok</th>
                 <th>Eksik</th>
                 <th>Not</th>
-                <th>Islem</th>
             </tr>
         </thead>
         <tbody>
@@ -138,20 +147,6 @@
                     <td>@item.CurrentStockQuantity</td>
                     <td><strong style="color:#b91c1c;">@item.MissingQuantity</strong></td>
                     <td>@(string.IsNullOrWhiteSpace(item.Notes) ? "-" : item.Notes)</td>
-                    <td>
-                        @if (item.MissingQuantity > 0)
-                        {
-                            <form method="post" asp-action="UpdateItemStock" style="display:inline;">
-                                <input type="hidden" name="requestId" value="@Model.Id" />
-                                <input type="hidden" name="itemId" value="@item.Id" />
-                                <button type="submit" class="btn-edit">Stock Guncelle</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <span class="muted">Guncel</span>
-                        }
-                    </td>
                 </tr>
             }
         </tbody>

@@ -204,7 +204,7 @@ public class BomService : IBomService
         }
     }
 
-    private static void ApplyAggregateSufficiency(IEnumerable<BomRequirementNodeDto> nodes, Dictionary<string, (int required, int stock)> aggregate)
+    private static void ApplyAggregateSufficiency(IEnumerable<BomRequirementNodeDto> nodes,Dictionary<string, (int required, int stock)> aggregate)
     {
         foreach (var node in nodes)
         {

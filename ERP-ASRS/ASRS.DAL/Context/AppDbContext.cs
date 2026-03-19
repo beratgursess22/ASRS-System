@@ -16,6 +16,8 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 	public DbSet<Material> Materials { get; set; }
 	public DbSet<PurchaseRequest> PurchaseRequests { get; set; }
 	public DbSet<PurchaseRequestItem> PurchaseRequestItems { get; set; }
+	public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+	public DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		base.OnModelCreating(modelBuilder);
@@ -33,51 +35,67 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 			.WithMany(d => d.Users)
 			.HasForeignKey(u => u.DepartmentId)
 			.OnDelete(DeleteBehavior.SetNull);
-
-		// BillOfMaterial: iki ayrı Product FK — EF Core'un otomatik çözmesi için explicit tanım
 		modelBuilder.Entity<BillOfMaterial>()
 			.HasOne(b => b.Product)
 			.WithMany()
 			.HasForeignKey(b => b.ProductId)
 			.OnDelete(DeleteBehavior.Cascade);
-
 		modelBuilder.Entity<BillOfMaterial>()
 			.HasOne(b => b.ComponentProduct)
 			.WithMany()
 			.HasForeignKey(b => b.ComponentProductId)
 			.OnDelete(DeleteBehavior.Restrict);
-
 		modelBuilder.Entity<BillOfMaterial>()
 			.HasOne(b => b.Material)
 			.WithMany()
 			.HasForeignKey(b => b.MaterialId)
 			.OnDelete(DeleteBehavior.Restrict);
-
 		modelBuilder.Entity<PurchaseRequest>()
 			.HasOne(pr => pr.WorkOrder)
 			.WithMany()
 			.HasForeignKey(pr => pr.WorkOrderId)
 			.OnDelete(DeleteBehavior.Cascade);
-
 		modelBuilder.Entity<PurchaseRequest>()
 			.HasOne(pr => pr.RequestedByUser)
 			.WithMany()
 			.HasForeignKey(pr => pr.RequestedByUserId)
 			.OnDelete(DeleteBehavior.Restrict);
-
 		modelBuilder.Entity<PurchaseRequestItem>()
 			.HasOne(i => i.PurchaseRequest)
 			.WithMany(pr => pr.Items)
 			.HasForeignKey(i => i.PurchaseRequestId)
 			.OnDelete(DeleteBehavior.Cascade);
-
 		modelBuilder.Entity<PurchaseRequestItem>()
 			.HasOne(i => i.Product)
 			.WithMany()
 			.HasForeignKey(i => i.ProductId)
 			.OnDelete(DeleteBehavior.Restrict);
-
 		modelBuilder.Entity<PurchaseRequestItem>()
+			.HasOne(i => i.Material)
+			.WithMany()
+			.HasForeignKey(i => i.MaterialId)
+			.OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PurchaseOrder>()
+			.HasOne(po => po.PurchaseRequest)
+			.WithMany()
+			.HasForeignKey(po => po.PurchaseRequestId)
+			.OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PurchaseOrder>()
+			.HasOne(po => po.CreatedByUser)
+			.WithMany()
+			.HasForeignKey(po => po.CreatedByUserId)
+			.OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PurchaseOrderItem>()
+			.HasOne(i => i.PurchaseOrder)
+			.WithMany(po => po.Items)
+			.HasForeignKey(i => i.PurchaseOrderId)
+			.OnDelete(DeleteBehavior.Cascade);
+		modelBuilder.Entity<PurchaseOrderItem>()
+			.HasOne(i => i.Product)
+			.WithMany()
+			.HasForeignKey(i => i.ProductId)
+			.OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PurchaseOrderItem>()
 			.HasOne(i => i.Material)
 			.WithMany()
 			.HasForeignKey(i => i.MaterialId)

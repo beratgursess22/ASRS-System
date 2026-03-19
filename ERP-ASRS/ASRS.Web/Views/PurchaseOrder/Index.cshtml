@@ -1,0 +1,112 @@
+@model IEnumerable<ASRS.Core.DTOs.PurchaseOrderListDto>
+@using ASRS.Core.Enums
+@{
+    ViewData["Title"] = "Satin Alma Siparisleri";
+
+    var draftCount = Model.Count(x => x.Status == PurchaseOrderStatus.Draft);
+    var approvedCount = Model.Count(x => x.Status == PurchaseOrderStatus.Approved || x.Status == PurchaseOrderStatus.PartiallyReceived);
+    var completedCount = Model.Count(x => x.Status == PurchaseOrderStatus.Received);
+    var cancelledCount = Model.Count(x => x.Status == PurchaseOrderStatus.Cancelled);
+
+    static string StatusText(PurchaseOrderStatus status) => status switch
+    {
+        PurchaseOrderStatus.Draft => "Taslak",
+        PurchaseOrderStatus.Approved => "Onaylandi",
+        PurchaseOrderStatus.PartiallyReceived => "Kismi Teslim",
+        PurchaseOrderStatus.Received => "Teslim Alindi",
+        PurchaseOrderStatus.Cancelled => "Iptal",
+        _ => status.ToString()
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <h1 class="page-title">Satin Alma Siparisleri</h1>
+</div>
+
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert-box alert-error">@errorMessage</div>
+}
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert-box" style="border:1px solid #166534; color:#166534; background:#dcfce7;">@successMessage</div>
+}
+
+<div class="wo-stats-grid">
+    <div class="wo-stat-card stat-waiting">
+        <div class="wo-stat-label">Taslak</div>
+        <div class="wo-stat-value">@draftCount</div>
+    </div>
+    <div class="wo-stat-card stat-inprocess">
+        <div class="wo-stat-label">Acik</div>
+        <div class="wo-stat-value">@approvedCount</div>
+    </div>
+    <div class="wo-stat-card stat-completed">
+        <div class="wo-stat-label">Tamamlanan</div>
+        <div class="wo-stat-value">@completedCount</div>
+    </div>
+    <div class="wo-stat-card stat-cancelled">
+        <div class="wo-stat-label">Iptal</div>
+        <div class="wo-stat-value">@cancelledCount</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">@Model.Count() siparis</h2>
+        <form method="get" asp-action="Index" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <select name="status" class="form-input" style="width:220px;">
+                <option value="">Tum Durumlar</option>
+                @foreach (var status in Enum.GetValues<PurchaseOrderStatus>())
+                {
+                    if (ViewBag.Status?.ToString() == status.ToString() || ViewBag.Status?.ToString() == ((int)status).ToString())
+                    {
+                        <option value="@((int)status)" selected="selected">@StatusText(status)</option>
+                    }
+                    else
+                    {
+                        <option value="@((int)status)">@StatusText(status)</option>
+                    }
+                }
+            </select>
+            <button type="submit" class="btn-primary">Filtrele</button>
+            <a asp-action="Index" class="btn-edit">Temizle</a>
+        </form>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Siparis No</th>
+                <th>Talep No</th>
+                <th>Is Emri</th>
+                <th>Kalem Sayisi</th>
+                <th>Durum</th>
+                <th>Olusturulma</th>
+                <th>Islem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td><strong>@order.OrderNumber</strong></td>
+                    <td>#@order.PurchaseRequestId</td>
+                    <td>@order.WorkOrderNumber</td>
+                    <td>@order.Items.Count</td>
+                    <td><span class="badge">@StatusText(order.Status)</span></td>
+                    <td>@order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@order.Id" class="btn-edit">Detay</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
