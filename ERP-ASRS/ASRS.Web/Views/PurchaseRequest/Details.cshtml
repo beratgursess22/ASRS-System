@@ -1,0 +1,159 @@
+@model ASRS.Core.DTOs.PurchaseRequestListDto
+@using ASRS.Core.Enums
+@{
+    ViewData["Title"] = "Talep Detayi";
+
+    static string StatusText(PurchaseRequestStatus status) => status switch
+    {
+        PurchaseRequestStatus.Pending => "Beklemede",
+        PurchaseRequestStatus.Approved => "Onaylandi",
+        PurchaseRequestStatus.Rejected => "Reddedildi",
+        PurchaseRequestStatus.Ordered => "Siparis Verildi",
+        PurchaseRequestStatus.Received => "Teslim Alindi",
+        _ => status.ToString()
+    };
+
+    static List<PurchaseRequestStatus> AllowedStatuses(PurchaseRequestStatus current) => current switch
+    {
+        PurchaseRequestStatus.Pending => new List<PurchaseRequestStatus>
+        {
+            PurchaseRequestStatus.Pending,
+            PurchaseRequestStatus.Approved,
+            PurchaseRequestStatus.Rejected
+        },
+        PurchaseRequestStatus.Approved => new List<PurchaseRequestStatus>
+        {
+            PurchaseRequestStatus.Approved,
+            PurchaseRequestStatus.Ordered
+        },
+        PurchaseRequestStatus.Ordered => new List<PurchaseRequestStatus>
+        {
+            PurchaseRequestStatus.Ordered,
+            PurchaseRequestStatus.Received
+        },
+        PurchaseRequestStatus.Rejected => new List<PurchaseRequestStatus>
+        {
+            PurchaseRequestStatus.Rejected
+        },
+        PurchaseRequestStatus.Received => new List<PurchaseRequestStatus>
+        {
+            PurchaseRequestStatus.Received
+        },
+        _ => new List<PurchaseRequestStatus> { current }
+    };
+
+    var allowedStatuses = AllowedStatuses(Model.Status);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <h1 class="page-title">Talep Detayi - #@Model.Id</h1>
+    <a asp-action="Index" class="btn-edit">&larr; Taleplere Don</a>
+</div>
+
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert-box alert-error">@errorMessage</div>
+}
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert-box" style="border:1px solid #166534; color:#166534; background:#dcfce7;">@successMessage</div>
+}
+
+<div class="card" style="margin-bottom:1rem;">
+    <div class="card-header">
+        <h2 class="card-title">@Model.WorkOrderNumber - @Model.WorkOrderTitle</h2>
+    </div>
+    <div class="wo-detail-grid">
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Talep Eden</div>
+            <div class="wo-detail-value">@Model.RequestedByUserName</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Durum</div>
+            <div class="wo-detail-value">@StatusText(Model.Status)</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Olusturulma</div>
+            <div class="wo-detail-value">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Son Guncelleme</div>
+            <div class="wo-detail-value">@(Model.UpdatedAt.HasValue ? Model.UpdatedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "-")</div>
+        </div>
+    </div>
+
+    <form method="post" asp-action="UpdateStatus" style="padding: 0 1rem 1rem 1rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <select name="status" class="form-input" style="width:220px;">
+            @foreach (var status in allowedStatuses)
+            {
+                if (Model.Status == status)
+                {
+                    <option value="@((int)status)" selected="selected">@StatusText(status)</option>
+                }
+                else
+                {
+                    <option value="@((int)status)">@StatusText(status)</option>
+                }
+            }
+        </select>
+        <input type="text" name="notes" class="form-input" placeholder="Not (opsiyonel)" value="@Model.Notes" style="min-width:260px;" />
+        <button type="submit" class="btn-primary">Durum Guncelle</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Eksik Kalemler (@Model.Items.Count)</h2>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Tip</th>
+                <th>Kod</th>
+                <th>Ad</th>
+                <th>Gereken</th>
+                <th>Stok</th>
+                <th>Eksik</th>
+                <th>Not</th>
+                <th>Islem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                var isProduct = item.ProductId.HasValue;
+                <tr>
+                    <td>@(isProduct ? "Urun" : "Malzeme")</td>
+                    <td>@(isProduct ? item.ProductCode : item.MaterialCode)</td>
+                    <td>@(isProduct ? item.ProductName : item.MaterialName)</td>
+                    <td>@item.RequiredQuantity</td>
+                    <td>@item.CurrentStockQuantity</td>
+                    <td><strong style="color:#b91c1c;">@item.MissingQuantity</strong></td>
+                    <td>@(string.IsNullOrWhiteSpace(item.Notes) ? "-" : item.Notes)</td>
+                    <td>
+                        @if (item.MissingQuantity > 0)
+                        {
+                            <form method="post" asp-action="UpdateItemStock" style="display:inline;">
+                                <input type="hidden" name="requestId" value="@Model.Id" />
+                                <input type="hidden" name="itemId" value="@item.Id" />
+                                <button type="submit" class="btn-edit">Stock Guncelle</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="muted">Guncel</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

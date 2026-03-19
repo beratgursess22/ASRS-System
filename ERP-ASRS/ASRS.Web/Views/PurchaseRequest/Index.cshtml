@@ -1,0 +1,117 @@
+@model IEnumerable<ASRS.Core.DTOs.PurchaseRequestListDto>
+@using ASRS.Core.Enums
+@{
+    ViewData["Title"] = "Satin Alma Talepleri";
+
+    var pendingCount = Model.Count(x => x.Status == PurchaseRequestStatus.Pending);
+    var approvedCount = Model.Count(x => x.Status == PurchaseRequestStatus.Approved);
+    var completedCount = Model.Count(x => x.Status == PurchaseRequestStatus.Received);
+    var rejectedCount = Model.Count(x => x.Status == PurchaseRequestStatus.Rejected);
+
+    static string StatusText(PurchaseRequestStatus status) => status switch
+    {
+        PurchaseRequestStatus.Pending => "Beklemede",
+        PurchaseRequestStatus.Approved => "Onaylandi",
+        PurchaseRequestStatus.Rejected => "Reddedildi",
+        PurchaseRequestStatus.Ordered => "Siparis Verildi",
+        PurchaseRequestStatus.Received => "Teslim Alindi",
+        _ => status.ToString()
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <h1 class="page-title">Satin Alma Talepleri</h1>
+</div>
+
+<div class="wo-stats-grid">
+    <div class="wo-stat-card stat-waiting">
+        <div class="wo-stat-label">Beklemede</div>
+        <div class="wo-stat-value">@pendingCount</div>
+    </div>
+    <div class="wo-stat-card stat-inprocess">
+        <div class="wo-stat-label">Onaylanan</div>
+        <div class="wo-stat-value">@approvedCount</div>
+    </div>
+    <div class="wo-stat-card stat-completed">
+        <div class="wo-stat-label">Tamamlanan</div>
+        <div class="wo-stat-value">@completedCount</div>
+    </div>
+    <div class="wo-stat-card stat-cancelled">
+        <div class="wo-stat-label">Reddedilen</div>
+        <div class="wo-stat-value">@rejectedCount</div>
+    </div>
+</div>
+
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert-box alert-error">@errorMessage</div>
+}
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert-box" style="border:1px solid #166534; color:#166534; background:#dcfce7;">@successMessage</div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">@Model.Count() talep</h2>
+        <form method="get" asp-action="Index" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <select name="status" class="form-input" style="width:220px;">
+                <option value="">Tum Durumlar</option>
+                @foreach (var status in Enum.GetValues<PurchaseRequestStatus>())
+                {
+                    if (ViewBag.Status?.ToString() == status.ToString() || ViewBag.Status?.ToString() == ((int)status).ToString())
+                    {
+                        <option value="@((int)status)" selected="selected">@StatusText(status)</option>
+                    }
+                    else
+                    {
+                        <option value="@((int)status)">@StatusText(status)</option>
+                    }
+                }
+            </select>
+            <button type="submit" class="btn-primary">Filtrele</button>
+            <a asp-action="Index" class="btn-edit">Temizle</a>
+        </form>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Talep No</th>
+                <th>Is Emri</th>
+                <th>Talep Eden</th>
+                <th>Kalem Sayisi</th>
+                <th>Durum</th>
+                <th>Olusturulma</th>
+                <th>Islem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in Model)
+            {
+                <tr>
+                    <td>#@request.Id</td>
+                    <td>
+                        <div style="font-weight:600;">@request.WorkOrderNumber</div>
+                        <div class="muted">@request.WorkOrderTitle</div>
+                    </td>
+                    <td>@request.RequestedByUserName</td>
+                    <td>@request.Items.Count</td>
+                    <td>
+                        <span class="badge">@StatusText(request.Status)</span>
+                    </td>
+                    <td>@request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@request.Id" class="btn-edit">Detay</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

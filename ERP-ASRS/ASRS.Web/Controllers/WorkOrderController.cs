@@ -13,12 +13,14 @@ public class WorkOrderController : Controller
     private readonly IWorkOrderService _workOrderService;
     private readonly IProductService _productService;
     private readonly IBomService _bomService;
+    private readonly IPurchaseRequestService _purchaseRequestService;
 
-    public WorkOrderController(IWorkOrderService workOrderService, IProductService productService, IBomService bomService)
+    public WorkOrderController(IWorkOrderService workOrderService, IProductService productService, IBomService bomService, IPurchaseRequestService purchaseRequestService)
     {
         _workOrderService = workOrderService;
         _productService = productService;
         _bomService = bomService;
+        _purchaseRequestService = purchaseRequestService;
     }
 
     public async Task<IActionResult> Index(string? search, WorkOrderStatus? status)
@@ -107,7 +109,47 @@ public class WorkOrderController : Controller
             return NotFound();
 
         var tree = await _bomService.GetNestedBomRequirementsAsync(workOrder.ProductId, workOrder.Quantity);
+        ViewBag.HasInsufficientStock = HasInsufficientStock(tree);
         ViewBag.BomTree = tree;
         return View(workOrder);
+    }
+    
+    [Authorize(Roles = "Yönetici,Üretim,Depo")]
+    [HttpPost]
+    public async Task<IActionResult> CreatePurchaseRequest(int workOrderId, string? notes)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            TempData["Error"] = "Kullanıcı bilgisi alınamadı.";
+            return RedirectToAction("Details", new { id = workOrderId });
+        }
+
+        var created = await _purchaseRequestService.CreateFromWorkOrderAsync(workOrderId, userId, notes);
+
+        if (!created)
+        {
+            TempData["Error"] = "Talep oluşturulamadı. Bu iş emri için daha önce talep oluşturulmuş olabilir veya eksik stok bulunmuyor olabilir.";
+            return RedirectToAction("Details", new { id = workOrderId });
+        }
+
+        TempData["Success"] = "Satın alma talebi başarıyla oluşturuldu.";
+        return RedirectToAction("Details", new { id = workOrderId });
+    }
+
+    private static bool HasInsufficientStock(IEnumerable<BomRequirementNodeDto> nodes)
+    {
+        foreach (var node in nodes)
+        {
+            if (!node.IsStockSufficient)
+                return true;
+            if (node.Children != null && node.Children.Count > 0)
+            {
+                if (HasInsufficientStock(node.Children))
+                    return true;
+            }
+        }
+
+        return false;
     }
 }

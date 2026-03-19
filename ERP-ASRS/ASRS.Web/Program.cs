@@ -41,6 +41,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 builder.Services.AddScoped<IBomService, BomService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
+builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
 
 builder.Services.AddControllersWithViews();
 
@@ -262,48 +263,48 @@ app.MapControllerRoute(
 
 
 // Temel rol ve departman seed
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
+// using (var scope = app.Services.CreateScope())
+// {
+//     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
 
-    string[] roles = ["Yönetici", "Depo", "Lojistik", "Üretim", "Kalite", "Satın Alma"];
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-        {
-            await roleManager.CreateAsync(new AppRole
-            {
-                Name = role,
-                Description = $"{role} rolü"
-            });
-        }
-    }
+//     string[] roles = ["Yönetici", "Depo", "Lojistik", "Üretim", "Kalite", "Satın Alma"];
+//     foreach (var role in roles)
+//     {
+//         if (!await roleManager.RoleExistsAsync(role))
+//         {
+//             await roleManager.CreateAsync(new AppRole
+//             {
+//                 Name = role,
+//                 Description = $"{role} rolü"
+//             });
+//         }
+//     }
 
-    var departmentsToEnsure = new[]
-    {
-        ("Üretim", "Üretim departmanı"),
-        ("Depo", "Depo departmanı"),
-        ("Kalite", "Kalite departmanı"),
-        ("Lojistik", "Lojistik departmanı"),
-        ("Satın Alma", "Satın alma departmanı")
-    };
+//     var departmentsToEnsure = new[]
+//     {
+//         ("Üretim", "Üretim departmanı"),
+//         ("Depo", "Depo departmanı"),
+//         ("Kalite", "Kalite departmanı"),
+//         ("Lojistik", "Lojistik departmanı"),
+//         ("Satın Alma", "Satın alma departmanı")
+//     };
 
-    foreach (var (name, description) in departmentsToEnsure)
-    {
-        var exists = await db.Departments.AnyAsync(d => d.Name == name);
-        if (!exists)
-        {
-            db.Departments.Add(new Department
-            {
-                Name = name,
-                Description = description,
-                IsActive = true
-            });
-        }
-    }
+//     foreach (var (name, description) in departmentsToEnsure)
+//     {
+//         var exists = await db.Departments.AnyAsync(d => d.Name == name);
+//         if (!exists)
+//         {
+//             db.Departments.Add(new Department
+//             {
+//                 Name = name,
+//                 Description = description,
+//                 IsActive = true
+//             });
+//         }
+//     }
 
-    await db.SaveChangesAsync();
-}
+//     await db.SaveChangesAsync();
+// }
 
 app.Run();

@@ -20,10 +20,35 @@
     <a asp-action="Index" class="btn-edit">&larr; Is Emirlerine Don</a>
 </div>
 
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="card" style="margin-bottom:1rem; border-left:4px solid #c62828;">
+        <div style="padding:0.75rem 1rem; color:#c62828;">@errorMessage</div>
+    </div>
+}
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="card" style="margin-bottom:1rem; border-left:4px solid #2e7d32;">
+        <div style="padding:0.75rem 1rem; color:#2e7d32;">@successMessage</div>
+    </div>
+}
+
 <div class="card" style="margin-bottom:1rem;">
     <div class="card-header">
         <h2 class="card-title">@Model.ProductCode - @Model.ProductName</h2>
     </div>
+
+    @if ((ViewBag.HasInsufficientStock as bool?) == true)
+    {
+        <form asp-action="CreatePurchaseRequest" method="post" style="padding:0 1rem 1rem 1rem;">
+            <input type="hidden" name="workOrderId" value="@Model.Id" />
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                <button type="submit" class="btn-edit">Satin Almadan Talep Et</button>
+            </div>
+        </form>
+    }
+
     <div class="wo-detail-grid">
         <div class="wo-detail-kpi">
             <div class="wo-detail-label">Baslik</div>

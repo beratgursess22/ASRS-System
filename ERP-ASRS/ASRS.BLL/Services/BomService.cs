@@ -72,6 +72,7 @@ public class BomService : IBomService
 
         var path = new HashSet<int>();
         var nodes = await BuildNodesForProductAsync(productId, workOrderQuantity, path);
+        ApplyAggregateStockSufficiency(nodes);
         return nodes;
 
         async Task<List<BomRequirementNodeDto>> BuildNodesForProductAsync(int currentProductId, int multiplier, HashSet<int> visiting)
@@ -169,7 +170,71 @@ public class BomService : IBomService
             }
         }
     }
-  
+
+    private static void ApplyAggregateStockSufficiency(List<BomRequirementNodeDto> rootNodes)
+    {
+        var aggregate = new Dictionary<string, (int required, int stock)>(StringComparer.Ordinal);
+        CollectAggregates(rootNodes, aggregate);
+        ApplyAggregateSufficiency(rootNodes, aggregate);
+    }
+
+    private static void CollectAggregates(IEnumerable<BomRequirementNodeDto> nodes, Dictionary<string, (int required, int stock)> aggregate)
+    {
+        foreach (var node in nodes)
+        {
+            var key = GetNodeKey(node);
+
+            if (key != null)
+            {
+                if (aggregate.TryGetValue(key, out var current))
+                {
+                    aggregate[key] = (
+                        required: current.required + node.TotalRequired,
+                        stock: Math.Max(current.stock, node.StockQuantity)
+                    );
+                }
+                else
+                {
+                    aggregate[key] = (node.TotalRequired, node.StockQuantity);
+                }
+            }
+
+            if (node.Children != null && node.Children.Count > 0)
+                CollectAggregates(node.Children, aggregate);
+        }
+    }
+
+    private static void ApplyAggregateSufficiency(IEnumerable<BomRequirementNodeDto> nodes, Dictionary<string, (int required, int stock)> aggregate)
+    {
+        foreach (var node in nodes)
+        {
+            if (node.IsCycleDetected)
+            {
+                node.IsStockSufficient = false;
+            }
+            else
+            {
+                var key = GetNodeKey(node);
+                if (key != null && aggregate.TryGetValue(key, out var total))
+                    node.IsStockSufficient = total.stock >= total.required;
+            }
+
+            if (node.Children != null && node.Children.Count > 0)
+                ApplyAggregateSufficiency(node.Children, aggregate);
+        }
+    }
+
+    private static string? GetNodeKey(BomRequirementNodeDto node)
+    {
+        if (node.ComponentType == "Product" && node.ComponentProductId.HasValue)
+            return "P:" + node.ComponentProductId.Value;
+
+        if (node.ComponentType == "Material" && node.MaterialId.HasValue)
+            return "M:" + node.MaterialId.Value;
+
+        return null;
+    }
+
     public async Task<bool> AddBomItemAsync(int productId, BomItemDto dto)
     {
         if (dto.RequiredQuantity <= 0)
