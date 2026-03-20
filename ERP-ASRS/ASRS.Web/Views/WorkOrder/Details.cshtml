@@ -4,6 +4,22 @@
 @{
     ViewData["Title"] = "Is Emri Detayi";
     var tree = ViewBag.BomTree as IReadOnlyList<BomRequirementNodeDto> ?? new List<BomRequirementNodeDto>();
+    bool HasInsufficient(IEnumerable<BomRequirementNodeDto> nodes)
+    {
+        foreach (var node in nodes)
+        {
+            if (!node.IsStockSufficient)
+                return true;
+
+            if (node.Children != null && node.Children.Count > 0 && HasInsufficient(node.Children))
+                return true;
+        }
+
+        return false;
+    }
+
+    var hasInsufficient = HasInsufficient(tree);
+    var canCreatePurchaseRequest = User.IsInRole("Yönetici");
     var treeJson = JsonSerializer.Serialize(tree, new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -17,7 +33,16 @@
 
 <div class="page-header">
     <h1 class="page-title">Is Emri Detayi - @Model.OrderNumber</h1>
-    <a asp-action="Index" class="btn-edit">&larr; Is Emirlerine Don</a>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        @if (hasInsufficient && canCreatePurchaseRequest)
+        {
+            <form method="post" asp-controller="PurchaseRequest" asp-action="CreateFromWorkOrder" style="display:inline-flex;">
+                <input type="hidden" name="workOrderId" value="@Model.Id" />
+                <button type="submit" class="btn-edit">Satin Almadan Talep Et</button>
+            </form>
+        }
+        <a asp-action="Index" class="btn-edit">&larr; Is Emirlerine Don</a>
+    </div>
 </div>
 
 @if (TempData["Error"] is string errorMessage)

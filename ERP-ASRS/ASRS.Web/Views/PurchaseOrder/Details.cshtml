@@ -45,7 +45,7 @@
 
     var allowedStatuses = AllowedStatuses(Model.Status);
     var canReceive = Model.Status == PurchaseOrderStatus.Approved || Model.Status == PurchaseOrderStatus.PartiallyReceived;
-    var canEditPricing = User.IsInRole("Yönetici") && Model.Status != PurchaseOrderStatus.Cancelled;
+    var canEditPricing = (User.IsInRole("Yönetici") || User.IsInRole("Satın Alma")) && Model.Status != PurchaseOrderStatus.Cancelled;
     var canEditHeader = Model.Status != PurchaseOrderStatus.Received && Model.Status != PurchaseOrderStatus.Cancelled;
     var suppliers = ViewBag.Suppliers as IEnumerable<SupplierListDto> ?? Enumerable.Empty<SupplierListDto>();
     var totalsByCurrency = Model.Items

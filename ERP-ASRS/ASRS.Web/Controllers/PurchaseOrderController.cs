@@ -96,7 +96,6 @@ public class PurchaseOrderController : Controller
         return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
     }
 
-    [Authorize(Roles = "Yönetici")]
     [HttpPost]
     public async Task<IActionResult> UpdateItemPricing(UpdatePurchaseOrderItemPricingDto dto)
     {

@@ -78,7 +78,6 @@ public class SupplierController : Controller
         return RedirectToAction("Index");
     }
 
-    [Authorize(Roles = "Yönetici")]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {

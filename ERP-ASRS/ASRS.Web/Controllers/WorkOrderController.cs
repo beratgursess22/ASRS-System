@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace ASRS.Web.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Yönetici,Üretim")]
 public class WorkOrderController : Controller
 {
     private readonly IWorkOrderService _workOrderService;
@@ -63,7 +63,7 @@ public class WorkOrderController : Controller
         return Json(bom);
     }
 
-    [Authorize(Roles = "Yönetici,Üretim,Depo")]
+    [Authorize(Roles = "Yönetici,Üretim")]
     [HttpPost]
     public async Task<IActionResult> UpdateStatus(int id, WorkOrderStatus status)
     {
@@ -90,7 +90,7 @@ public class WorkOrderController : Controller
         return RedirectToAction("Index");
     }
 
-    [Authorize(Roles = "Yönetici")]
+    [Authorize(Roles = "Yönetici,Üretim")]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
