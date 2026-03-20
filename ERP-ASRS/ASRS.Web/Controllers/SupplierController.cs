@@ -9,10 +9,14 @@ namespace ASRS.Web.Controllers;
 public class SupplierController : Controller
 {
     private readonly ISupplierService _supplierService;
+    private readonly IProductService _productService;
+    private readonly IMaterialService _materialService;
 
-    public SupplierController(ISupplierService supplierService)
+    public SupplierController(ISupplierService supplierService, IProductService productService, IMaterialService materialService)
     {
         _supplierService = supplierService;
+        _productService = productService;
+        _materialService = materialService;
     }
 
     [HttpGet]
@@ -51,7 +55,44 @@ public class SupplierController : Controller
         if (supplier == null)
             return NotFound();
 
+        await LoadEditDataAsync(id);
+
         return View(supplier);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ItemPrices(int id)
+    {
+        var rows = await _supplierService.GetItemPricesAsync(id);
+        return Json(rows);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpsertItemPrice(UpsertSupplierItemPriceDto dto)
+    {
+        var ok = await _supplierService.UpsertItemPriceAsync(dto);
+        if (!ok)
+        {
+            TempData["Error"] = "Tedarikci urun/malzeme fiyati kaydedilemedi. Alanlari kontrol edin.";
+            return RedirectToAction("Edit", new { id = dto.SupplierId });
+        }
+
+        TempData["Success"] = "Tedarikci urun/malzeme fiyati kaydedildi.";
+        return RedirectToAction("Edit", new { id = dto.SupplierId });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteItemPrice(int supplierId, int? productId, int? materialId)
+    {
+        var ok = await _supplierService.DeleteItemPriceAsync(supplierId, productId, materialId);
+        if (!ok)
+        {
+            TempData["Error"] = "Silinecek fiyat kaydi bulunamadi.";
+            return RedirectToAction("Edit", new { id = supplierId });
+        }
+
+        TempData["Success"] = "Tedarikci urun/malzeme fiyati silindi.";
+        return RedirectToAction("Edit", new { id = supplierId });
     }
 
     [HttpPost]
@@ -60,6 +101,10 @@ public class SupplierController : Controller
         if (!ModelState.IsValid)
         {
             var existing = await _supplierService.GetByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            await LoadEditDataAsync(id);
             ViewBag.Error = "Tum alanlari dogru doldurun.";
             return View(existing);
         }
@@ -71,6 +116,7 @@ public class SupplierController : Controller
             if (existing == null)
                 return NotFound();
 
+            await LoadEditDataAsync(id);
             ViewBag.Error = "Guncelleme basarisiz. Kod benzersiz olmali ve kayit mevcut olmali.";
             return View(existing);
         }
@@ -83,5 +129,12 @@ public class SupplierController : Controller
     {
         await _supplierService.DeleteAsync(id);
         return RedirectToAction("Index");
+    }
+
+    private async Task LoadEditDataAsync(int supplierId)
+    {
+        ViewBag.Products = (await _productService.GetAllProductsAsync(null)).Where(x => x.IsActive).ToList();
+        ViewBag.Materials = (await _materialService.GetAllMaterialsAsync(null)).Where(x => x.IsActive).ToList();
+        ViewBag.ItemPrices = (await _supplierService.GetItemPricesAsync(supplierId)).ToList();
     }
 }

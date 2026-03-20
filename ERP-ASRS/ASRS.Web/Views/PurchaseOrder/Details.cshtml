@@ -47,6 +47,7 @@
     var canReceive = Model.Status == PurchaseOrderStatus.Approved || Model.Status == PurchaseOrderStatus.PartiallyReceived;
     var canEditPricing = (User.IsInRole("Yönetici") || User.IsInRole("Satın Alma")) && Model.Status != PurchaseOrderStatus.Cancelled;
     var canEditHeader = Model.Status != PurchaseOrderStatus.Received && Model.Status != PurchaseOrderStatus.Cancelled;
+    var canEditSupplier = Model.Status == PurchaseOrderStatus.Draft;
     var suppliers = ViewBag.Suppliers as IEnumerable<SupplierListDto> ?? Enumerable.Empty<SupplierListDto>();
     var totalsByCurrency = Model.Items
         .GroupBy(i => string.IsNullOrWhiteSpace(i.Currency) ? "TRY" : i.Currency!.Trim().ToUpperInvariant())
@@ -108,7 +109,7 @@
 
         <div style="display:flex; flex-direction:column; gap:0.35rem; min-width:260px;">
             <label class="wo-detail-label">Tedarikci</label>
-            <select name="SupplierId" class="form-input" @(canEditHeader ? null : "disabled")>
+            <select name="SupplierId" class="form-input" @((canEditHeader && canEditSupplier) ? null : "disabled")>
                 <option value="">Seciniz</option>
                 @foreach (var supplier in suppliers)
                 {
@@ -122,6 +123,10 @@
                     }
                 }
             </select>
+            @if (!canEditSupplier)
+            {
+                <input type="hidden" name="SupplierId" value="@(Model.SupplierId?.ToString() ?? "")" />
+            }
         </div>
 
         <div style="display:flex; flex-direction:column; gap:0.35rem; min-width:220px;">

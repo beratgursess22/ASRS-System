@@ -1,6 +1,10 @@
 @model ASRS.Core.DTOs.SupplierListDto
+@using ASRS.Core.DTOs
 @{
     ViewData["Title"] = "Tedarikci Duzenle";
+    var products = ViewBag.Products as IEnumerable<ProductListDto> ?? Enumerable.Empty<ProductListDto>();
+    var materials = ViewBag.Materials as IEnumerable<MaterialListDto> ?? Enumerable.Empty<MaterialListDto>();
+    var itemPrices = ViewBag.ItemPrices as IEnumerable<SupplierItemPriceDto> ?? Enumerable.Empty<SupplierItemPriceDto>();
 }
 
 @section Styles {
@@ -14,6 +18,16 @@
 @if (ViewBag.Error != null)
 {
     <div class="alert-box alert-error">@ViewBag.Error</div>
+}
+
+@if (TempData["Error"] is string tempError)
+{
+    <div class="alert-box alert-error">@tempError</div>
+}
+
+@if (TempData["Success"] is string tempSuccess)
+{
+    <div class="alert-box" style="border:1px solid #166534; color:#166534; background:#dcfce7;">@tempSuccess</div>
 }
 
 <div class="card">
@@ -70,3 +84,132 @@
         </div>
     </form>
 </div>
+
+<div class="card" style="margin-top:1rem;">
+    <div class="card-header">
+        <h2 class="card-title">Tedarikci Urun/Malzeme Fiyat Katalogu</h2>
+    </div>
+
+    <form method="post" asp-action="UpsertItemPrice" style="padding:1rem; display:grid; grid-template-columns: 180px 1fr 1fr 140px 120px auto; gap:0.75rem; align-items:end;">
+        <input type="hidden" name="SupplierId" value="@Model.Id" />
+
+        <div class="form-group" style="margin:0;">
+            <label>Kalem Tipi</label>
+            <select id="itemType" class="form-input">
+                <option value="product" selected="selected">Urun</option>
+                <option value="material">Malzeme</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin:0;" id="productGroup">
+            <label>Urun</label>
+            <select id="productSelect" name="ProductId" class="form-input">
+                <option value="">Seciniz</option>
+                @foreach (var p in products)
+                {
+                    <option value="@p.Id">@p.Code - @p.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group" style="margin:0; display:none;" id="materialGroup">
+            <label>Malzeme</label>
+            <select id="materialSelect" name="MaterialId" class="form-input" disabled="disabled">
+                <option value="">Seciniz</option>
+                @foreach (var m in materials)
+                {
+                    <option value="@m.Id">@m.Code - @m.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group" style="margin:0;">
+            <label>Birim Fiyat</label>
+            <input type="number" min="0" step="0.01" name="UnitPrice" class="form-input" required />
+        </div>
+
+        <div class="form-group" style="margin:0;">
+            <label>Para Birimi</label>
+            <select name="Currency" class="form-input">
+                <option value="TRY" selected="selected">TRY</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-primary" style="height:40px;">Fiyat Kaydet</button>
+    </form>
+
+    <div style="padding:0 1rem 1rem 1rem;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Tip</th>
+                    <th>Kod</th>
+                    <th>Ad</th>
+                    <th>Birim Fiyat</th>
+                    <th>Para Birimi</th>
+                    <th>Islem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!itemPrices.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="muted" style="padding:1rem;">Henuz fiyat katalog kaydi yok.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var row in itemPrices)
+                    {
+                        var isProduct = row.ProductId.HasValue;
+                        <tr>
+                            <td>@(isProduct ? "Urun" : "Malzeme")</td>
+                            <td>@(isProduct ? row.ProductCode : row.MaterialCode)</td>
+                            <td>@(isProduct ? row.ProductName : row.MaterialName)</td>
+                            <td>@row.UnitPrice.ToString("N2")</td>
+                            <td>@row.Currency</td>
+                            <td>
+                                <form method="post" asp-action="DeleteItemPrice" style="display:inline-flex;">
+                                    <input type="hidden" name="supplierId" value="@Model.Id" />
+                                    <input type="hidden" name="productId" value="@(row.ProductId?.ToString() ?? "")" />
+                                    <input type="hidden" name="materialId" value="@(row.MaterialId?.ToString() ?? "")" />
+                                    <button type="submit" class="btn-delete" onclick="return confirm('Fiyat kaydi silinsin mi?');">Sil</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const itemType = document.getElementById("itemType");
+    const productGroup = document.getElementById("productGroup");
+    const materialGroup = document.getElementById("materialGroup");
+    const productSelect = document.getElementById("productSelect");
+    const materialSelect = document.getElementById("materialSelect");
+
+    function syncType() {
+        const isProduct = itemType.value === "product";
+        productGroup.style.display = isProduct ? "block" : "none";
+        materialGroup.style.display = isProduct ? "none" : "block";
+
+        productSelect.disabled = !isProduct;
+        materialSelect.disabled = isProduct;
+
+        if (isProduct) {
+            materialSelect.value = "";
+        } else {
+            productSelect.value = "";
+        }
+    }
+
+    itemType.addEventListener("change", syncType);
+    syncType();
+</script>
+}

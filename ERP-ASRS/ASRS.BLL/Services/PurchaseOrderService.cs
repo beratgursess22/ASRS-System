@@ -330,12 +330,16 @@ public class PurchaseOrderService : IPurchaseOrderService
 	public async Task<bool> UpdateHeaderAsync(UpdatePurchaseOrderHeaderDto dto)
 	{
 		var po = await _context.PurchaseOrders
+			.Include(x => x.Items)
 			.FirstOrDefaultAsync(x => x.Id == dto.PurchaseOrderId);
 
 		if (po == null)
 			return false;
 
 		if (po.Status == PurchaseOrderStatus.Received || po.Status == PurchaseOrderStatus.Cancelled)
+			return false;
+
+		if (po.Status != PurchaseOrderStatus.Draft && po.SupplierId != dto.SupplierId)
 			return false;
 
 		if (dto.SupplierId.HasValue)
@@ -345,6 +349,40 @@ public class PurchaseOrderService : IPurchaseOrderService
 
 			if (supplier == null)
 				return false;
+
+			var productIds = po.Items
+				.Where(i => i.ProductId.HasValue)
+				.Select(i => i.ProductId!.Value)
+				.Distinct()
+				.ToList();
+
+			var materialIds = po.Items
+				.Where(i => i.MaterialId.HasValue)
+				.Select(i => i.MaterialId!.Value)
+				.Distinct()
+				.ToList();
+
+			var supplierPrices = await _context.SupplierItemPrices
+				.Where(x => x.SupplierId == dto.SupplierId.Value &&
+					((x.ProductId.HasValue && productIds.Contains(x.ProductId.Value)) ||
+					 (x.MaterialId.HasValue && materialIds.Contains(x.MaterialId.Value))))
+				.ToListAsync();
+
+			foreach (var item in po.Items)
+			{
+				SupplierItemPrice? price = null;
+
+				if (item.ProductId.HasValue)
+					price = supplierPrices.FirstOrDefault(x => x.ProductId == item.ProductId && x.MaterialId == null);
+				else if (item.MaterialId.HasValue)
+					price = supplierPrices.FirstOrDefault(x => x.MaterialId == item.MaterialId && x.ProductId == null);
+
+				if (price == null)
+					continue;
+
+				item.UnitPrice = price.UnitPrice;
+				item.Currency = NormalizeCurrency(price.Currency);
+			}
 		}
 
 		po.SupplierId = dto.SupplierId;

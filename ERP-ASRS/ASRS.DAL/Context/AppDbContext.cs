@@ -19,6 +19,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 	public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
 	public DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
 	public DbSet<Supplier> Suppliers { get; set; }
+	public DbSet<SupplierItemPrice> SupplierItemPrices { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		base.OnModelCreating(modelBuilder);
@@ -106,5 +107,24 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 			.WithMany()
 			.HasForeignKey(po => po.SupplierId)
 			.OnDelete(DeleteBehavior.SetNull);
+		modelBuilder.Entity<SupplierItemPrice>()
+			.HasOne(x => x.Supplier)
+			.WithMany()
+			.HasForeignKey(x => x.SupplierId)
+			.OnDelete(DeleteBehavior.Cascade);
+		modelBuilder.Entity<SupplierItemPrice>()
+			.HasOne(x => x.Product)
+			.WithMany()
+			.HasForeignKey(x => x.ProductId)
+			.OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<SupplierItemPrice>()
+			.HasOne(x => x.Material)
+			.WithMany()
+			.HasForeignKey(x => x.MaterialId)
+			.OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<SupplierItemPrice>()
+			.HasIndex(x => new { x.SupplierId, x.ProductId });
+		modelBuilder.Entity<SupplierItemPrice>()
+			.HasIndex(x => new { x.SupplierId, x.MaterialId });
 	}
 }

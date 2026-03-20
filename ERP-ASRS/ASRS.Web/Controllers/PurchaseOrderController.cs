@@ -63,7 +63,7 @@ public class PurchaseOrderController : Controller
         if (order == null)
             return NotFound();
 
-        ViewBag.Suppliers = await _supplierService.GetActiveAsync();
+        ViewBag.Suppliers = await _supplierService.GetActiveForPurchaseOrderAsync(id);
 
         return View(order);
     }
