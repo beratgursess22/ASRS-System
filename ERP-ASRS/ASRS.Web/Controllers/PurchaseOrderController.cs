@@ -11,10 +11,12 @@ namespace ASRS.Web.Controllers;
 public class PurchaseOrderController : Controller
 {
     private readonly IPurchaseOrderService _purchaseOrderService;
+    private readonly ISupplierService _supplierService;
 
-    public PurchaseOrderController(IPurchaseOrderService purchaseOrderService)
+    public PurchaseOrderController(IPurchaseOrderService purchaseOrderService, ISupplierService supplierService)
     {
         _purchaseOrderService = purchaseOrderService;
+        _supplierService = supplierService;
     }
 
     [HttpPost]
@@ -61,6 +63,8 @@ public class PurchaseOrderController : Controller
         if (order == null)
             return NotFound();
 
+        ViewBag.Suppliers = await _supplierService.GetActiveAsync();
+
         return View(order);
     }
 
@@ -106,4 +110,19 @@ public class PurchaseOrderController : Controller
         TempData["Success"] = "Kalem fiyati guncellendi.";
         return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
     }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateHeader(UpdatePurchaseOrderHeaderDto dto)
+    {
+        var ok = await _purchaseOrderService.UpdateHeaderAsync(dto);
+        if (!ok)
+        {
+            TempData["Error"] = "PO baslik bilgileri guncellenemedi. Tedarikci, durum veya tarih bilgilerini kontrol edin.";
+            return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
+        }
+
+        TempData["Success"] = "PO baslik bilgileri guncellendi.";
+        return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
+    }
+
 }

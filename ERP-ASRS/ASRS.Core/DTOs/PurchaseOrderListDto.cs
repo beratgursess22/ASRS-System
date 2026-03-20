@@ -13,4 +13,7 @@ public class PurchaseOrderListDto
 	public string? Notes { get; set; }
 	public List<PurchaseOrderItemDto> Items { get; set; } = new();
 	public decimal TotalAmount => Items.Sum(x => x.LineTotal);
+	public int? SupplierId { get; set; }
+	public string? SupplierName { get; set; }
+	public DateTime? ExpectedDeliveryDate { get; set; }
 }

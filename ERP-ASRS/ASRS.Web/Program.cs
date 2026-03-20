@@ -43,6 +43,8 @@ builder.Services.AddScoped<IBomService, BomService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
+//end
 
 builder.Services.AddControllersWithViews();
 
@@ -303,6 +305,103 @@ app.MapControllerRoute(
 //                 IsActive = true
 //             });
 //         }
+//     }
+
+//     await db.SaveChangesAsync();
+// }
+
+// Supplier seed (idempotent)
+// using (var scope = app.Services.CreateScope())
+// {
+//     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+//     var supplierSeeds = new[]
+//     {
+//         new Supplier
+//         {
+//             Code = "SUP-001",
+//             Name = "Anadolu Metal Sanayi",
+//             ContactPerson = "Mehmet Kara",
+//             Email = "satin.alma@anadolumetal.com",
+//             Phone = "+90 212 555 10 01",
+//             Address = "Ikitelli OSB, Basaksehir, Istanbul",
+//             IsActive = true
+//         },
+//         new Supplier
+//         {
+//             Code = "SUP-002",
+//             Name = "Tekno Bilesen Dis Ticaret",
+//             ContactPerson = "Elif Yilmaz",
+//             Email = "teklif@teknobilesen.com",
+//             Phone = "+90 216 555 10 02",
+//             Address = "Dudullu OSB, Umraniye, Istanbul",
+//             IsActive = true
+//         },
+//         new Supplier
+//         {
+//             Code = "SUP-003",
+//             Name = "Rota Rulman ve Guc Aktarim",
+//             ContactPerson = "Onur Demir",
+//             Email = "satis@rotarulman.com",
+//             Phone = "+90 224 555 10 03",
+//             Address = "Nilufer Organize Sanayi, Bursa",
+//             IsActive = true
+//         },
+//         new Supplier
+//         {
+//             Code = "SUP-004",
+//             Name = "Volt Elektrik Malzemeleri",
+//             ContactPerson = "Ayse Cetin",
+//             Email = "kurumsal@voltelektrik.com",
+//             Phone = "+90 312 555 10 04",
+//             Address = "Ostim OSB, Yenimahalle, Ankara",
+//             IsActive = true
+//         },
+//         new Supplier
+//         {
+//             Code = "SUP-005",
+//             Name = "HidroLine Endustriyel",
+//             ContactPerson = "Burak Aslan",
+//             Email = "teklif@hidroline.com",
+//             Phone = "+90 232 555 10 05",
+//             Address = "AOSB, Cigli, Izmir",
+//             IsActive = true
+//         },
+//         new Supplier
+//         {
+//             Code = "SUP-006",
+//             Name = "EuroMotion Components GmbH",
+//             ContactPerson = "Anna Fischer",
+//             Email = "procurement@euromotion.de",
+//             Phone = "+49 30 555 10 06",
+//             Address = "Berlin, Germany",
+//             IsActive = true
+//         },
+//         new Supplier
+//         {
+//             Code = "SUP-007",
+//             Name = "Eski Partner Mekanik",
+//             ContactPerson = "Kerem Aydin",
+//             Email = "info@eskipartner.com",
+//             Phone = "+90 850 555 10 07",
+//             Address = "Gebze, Kocaeli",
+//             IsActive = false
+//         }
+//     };
+
+//     var existingCodes = await db.Suppliers
+//         .Select(x => x.Code)
+//         .ToListAsync();
+
+//     var existingSet = new HashSet<string>(existingCodes, StringComparer.OrdinalIgnoreCase);
+
+//     foreach (var seed in supplierSeeds)
+//     {
+//         if (existingSet.Contains(seed.Code))
+//             continue;
+
+//         seed.CreatedAt = DateTime.UtcNow;
+//         db.Suppliers.Add(seed);
 //     }
 
 //     await db.SaveChangesAsync();

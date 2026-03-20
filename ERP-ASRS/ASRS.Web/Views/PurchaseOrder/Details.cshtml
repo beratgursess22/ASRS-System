@@ -1,5 +1,6 @@
 @model ASRS.Core.DTOs.PurchaseOrderListDto
 @using ASRS.Core.Enums
+@using ASRS.Core.DTOs
 @{
     ViewData["Title"] = "Siparis Detayi";
 
@@ -45,6 +46,8 @@
     var allowedStatuses = AllowedStatuses(Model.Status);
     var canReceive = Model.Status == PurchaseOrderStatus.Approved || Model.Status == PurchaseOrderStatus.PartiallyReceived;
     var canEditPricing = User.IsInRole("Yönetici") && Model.Status != PurchaseOrderStatus.Cancelled;
+    var canEditHeader = Model.Status != PurchaseOrderStatus.Received && Model.Status != PurchaseOrderStatus.Cancelled;
+    var suppliers = ViewBag.Suppliers as IEnumerable<SupplierListDto> ?? Enumerable.Empty<SupplierListDto>();
     var totalsByCurrency = Model.Items
         .GroupBy(i => string.IsNullOrWhiteSpace(i.Currency) ? "TRY" : i.Currency!.Trim().ToUpperInvariant())
         .Select(g => new
@@ -99,6 +102,47 @@
             <div class="wo-detail-value">@Model.TotalAmount.ToString("N2")</div>
         </div>
     </div>
+
+    <form method="post" asp-action="UpdateHeader" style="padding: 0 1rem 1rem 1rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-end;">
+        <input type="hidden" name="PurchaseOrderId" value="@Model.Id" />
+
+        <div style="display:flex; flex-direction:column; gap:0.35rem; min-width:260px;">
+            <label class="wo-detail-label">Tedarikci</label>
+            <select name="SupplierId" class="form-input" @(canEditHeader ? null : "disabled")>
+                <option value="">Seciniz</option>
+                @foreach (var supplier in suppliers)
+                {
+                    if (Model.SupplierId == supplier.Id)
+                    {
+                        <option value="@supplier.Id" selected="selected">@supplier.Code - @supplier.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@supplier.Id">@supplier.Code - @supplier.Name</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.35rem; min-width:220px;">
+            <label class="wo-detail-label">Beklenen Teslim</label>
+            <input type="date" name="ExpectedDeliveryDate" class="form-input" value="@(Model.ExpectedDeliveryDate?.ToString("yyyy-MM-dd"))" @(canEditHeader ? null : "disabled") />
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.35rem; min-width:320px; flex:1;">
+            <label class="wo-detail-label">PO Notu</label>
+            <input type="text" name="Notes" class="form-input" value="@Model.Notes" placeholder="Not (opsiyonel)" @(canEditHeader ? null : "disabled") />
+        </div>
+
+        @if (canEditHeader)
+        {
+            <button type="submit" class="btn-edit">Baslik Kaydet</button>
+        }
+        else
+        {
+            <span class="muted" style="padding:0.55rem 0.25rem;">Bu durumda baslik guncellenemez.</span>
+        }
+    </form>
 
     <form method="post" asp-action="UpdateStatus" style="padding: 0 1rem 1rem 1rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
         <input type="hidden" name="id" value="@Model.Id" />

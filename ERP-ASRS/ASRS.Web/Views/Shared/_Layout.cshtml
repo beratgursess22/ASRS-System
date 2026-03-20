@@ -27,7 +27,7 @@
                              .Select(c => c.Value)
                              .FirstOrDefault() ?? "Kullanıcı";
 
-        var isPurchaseActive = IsActive("PurchaseRequest") || IsActive("PurchaseOrder");
+        var isPurchaseActive = IsActive("PurchaseRequest") || IsActive("PurchaseOrder") || IsActive("Supplier");
     }
 
     <!-- Sidebar -->
@@ -201,6 +201,10 @@
 
                         <a class="nav-item nav-sub-item @(IsActive("PurchaseOrder") ? "active" : "")" asp-controller="PurchaseOrder" asp-action="Index">
                             <span>Satin Alma Siparis</span>
+                        </a>
+
+                        <a class="nav-item nav-sub-item @(IsActive("Supplier") ? "active" : "")" asp-controller="Supplier" asp-action="Index">
+                            <span>Tedarikciler</span>
                         </a>
                     </div>
                 </details>

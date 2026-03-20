@@ -1,0 +1,129 @@
+@model IEnumerable<ASRS.Core.DTOs.SupplierListDto>
+@{
+    ViewData["Title"] = "Tedarikci Yonetimi";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <h1 class="page-title">Tedarikci Yonetimi</h1>
+</div>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert-box alert-error">@ViewBag.Error</div>
+}
+
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header">
+        <h2 class="card-title">Yeni Tedarikci Ekle</h2>
+    </div>
+    <form method="post" asp-action="Create">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Tedarikci Kodu</label>
+                <input type="text" name="Code" class="form-input" required />
+            </div>
+            <div class="form-group">
+                <label>Tedarikci Adi</label>
+                <input type="text" name="Name" class="form-input" required />
+            </div>
+            <div class="form-group">
+                <label>Yetkili Kisi</label>
+                <input type="text" name="ContactPerson" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label>E-Posta</label>
+                <input type="email" name="Email" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label>Telefon</label>
+                <input type="text" name="Phone" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label>Adres</label>
+                <input type="text" name="Address" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label>Durum</label>
+                <select name="IsActive" class="form-input">
+                    <option value="true" selected="selected">Aktif</option>
+                    <option value="false">Pasif</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn-primary">Tedarikci Ekle</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            @if (!string.IsNullOrEmpty(ViewBag.Search))
+            {
+                <span>@Model.Count() sonuc - "@ViewBag.Search"</span>
+            }
+            else
+            {
+                <span>@Model.Count() tedarikci</span>
+            }
+        </h2>
+        <form method="get" asp-action="Index" style="display:flex; gap:0.5rem;">
+            <input type="text" name="search" class="form-input" placeholder="Ara..." value="@ViewBag.Search" style="width:220px;" />
+            <button type="submit" class="btn-primary">Ara</button>
+            @if (!string.IsNullOrEmpty(ViewBag.Search))
+            {
+                <a asp-action="Index" class="btn-edit">Temizle</a>
+            }
+        </form>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Kod</th>
+                <th>Tedarikci</th>
+                <th>Yetkili</th>
+                <th>E-Posta</th>
+                <th>Telefon</th>
+                <th>Adres</th>
+                <th>Durum</th>
+                <th>Islem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td><span style="font-family:monospace; color:var(--accent);">@s.Code</span></td>
+                    <td>@s.Name</td>
+                    <td>@(string.IsNullOrWhiteSpace(s.ContactPerson) ? "-" : s.ContactPerson)</td>
+                    <td>@(string.IsNullOrWhiteSpace(s.Email) ? "-" : s.Email)</td>
+                    <td>@(string.IsNullOrWhiteSpace(s.Phone) ? "-" : s.Phone)</td>
+                    <td>@(string.IsNullOrWhiteSpace(s.Address) ? "-" : s.Address)</td>
+                    <td>
+                        @if (s.IsActive)
+                        {
+                            <span class="badge badge-active">Aktif</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-inactive">Pasif</span>
+                        }
+                    </td>
+                    <td style="display:flex; gap:0.5rem;">
+                        <a asp-action="Edit" asp-route-id="@s.Id" class="btn-edit">Duzenle</a>
+                        @if (User.IsInRole("Yönetici"))
+                        {
+                            <form method="post" asp-action="Delete" asp-route-id="@s.Id" onsubmit="return confirm('@s.Name silinecek. Emin misiniz?')">
+                                <button type="submit" class="btn-delete">Sil</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -18,6 +18,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 	public DbSet<PurchaseRequestItem> PurchaseRequestItems { get; set; }
 	public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
 	public DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
+	public DbSet<Supplier> Suppliers { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		base.OnModelCreating(modelBuilder);
@@ -100,5 +101,10 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 			.WithMany()
 			.HasForeignKey(i => i.MaterialId)
 			.OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PurchaseOrder>()
+			.HasOne(po => po.Supplier)
+			.WithMany()
+			.HasForeignKey(po => po.SupplierId)
+			.OnDelete(DeleteBehavior.SetNull);
 	}
 }

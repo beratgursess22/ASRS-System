@@ -127,6 +127,7 @@ public class PurchaseOrderService : IPurchaseOrderService
 		.ThenInclude(i => i.Product)
 		.Include(po => po.Items)
 		.ThenInclude(i => i.Material)
+		.Include(po => po.Supplier)
 		.AsQueryable();
 
 		if (status.HasValue)
@@ -148,6 +149,7 @@ public class PurchaseOrderService : IPurchaseOrderService
 		.ThenInclude(i => i.Product)
 		.Include(x => x.Items)
 		.ThenInclude(i => i.Material)
+		.Include(po => po.Supplier)
 		.FirstOrDefaultAsync(x => x.Id == id);
 
 		if (po == null)
@@ -305,6 +307,9 @@ public class PurchaseOrderService : IPurchaseOrderService
 			Status = po.Status,
 			CreatedAt = po.CreatedAt,
 			Notes = po.Notes,
+			SupplierId = po.SupplierId,
+			SupplierName = po.Supplier?.Name,
+			ExpectedDeliveryDate = po.ExpectedDeliveryDate,
 			Items = po.Items.Select(i => new PurchaseOrderItemDto
 			{
 				Id = i.Id,
@@ -320,5 +325,33 @@ public class PurchaseOrderService : IPurchaseOrderService
 				Currency = i.Currency
 			}).ToList()
 		};
+	}
+
+	public async Task<bool> UpdateHeaderAsync(UpdatePurchaseOrderHeaderDto dto)
+	{
+		var po = await _context.PurchaseOrders
+			.FirstOrDefaultAsync(x => x.Id == dto.PurchaseOrderId);
+
+		if (po == null)
+			return false;
+
+		if (po.Status == PurchaseOrderStatus.Received || po.Status == PurchaseOrderStatus.Cancelled)
+			return false;
+
+		if (dto.SupplierId.HasValue)
+		{
+			var supplier = await _context.Suppliers
+				.FirstOrDefaultAsync(x => x.Id == dto.SupplierId.Value && x.IsActive);
+
+			if (supplier == null)
+				return false;
+		}
+
+		po.SupplierId = dto.SupplierId;
+		po.ExpectedDeliveryDate = dto.ExpectedDeliveryDate;
+		po.Notes = dto.Notes;
+
+		await _context.SaveChangesAsync();
+		return true;
 	}
 }
