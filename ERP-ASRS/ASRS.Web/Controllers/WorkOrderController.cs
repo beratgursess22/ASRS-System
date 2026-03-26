@@ -41,6 +41,7 @@ public class WorkOrderController : Controller
 
     [Authorize(Roles = "Yönetici,Üretim")]
     [HttpPost]
+    
     public async Task<IActionResult> Create(CreateWorkOrderDto dto)
     {
         if (!ModelState.IsValid)

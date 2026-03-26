@@ -32,9 +32,7 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         if (workOrder.Status == WorkOrderStatus.Completed || workOrder.Status == WorkOrderStatus.Cancelled)
             return false;
-
-        // Ayni is emri icin sadece aktif talep varken yeni talep engellenir.
-        // Received veya Rejected olan eski talepler sonrasinda stok tekrar yetersiz kalirsa yeni talep acilabilir.
+            
         var hasActiveRequest = await _context.PurchaseRequests
             .AnyAsync(pr => pr.WorkOrderId == workOrderId
                 && pr.Status != PurchaseRequestStatus.Received
