@@ -392,4 +392,107 @@ public class PurchaseOrderService : IPurchaseOrderService
 		await _context.SaveChangesAsync();
 		return true;
 	}
+
+	public async Task<bool> SplitItemAsync(SplitPurchaseOrderItemDto dto)
+	{
+		if (dto.SplitQuantity <= 0)
+			return false;
+
+		var po = await _context.PurchaseOrders
+			.Include(x => x.Items)
+			.FirstOrDefaultAsync(x => x.Id == dto.PurchaseOrderId);
+
+		if (po == null)
+			return false;
+
+		if (po.Status != PurchaseOrderStatus.Draft)
+			return false;
+
+		var item = po.Items.FirstOrDefault(i => i.Id == dto.PurchaseOrderItemId);
+		if (item == null)
+			return false;
+
+		var remaining = item.OrderedQuantity - item.ReceivedQuantity;
+		if (remaining <= 1)
+			return false;
+
+		if (dto.SplitQuantity >= remaining)
+			return false;
+
+		item.OrderedQuantity -= dto.SplitQuantity;
+
+		var newItem = new PurchaseOrderItem
+		{
+			PurchaseOrderId = po.Id,
+			ProductId = item.ProductId,
+			MaterialId = item.MaterialId,
+			OrderedQuantity = dto.SplitQuantity,
+			ReceivedQuantity = 0,
+			UnitPrice = item.UnitPrice,
+			Currency = NormalizeCurrency(item.Currency),
+			Notes = string.IsNullOrWhiteSpace(dto.Notes) ? "Kalem bolme" : dto.Notes.Trim()
+		};
+
+		_context.PurchaseOrderItems.Add(newItem);
+		await _context.SaveChangesAsync();
+
+		return true;
+	}
+
+	public async Task<bool> CancelRemainingItemQuantityAsync(CancelRemainingPurchaseOrderItemDto dto)
+	{
+		if (dto.CancelQuantity <= 0)
+			return false;
+
+		var po = await _context.PurchaseOrders
+			.Include(x => x.Items)
+			.Include(x => x.PurchaseRequest)
+			.FirstOrDefaultAsync(x => x.Id == dto.PurchaseOrderId);
+
+		if (po == null)
+			return false;
+
+		if (po.Status != PurchaseOrderStatus.Draft &&
+			po.Status != PurchaseOrderStatus.Approved &&
+			po.Status != PurchaseOrderStatus.PartiallyReceived)
+			return false;
+
+		var item = po.Items.FirstOrDefault(i => i.Id == dto.PurchaseOrderItemId);
+		if (item == null)
+			return false;
+
+		var remaining = item.OrderedQuantity - item.ReceivedQuantity;
+		if (dto.CancelQuantity > remaining)
+			return false;
+
+		item.OrderedQuantity -= dto.CancelQuantity;
+
+		if (item.OrderedQuantity < item.ReceivedQuantity)
+			return false;
+
+		var reasonText = string.IsNullOrWhiteSpace(dto.Reason)
+			? $"Kismi iptal: {dto.CancelQuantity}"
+			: $"Kismi iptal: {dto.CancelQuantity} - {dto.Reason.Trim()}";
+
+		item.Notes = string.IsNullOrWhiteSpace(item.Notes)
+			? reasonText
+			: $"{item.Notes} | {reasonText}";
+
+		var allReceived = po.Items.All(i => i.ReceivedQuantity >= i.OrderedQuantity);
+		if (allReceived)
+		{
+			po.Status = PurchaseOrderStatus.Received;
+			po.CompletedAt = DateTime.UtcNow;
+
+			if (po.PurchaseRequest != null)
+			{
+				po.PurchaseRequest.Status = PurchaseRequestStatus.Received;
+				po.PurchaseRequest.UpdatedAt = DateTime.UtcNow;
+			}
+		}
+
+		await _context.SaveChangesAsync();
+		return true;
+	}
+
 }

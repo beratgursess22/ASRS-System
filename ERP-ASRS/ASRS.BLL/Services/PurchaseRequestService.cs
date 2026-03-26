@@ -32,7 +32,7 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         if (workOrder.Status == WorkOrderStatus.Completed || workOrder.Status == WorkOrderStatus.Cancelled)
             return false;
-            
+
         var hasActiveRequest = await _context.PurchaseRequests
             .AnyAsync(pr => pr.WorkOrderId == workOrderId
                 && pr.Status != PurchaseRequestStatus.Received
@@ -121,6 +121,9 @@ public class PurchaseRequestService : IPurchaseRequestService
         if (pr == null)
             return false;
 
+        if (status == PurchaseRequestStatus.Received)
+            return false;
+
         var currentStatus = pr.Status;
 
         if (currentStatus == status)
@@ -134,12 +137,37 @@ public class PurchaseRequestService : IPurchaseRequestService
         if (!IsTransitionAllowed(currentStatus, status))
             return false;
 
-        if (currentStatus == PurchaseRequestStatus.Ordered && status == PurchaseRequestStatus.Received)
-            await ApplyReceivedStockAsync(pr.Items);
-
         pr.Status = status;
         pr.Notes = notes;
         pr.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdateItemAsync(int requestId, int itemId, int missingQuantity, string? notes)
+    {
+        if (missingQuantity < 0)
+            return false;
+
+        var request = await _context.PurchaseRequests
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.Id == requestId);
+
+        if (request == null)
+            return false;
+
+        if (request.Status != PurchaseRequestStatus.Pending)
+            return false;
+
+        var item = request.Items.FirstOrDefault(x => x.Id == itemId);
+        if (item == null)
+            return false;
+
+        item.MissingQuantity = missingQuantity;
+        item.Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+
+        request.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return true;
@@ -156,45 +184,11 @@ public class PurchaseRequestService : IPurchaseRequestService
             PurchaseRequestStatus.Approved =>
                 false,
 
-            PurchaseRequestStatus.Ordered =>
-                newStatus == PurchaseRequestStatus.Received,
-
+            PurchaseRequestStatus.Ordered => false,
             PurchaseRequestStatus.Rejected => false,
             PurchaseRequestStatus.Received => false,
             _ => false
         };
-    }
-
-    private async Task ApplyReceivedStockAsync(IEnumerable<PurchaseRequestItem> items)
-    {
-        var productIds = items
-            .Where(i => i.ProductId.HasValue)
-            .Select(i => i.ProductId!.Value)
-            .Distinct()
-            .ToList();
-
-        var materialIds = items
-            .Where(i => i.MaterialId.HasValue)
-            .Select(i => i.MaterialId!.Value)
-            .Distinct()
-            .ToList();
-
-        var products = await _context.Products
-            .Where(p => productIds.Contains(p.Id))
-            .ToDictionaryAsync(p => p.Id);
-
-        var materials = await _context.Materials
-            .Where(m => materialIds.Contains(m.Id))
-            .ToDictionaryAsync(m => m.Id);
-
-        foreach (var item in items)
-        {
-            if (item.ProductId.HasValue && products.TryGetValue(item.ProductId.Value, out var product))
-                product.StockQuantity += item.MissingQuantity;
-
-            if (item.MaterialId.HasValue && materials.TryGetValue(item.MaterialId.Value, out var material))
-                material.StockQuantity += item.MissingQuantity;
-        }
     }
 
     private static PurchaseRequestListDto MapToDto(PurchaseRequest pr)

@@ -88,6 +88,20 @@
     gap: 0.4rem;
 }
 
+.po-item-actions {
+    display: grid;
+    gap: 0.35rem;
+    align-items: start;
+    min-width: 360px;
+}
+
+.po-item-action-form {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 /* ── Status select in table ── */
 .status-select {
     width: 150px !important;

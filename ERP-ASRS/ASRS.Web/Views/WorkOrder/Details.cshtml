@@ -47,16 +47,12 @@
 
 @if (TempData["Error"] is string errorMessage)
 {
-    <div class="card" style="margin-bottom:1rem; border-left:4px solid #c62828;">
-        <div style="padding:0.75rem 1rem; color:#c62828;">@errorMessage</div>
-    </div>
+    <div class="alert-box alert-error">@errorMessage</div>
 }
 
 @if (TempData["Success"] is string successMessage)
 {
-    <div class="card" style="margin-bottom:1rem; border-left:4px solid #2e7d32;">
-        <div style="padding:0.75rem 1rem; color:#2e7d32;">@successMessage</div>
-    </div>
+    <div class="alert-box" style="border:1px solid #166534; color:#166534; background:#dcfce7;">@successMessage</div>
 }
 
 <div class="card" style="margin-bottom:1rem;">

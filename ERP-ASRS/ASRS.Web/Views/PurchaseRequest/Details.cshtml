@@ -28,8 +28,7 @@
         },
         PurchaseRequestStatus.Ordered => new List<PurchaseRequestStatus>
         {
-            PurchaseRequestStatus.Ordered,
-            PurchaseRequestStatus.Received
+            PurchaseRequestStatus.Ordered
         },
         PurchaseRequestStatus.Rejected => new List<PurchaseRequestStatus>
         {
@@ -43,6 +42,7 @@
     };
 
     var allowedStatuses = AllowedStatuses(Model.Status);
+    var canReviseItems = Model.Status == PurchaseRequestStatus.Pending;
 }
 
 @section Styles {
@@ -116,12 +116,30 @@
         <input type="text" name="notes" class="form-input" placeholder="Not (opsiyonel)" value="@Model.Notes" style="min-width:260px;" />
         <button type="submit" class="btn-primary">Durum Guncelle</button>
     </form>
+
+    @if (Model.Status == PurchaseRequestStatus.Ordered)
+    {
+        <div style="padding: 0 1rem 1rem 1rem;">
+            <div class="alert-box" style="border:1px solid #1d4ed8; color:#1e40af; background:#dbeafe;">
+                Bu talep icin "Teslim Alindi" gecisi PO ekranindaki kalem teslimi ile otomatik yapilir.
+            </div>
+        </div>
+    }
 </div>
 
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">Eksik Kalemler (@Model.Items.Count)</h2>
     </div>
+
+    @if (canReviseItems)
+    {
+        <div style="padding: 0 1rem 1rem 1rem;">
+            <div class="alert-box" style="border:1px solid #14532d; color:#14532d; background:#dcfce7;">
+                Talep beklemede iken eksik miktar ve not kalem bazinda revize edilebilir.
+            </div>
+        </div>
+    }
 
     <table class="data-table">
         <thead>
@@ -133,6 +151,7 @@
                 <th>Stok</th>
                 <th>Eksik</th>
                 <th>Not</th>
+                <th>Islem</th>
             </tr>
         </thead>
         <tbody>
@@ -147,6 +166,22 @@
                     <td>@item.CurrentStockQuantity</td>
                     <td><strong style="color:#b91c1c;">@item.MissingQuantity</strong></td>
                     <td>@(string.IsNullOrWhiteSpace(item.Notes) ? "-" : item.Notes)</td>
+                    <td>
+                        @if (canReviseItems)
+                        {
+                            <form method="post" asp-action="UpdateItem" style="display:flex; gap:0.35rem; align-items:center; flex-wrap:wrap;">
+                                <input type="hidden" name="requestId" value="@Model.Id" />
+                                <input type="hidden" name="itemId" value="@item.Id" />
+                                <input type="number" name="missingQuantity" min="0" class="form-input" value="@item.MissingQuantity" style="width:90px;" required />
+                                <input type="text" name="notes" class="form-input" value="@item.Notes" placeholder="Not" style="width:180px;" />
+                                <button type="submit" class="btn-edit">Kaydet</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="muted">-</span>
+                        }
+                    </td>
                 </tr>
             }
         </tbody>

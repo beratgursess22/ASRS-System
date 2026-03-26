@@ -92,10 +92,6 @@
                 </tbody>
             </table>
 
-            <div id="bomWarning" style="display:none; padding:0.75rem 1rem; margin:1rem; background:rgba(255,180,0,0.1); border-left:3px solid var(--warning, #f0a500); border-radius:4px; color:#f0a500;">
-                 Bazı malzemelerin stoğu yetersiz. İş emri oluşturulacak ancak eksik malzemeleri satın alma bölümünden talep etmeniz gerekebilir.
-            </div>
-
             <div id="bomOk" style="display:none; padding:0.75rem 1rem; margin:1rem; background:rgba(0,200,100,0.1); border-left:3px solid #00c864; border-radius:4px; color:#00c864;">
                  Tüm malzemelerin stoğu yeterli.
             </div>
@@ -120,7 +116,6 @@
         const bomContent = document.getElementById('bomContent');
         const bomNone    = document.getElementById('bomNone');
         const bomBody    = document.getElementById('bomBody');
-        const bomWarning = document.getElementById('bomWarning');
         const bomOk      = document.getElementById('bomOk');
 
         if (!productId) {
@@ -155,25 +150,6 @@
             const statusBadge = sufficient
                 ? '<span style="display:inline-block; background:#00c864; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yeterli</span>'
                 : '<span style="display:inline-block; background:#f04e37; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yetersiz</span>';
-            const purchaseBtn = sufficient ? '' : (() => {
-            const isMaterial = item.componentType === 'Material';
-
-            // Tip bazlı id parametresi
-            const idParam = isMaterial
-                ? `materialId=${item.materialId}`
-                : `productId=${item.componentProductId}`;
-
-            // Ortak parametreler
-            const commonParams =
-                `componentType=${encodeURIComponent(item.componentType)}` +
-                `&componentName=${encodeURIComponent(item.componentName)}` +
-                `&requiredQuantity=${item.requiredQuantity}`;
-
-            return `<a href="/Purchase/Create?${idParam}&${commonParams}"
-                style="display:inline-block; margin-left:0.5rem; background:#f59e0b; color:#fff; font-weight:600; font-size:0.75rem; padding:0.25rem 0.65rem; border-radius:50px; text-decoration:none; white-space:nowrap;">
-                Satın Alma Talebi
-            </a>`;
-        })();
 
             const row = `
                 <tr>
@@ -181,17 +157,23 @@
                     <td>${item.componentName}</td>
                     <td><strong>${item.requiredQuantity}</strong></td>
                     <td style="color:${stockColor}">${item.stockQuantity} adet</td>
-                    <td>${statusBadge}${purchaseBtn}</td>
+                    <td>${statusBadge}</td>
                 </tr>`;
             bomBody.insertAdjacentHTML('beforeend', row);
         });
 
         if (hasInsufficient) {
-            bomWarning.style.display = 'block';
-            bomOk.style.display      = 'none';
+            bomOk.style.display = 'none';
+
+            if (typeof window.asrsShowToast === 'function') {
+                window.asrsShowToast(
+                    'Bazı malzemelerin stoğu yetersiz. İş emri oluşturulabilir, eksikler için satın alma talebi açılmalıdır.',
+                    'error',
+                    3000
+                );
+            }
         } else {
-            bomWarning.style.display = 'none';
-            bomOk.style.display      = 'block';
+            bomOk.style.display = 'block';
         }
     }
 </script>

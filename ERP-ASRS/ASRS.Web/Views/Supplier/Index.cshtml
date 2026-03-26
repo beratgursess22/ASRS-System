@@ -16,6 +16,16 @@
     <div class="alert-box alert-error">@ViewBag.Error</div>
 }
 
+@if (TempData["Error"] is string tempError)
+{
+    <div class="alert-box alert-error">@tempError</div>
+}
+
+@if (TempData["Success"] is string tempSuccess)
+{
+    <div class="alert-box" style="border:1px solid #166534; color:#166534; background:#dcfce7;">@tempSuccess</div>
+}
+
 <div class="card" style="margin-bottom: 1.5rem;">
     <div class="card-header">
         <h2 class="card-title">Yeni Tedarikci Ekle</h2>
@@ -117,8 +127,8 @@
                         <a asp-action="Edit" asp-route-id="@s.Id" class="btn-edit">Duzenle</a>
                         @if (User.IsInRole("Yönetici"))
                         {
-                            <form method="post" asp-action="Delete" asp-route-id="@s.Id" onsubmit="return confirm('@s.Name silinecek. Emin misiniz?')">
-                                <button type="submit" class="btn-delete">Sil</button>
+                            <form method="post" asp-action="Delete" asp-route-id="@s.Id" onsubmit="return confirm('@s.Name pasife alinacak. Emin misiniz?')">
+                                <button type="submit" class="btn-delete">Pasife Al</button>
                             </form>
                         }
                     </td>

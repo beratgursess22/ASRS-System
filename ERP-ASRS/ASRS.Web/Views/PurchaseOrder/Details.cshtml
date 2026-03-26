@@ -48,6 +48,8 @@
     var canEditPricing = (User.IsInRole("Yönetici") || User.IsInRole("Satın Alma")) && Model.Status != PurchaseOrderStatus.Cancelled;
     var canEditHeader = Model.Status != PurchaseOrderStatus.Received && Model.Status != PurchaseOrderStatus.Cancelled;
     var canEditSupplier = Model.Status == PurchaseOrderStatus.Draft;
+    var canSplitItem = Model.Status == PurchaseOrderStatus.Draft;
+    var canPartiallyCancel = Model.Status == PurchaseOrderStatus.Draft || Model.Status == PurchaseOrderStatus.Approved || Model.Status == PurchaseOrderStatus.PartiallyReceived;
     var suppliers = ViewBag.Suppliers as IEnumerable<SupplierListDto> ?? Enumerable.Empty<SupplierListDto>();
     var totalsByCurrency = Model.Items
         .GroupBy(i => string.IsNullOrWhiteSpace(i.Currency) ? "TRY" : i.Currency!.Trim().ToUpperInvariant())
@@ -173,6 +175,15 @@
         <h2 class="card-title">Siparis Kalemleri (@Model.Items.Count)</h2>
     </div>
 
+    @if (canSplitItem || canPartiallyCancel)
+    {
+        <div style="padding: 0 1rem 1rem 1rem;">
+            <div class="alert-box" data-toast-ignore="true" style="border:1px solid #92400e; color:#92400e; background:#fef3c7;">
+                Kalem bolme islemi yalnizca Taslak durumda; kismi iptal islemi Taslak/Onaylandi/Kismi Teslim durumlarinda kullanilabilir.
+            </div>
+        </div>
+    }
+
     <table class="data-table">
         <thead>
             <tr>
@@ -203,25 +214,47 @@
                     <td>@(string.IsNullOrWhiteSpace(item.Currency) ? "-" : item.Currency)</td>
                     <td><strong>@item.LineTotal.ToString("N2")</strong></td>
                     <td>
-                        <div style="display:flex; gap:0.35rem; flex-wrap:wrap; align-items:center;">
+                        <div class="po-item-actions">
                             @if (canEditPricing)
                             {
-                                <form method="post" asp-action="UpdateItemPricing" style="display:flex; gap:0.35rem; align-items:center;">
+                                <form method="post" asp-action="UpdateItemPricing" class="po-item-action-form">
                                     <input type="hidden" name="PurchaseOrderId" value="@Model.Id" />
                                     <input type="hidden" name="PurchaseOrderItemId" value="@item.Id" />
-                                    <input type="number" min="0" step="0.01" name="UnitPrice" class="form-input" value="@item.UnitPrice" style="width:110px;" required />
-                                    <input type="text" name="Currency" class="form-input" value="@(string.IsNullOrWhiteSpace(item.Currency) ? "TRY" : item.Currency)" maxlength="10" style="width:85px; text-transform:uppercase;" />
+                                    <input type="number" min="0" step="0.01" name="UnitPrice" class="form-input" value="@item.UnitPrice" style="width:120px;" required />
+                                    <input type="text" name="Currency" class="form-input" value="@(string.IsNullOrWhiteSpace(item.Currency) ? "TRY" : item.Currency)" maxlength="10" style="width:78px; text-transform:uppercase;" />
                                     <button type="submit" class="btn-edit">Fiyat Kaydet</button>
                                 </form>
                             }
 
                             @if (canReceive && item.RemainingQuantity > 0)
                             {
-                                <form method="post" asp-action="ReceiveItem" style="display:flex; gap:0.35rem; align-items:center;">
+                                <form method="post" asp-action="ReceiveItem" class="po-item-action-form">
                                     <input type="hidden" name="PurchaseOrderId" value="@Model.Id" />
                                     <input type="hidden" name="PurchaseOrderItemId" value="@item.Id" />
                                     <input type="number" min="1" max="@item.RemainingQuantity" name="ReceivedQuantity" class="form-input" style="width:90px;" required />
                                     <button type="submit" class="btn-edit">Teslim Al</button>
+                                </form>
+                            }
+
+                            @if (canSplitItem && item.RemainingQuantity > 1)
+                            {
+                                <form method="post" asp-action="SplitItem" class="po-item-action-form">
+                                    <input type="hidden" name="PurchaseOrderId" value="@Model.Id" />
+                                    <input type="hidden" name="PurchaseOrderItemId" value="@item.Id" />
+                                    <input type="number" min="1" max="@(item.RemainingQuantity - 1)" name="SplitQuantity" class="form-input" style="width:90px;" required />
+                                    <input type="text" name="Notes" class="form-input" placeholder="Bolme notu" style="width:130px;" />
+                                    <button type="submit" class="btn-edit">Bol</button>
+                                </form>
+                            }
+
+                            @if (canPartiallyCancel && item.RemainingQuantity > 0)
+                            {
+                                <form method="post" asp-action="CancelRemainingItemQuantity" class="po-item-action-form">
+                                    <input type="hidden" name="PurchaseOrderId" value="@Model.Id" />
+                                    <input type="hidden" name="PurchaseOrderItemId" value="@item.Id" />
+                                    <input type="number" min="1" max="@item.RemainingQuantity" name="CancelQuantity" class="form-input" style="width:90px;" required />
+                                    <input type="text" name="Reason" class="form-input" placeholder="Iptal nedeni" style="width:130px;" />
+                                    <button type="submit" class="btn-delete">Kismi Iptal</button>
                                 </form>
                             }
 

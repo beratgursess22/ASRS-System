@@ -12,11 +12,16 @@ public class PurchaseRequestController : Controller
 {
     private readonly IPurchaseRequestService _purchaseRequestService;
     private readonly IPurchaseOrderService _purchaseOrderService;
+    private readonly IWorkOrderService _workOrderService;
 
-    public PurchaseRequestController(IPurchaseRequestService purchaseRequestService, IPurchaseOrderService purchaseOrderService)
+    public PurchaseRequestController(
+        IPurchaseRequestService purchaseRequestService,
+        IPurchaseOrderService purchaseOrderService,
+        IWorkOrderService workOrderService)
     {
         _purchaseRequestService = purchaseRequestService;
         _purchaseOrderService = purchaseOrderService;
+        _workOrderService = workOrderService;
     }
 
     [Authorize(Roles = "Yönetici,Satın Alma")]
@@ -33,7 +38,17 @@ public class PurchaseRequestController : Controller
         var created = await _purchaseRequestService.CreateFromWorkOrderAsync(workOrderId, userId, notes);
         if (!created)
         {
-            TempData["Error"] = "Talep olusturulamadi. Yetersiz kalem bulunmuyor olabilir veya bu is emri icin aktif talep zaten var.";
+            var workOrder = await _workOrderService.GetByIdAsync(workOrderId);
+
+            TempData["Error"] = workOrder?.Status switch
+            {
+                WorkOrderStatus.Completed =>
+                    "Bu is emri tamamlandigi icin satin alma talebi olusturulamaz.",
+                WorkOrderStatus.Cancelled =>
+                    "Bu is emri iptal edildigi icin satin alma talebi olusturulamaz.",
+                _ =>
+                    "Talep olusturulamadi. Yetersiz kalem bulunmuyor olabilir veya bu is emri icin aktif talep zaten var."
+            };
             return RedirectToAction("Details", "WorkOrder", new { id = workOrderId });
         }
 
@@ -63,13 +78,18 @@ public class PurchaseRequestController : Controller
     [HttpPost]
     public async Task<IActionResult> UpdateStatus(int id, PurchaseRequestStatus status, string? notes)
     {
+        if (status == PurchaseRequestStatus.Received)
+        {
+            TempData["Error"] = "Talep durumu Teslim Alindi olarak manuel guncellenemez. Teslim PO uzerinden yapilmalidir.";
+            return RedirectToAction("Details", new { id });
+        }
+
         var existing = await _purchaseRequestService.GetByIdAsync(id);
         if (existing == null)
             return NotFound();
 
         var previousStatus = existing.Status;
         var updated = await _purchaseRequestService.UpdateStatusAsync(id, status, notes);
-
         if (!updated)
         {
             TempData["Error"] = "Gecersiz durum gecisi. Talep asamalari sirasiyla ilerlemelidir.";
@@ -106,4 +126,22 @@ public class PurchaseRequestController : Controller
         TempData["Success"] = "Talep durumu güncellendi.";
         return RedirectToAction("Details", new { id });
     }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateItem(int requestId, int itemId, int missingQuantity, string? notes)
+    {
+        var updated = await _purchaseRequestService.UpdateItemAsync(requestId, itemId, missingQuantity, notes);
+
+        if (!updated)
+        {
+            TempData["Error"] = "Kalem guncellenemedi. Talep sadece beklemede iken revize edilebilir.";
+            return RedirectToAction("Details", new { id = requestId });
+        }
+
+        TempData["Success"] = "Talep kalemi guncellendi.";
+        return RedirectToAction("Details", new { id = requestId });
+    }
+
 }
+
+

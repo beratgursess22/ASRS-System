@@ -124,4 +124,31 @@ public class PurchaseOrderController : Controller
         return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
     }
 
+    [HttpPost]
+    public async Task<IActionResult> SplitItem(SplitPurchaseOrderItemDto dto)
+    {
+        var ok = await _purchaseOrderService.SplitItemAsync(dto);
+        if (!ok)
+        {
+            TempData["Error"] = "Kalem bolme basarisiz. Durum veya miktar kontrol edin.";
+            return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
+        }
+
+        TempData["Success"] = "PO kalemi bolundu.";
+        return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CancelRemainingItemQuantity(CancelRemainingPurchaseOrderItemDto dto)
+    {
+        var ok = await _purchaseOrderService.CancelRemainingItemQuantityAsync(dto);
+        if (!ok)
+        {
+            TempData["Error"] = "Kismi iptal basarisiz. Durum veya miktar kontrol edin.";
+            return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
+        }
+
+        TempData["Success"] = "Kalemin kalan miktari kismen iptal edildi.";
+        return RedirectToAction("Details", new { id = dto.PurchaseOrderId });
+    }
 }

@@ -12,4 +12,6 @@ public interface IPurchaseOrderService
 	Task<bool> ReceiveItemAsync(ReceivePurchaseOrderItemDto dto);
 	Task<bool> UpdateItemPricingAsync(UpdatePurchaseOrderItemPricingDto dto);
 	Task<bool> UpdateHeaderAsync(UpdatePurchaseOrderHeaderDto dto);
+	Task<bool> SplitItemAsync(SplitPurchaseOrderItemDto dto);
+	Task<bool> CancelRemainingItemQuantityAsync(CancelRemainingPurchaseOrderItemDto dto);
 }

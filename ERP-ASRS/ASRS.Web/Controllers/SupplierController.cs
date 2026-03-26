@@ -127,7 +127,14 @@ public class SupplierController : Controller
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
-        await _supplierService.DeleteAsync(id);
+        var deleted = await _supplierService.DeleteAsync(id);
+        if (!deleted)
+        {
+            TempData["Error"] = "Tedarikci kaydi bulunamadi.";
+            return RedirectToAction("Index");
+        }
+
+        TempData["Success"] = "Tedarikci pasife alindi.";
         return RedirectToAction("Index");
     }
 

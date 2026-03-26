@@ -160,8 +160,26 @@ public class SupplierService : ISupplierService
 		if (entity == null)
 			return false;
 
-		_context.Suppliers.Remove(entity);
+		if (!entity.IsActive)
+			return true;
+
+		var hasPurchaseOrderUsage = await _context.PurchaseOrders
+			.AnyAsync(x => x.SupplierId == id);
+
+		var hasPriceCatalogUsage = await _context.SupplierItemPrices
+			.AnyAsync(x => x.SupplierId == id);
+
+		// Geçmiş satın alma ve fiyat katalog kayıtları korunması için fiziksel silme yapılmaz.
+		if (hasPurchaseOrderUsage || hasPriceCatalogUsage)
+		{
+			entity.IsActive = false;
+			await _context.SaveChangesAsync();
+			return true;
+		}
+
+		entity.IsActive = false;
 		await _context.SaveChangesAsync();
+
 		return true;
 	}
 
