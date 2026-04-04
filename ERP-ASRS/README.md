@@ -2,7 +2,7 @@
 
 Bu dokuman, projede bugune kadar yapilmis tum temel yapilari gercek kod durumuna gore ozetlemek icin bastan yazilmistir.
 
-Son guncelleme: 26 Mart 2026
+Son guncelleme: 4 Nisan 2026
 Durum: Aktif gelistirme
 
 ## 1) Proje Ozeti
@@ -64,12 +64,35 @@ ERP-ASRS cozumunde 5 proje var:
   - Purchase Request modulu
   - Purchase Order modulu
   - Siparis kalem bazli miktar/fiyat/teslim alma islemleri
+  - PO kalem bolme (SplitItem)
+  - PO kaleminde kalan miktari kismi iptal etme (CancelRemainingItemQuantity)
+  - PR kalemlerini Pending durumundayken revize etme (UpdateItem)
+  - PR durumunu manuel "Received" yapma kapatildi; teslim alma PO uzerinden stok artisiyla ilerliyor
 
 - Tedarikci ve fiyat listesi yonetimi
   - Tedarikci CRUD
   - Tedarikci-urun/malzeme fiyat kayitlari
+  - PO basliginda tedarikci secildiginde uygun fiyatlarin kalemlere otomatik yansimasi
 
-### 3.2 Arayuz (ASRS.Web) Durumu
+### 3.2 Son Kod Degisikligi Ozeti (27 Mart 2026)
+
+HEAD commit: improve PR PO side (69c655a)
+
+- Yeni DTO'lar:
+  - SplitPurchaseOrderItemDto
+  - CancelRemainingPurchaseOrderItemDto
+- PurchaseOrder tarafinda:
+  - Kalem bolme akisi eklendi
+  - Kalan miktar kismi iptal akisi eklendi
+  - Kalan miktar ve alinan miktar uyumlulugu icin ek dogrulamalar eklendi
+- PurchaseRequest tarafinda:
+  - Pending durumunda kalem eksik miktar/not duzenleme eklendi
+  - PR durumunu manuel Received yapma ve PR uzerinden dogrudan stok yazma kaldirildi
+- Web arayuzu:
+  - PurchaseOrder detay ekranina kalem bolme ve kismi iptal formlari eklendi
+  - PurchaseRequest detay ekranina kalem revizyon islemleri eklendi
+
+### 3.3 Arayuz (ASRS.Web) Durumu
 
 Controller yapisi:
 
@@ -94,7 +117,7 @@ Razor sayfa gruplari:
 - Supplier
 - Shared layout/error/validation partial
 
-### 3.3 Veri Modeli Durumu
+### 3.4 Veri Modeli Durumu
 
 Aktif entity setleri (DbSet):
 
@@ -112,7 +135,7 @@ Aktif entity setleri (DbSet):
 
 Identity tablolari da ayni context altinda yonetiliyor.
 
-### 3.4 Migration Gecmisi (Uygulanan Gelisim Adimlari)
+### 3.5 Migration Gecmisi (Uygulanan Gelisim Adimlari)
 
 Kodda bulunan migrationlar:
 
@@ -141,12 +164,17 @@ Bu siralama, projenin urun/malzeme temelinden satin alma ve tedarikci modullerin
 ### 4.2 Hala Gelisim Gerektiren Alanlar
 
 - ASRS.API
-  - Su an yalnizca minimal template
+  - Su an yalnizca minimal template (GET /weatherforecast)
   - Cihaz/RFID/komut endpointleri daha yazilmamis
+
+- Arayuz menu tutarliligi
+  - _Layout icinde Kalite/Lojistik menu linkleri var
+  - Bu controller/view ciftleri su an projede tanimli degil
 
 - Seed verileri
   - Program.cs icinde kapsamli seed bloklari mevcut
   - Ancak su an yorum satiri durumunda
+  - Yorum satiri kaldirilmadan sifirdan kurulumda varsayilan admin kullanicisi olusmaz
 
 - Test ve gozlemlenebilirlik
   - Otomatik test katmani ve detayli merkezi loglama guclendirilmeli
@@ -220,6 +248,19 @@ ERP-ASRS klasorunde:
 dotnet run --project ASRS.API
 
 Not: API su an template seviyesinde oldugu icin islevsel ERP endpointlerini icermez.
+
+### 7.6 Ilk Giris ve Seed Notu (Kritik)
+
+- Web uygulamasinda varsayilan acilis rotasi `/Account/Login` oldugu icin en az bir aktif kullanici gerekir.
+- Program.cs icindeki seed blogu yorum satirinda oldugundan sifir veritabaninda hazir admin kullanicisi yoktur.
+- Bu nedenle ilk kurulumda:
+  - ya seed bloklari kontrollu sekilde acilmali,
+  - ya da SQL/Identity uzerinden manuel ilk yonetici kullanicisi olusturulmalidir.
+
+### 7.7 Rol Notu
+
+- Kod tarafinda aktif yetkilerde su roller kullaniliyor: `Yonetici`, `Depo`, `Uretim`, `Satin Alma`.
+- Seed acilirsa rol listesinin bu yetkilerle uyumlu oldugunu kontrol etmek gerekir.
 
 ## 8) Rol ve Yetki Ozet Tablosu
 
