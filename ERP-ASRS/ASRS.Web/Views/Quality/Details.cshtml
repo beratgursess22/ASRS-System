@@ -1,0 +1,223 @@
+@model ASRS.Core.DTOs.QualityInspectionDetailDto
+@using ASRS.Core.Enums
+@{
+    ViewData["Title"] = "Kalite Detay";
+
+    static string TypeText(InspectionType t) => t switch
+    {
+        InspectionType.Incoming => "Giris",
+        InspectionType.InProcess => "Surec Ici",
+        InspectionType.Final => "Final",
+        _ => t.ToString()
+    };
+
+    static string StatusText(InspectionStatus s) => s switch
+    {
+        InspectionStatus.Pending => "Beklemede",
+        InspectionStatus.InReview => "Incelemede",
+        InspectionStatus.Passed => "Gecti",
+        InspectionStatus.ConditionalPass => "Sartli Gecti",
+        InspectionStatus.Rejected => "Reddedildi",
+        InspectionStatus.Closed => "Kapandi",
+        _ => s.ToString()
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/quality.css" asp-append-version="true" />
+}
+
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <h1 class="page-title">Kalite Detay - @Model.InspectionNumber</h1>
+    <a asp-action="Index" class="btn-edit">&larr; Listeye Don</a>
+</div>
+
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert-box alert-error">@errorMessage</div>
+}
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert-box alert-success">@successMessage</div>
+}
+
+<div class="card">
+    <div class="wo-detail-grid">
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Tip</div>
+            <div class="wo-detail-value">@TypeText(Model.InspectionType)</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Durum</div>
+            <div class="wo-detail-value">@StatusText(Model.Status)</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Karar</div>
+            <div class="wo-detail-value">@(Model.UsageDecision?.ToString() ?? "-")</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Kontrol Tarihi</div>
+            <div class="wo-detail-value">@Model.InspectionDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Baglanti</div>
+            <div class="wo-detail-value">
+                @(Model.WorkOrderId.HasValue ? $"WO: {Model.WorkOrderNumber}" :
+                    (Model.PurchaseOrderId.HasValue ? $"PO: {Model.PurchaseOrderNumber}" : "-"))
+            </div>
+        </div>
+        <div class="wo-detail-kpi">
+            <div class="wo-detail-label">Kontrol Eden</div>
+            <div class="wo-detail-value">@(string.IsNullOrWhiteSpace(Model.InspectedByUserName) ? "-" : Model.InspectedByUserName)</div>
+        </div>
+    </div>
+
+    <div style="padding:0 1rem 1rem 1rem;">
+        <div class="quality-note">@(string.IsNullOrWhiteSpace(Model.Notes) ? "Not girilmemis." : Model.Notes)</div>
+    </div>
+</div>
+
+<div class="quality-actions">
+    <div class="quality-card-mini">
+        <h3>Durum Guncelle</h3>
+        <form method="post" asp-action="UpdateStatus" style="display:grid; gap:0.5rem;">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <select name="status" class="form-input">
+                @foreach (var s in Enum.GetValues<InspectionStatus>())
+                {
+                    if (s == Model.Status)
+                    {
+                        <option value="@((int)s)" selected="selected">@StatusText(s)</option>
+                    }
+                    else
+                    {
+                        <option value="@((int)s)">@StatusText(s)</option>
+                    }
+                }
+            </select>
+            <input type="text" class="form-input" name="notes" placeholder="Durum notu" />
+            <button type="submit" class="btn-edit">Kaydet</button>
+        </form>
+    </div>
+
+    <div class="quality-card-mini">
+        <h3>Kullanım Karari</h3>
+        <form method="post" asp-action="Decide" style="display:grid; gap:0.5rem;">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <select name="decision" class="form-input">
+                <option value="@((int)UsageDecision.Passed)">Passed</option>
+                <option value="@((int)UsageDecision.ConditionalPass)">ConditionalPass</option>
+                <option value="@((int)UsageDecision.Rejected)">Rejected</option>
+            </select>
+            <input type="text" class="form-input" name="notes" placeholder="Karar notu" />
+            <button type="submit" class="btn-primary">Karar Kaydet</button>
+        </form>
+    </div>
+
+    <div class="quality-card-mini">
+        <h3>Kontrol Kriteri Ekle</h3>
+        <form method="post" asp-action="AddInspectionItem" style="display:grid; gap:0.5rem;">
+            <input type="hidden" name="inspectionId" value="@Model.Id" />
+            <input type="text" class="form-input" name="CharacteristicName" placeholder="Kriter adi" required />
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                <input type="text" class="form-input" name="ExpectedValue" placeholder="Beklenen" />
+                <input type="text" class="form-input" name="ActualValue" placeholder="Olculen" />
+            </div>
+            <select name="IsPassed" class="form-input">
+                <option value="true">Gecti</option>
+                <option value="false">Kaldi</option>
+            </select>
+            <input type="text" class="form-input" name="Notes" placeholder="Not" />
+            <button type="submit" class="btn-edit">Kriter Ekle</button>
+        </form>
+    </div>
+
+    <div class="quality-card-mini">
+        <h3>Uygunsuzluk Ekle</h3>
+        <form method="post" asp-action="ReportDefect" style="display:grid; gap:0.5rem;">
+            <input type="hidden" name="QualityInspectionId" value="@Model.Id" />
+            <input type="text" class="form-input" name="Title" placeholder="Uygunsuzluk basligi" required />
+            <input type="text" class="form-input" name="Description" placeholder="Aciklama" />
+            <select name="Severity" class="form-input">
+                <option value="@((int)DefectSeverity.Low)">Low</option>
+                <option value="@((int)DefectSeverity.Medium)" selected="selected">Medium</option>
+                <option value="@((int)DefectSeverity.High)">High</option>
+                <option value="@((int)DefectSeverity.Critical)">Critical</option>
+            </select>
+            <button type="submit" class="btn-delete">Uygunsuzluk Ekle</button>
+        </form>
+    </div>
+</div>
+
+<div class="quality-grid" style="margin-top:1rem;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Kontrol Kriterleri (@Model.Items.Count)</h2>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Kriter</th>
+                    <th>Beklenen</th>
+                    <th>Olculen</th>
+                    <th>Sonuc</th>
+                    <th>Not</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var i in Model.Items)
+                {
+                    <tr>
+                        <td>@i.CharacteristicName</td>
+                        <td>@(string.IsNullOrWhiteSpace(i.ExpectedValue) ? "-" : i.ExpectedValue)</td>
+                        <td>@(string.IsNullOrWhiteSpace(i.ActualValue) ? "-" : i.ActualValue)</td>
+                        <td>
+                            @if (i.IsPassed)
+                            {
+                                <span class="quality-pill status-pass">Gecti</span>
+                            }
+                            else
+                            {
+                                <span class="quality-pill status-reject">Kaldi</span>
+                            }
+                        </td>
+                        <td>@(string.IsNullOrWhiteSpace(i.Notes) ? "-" : i.Notes)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Uygunsuzluklar (@Model.Defects.Count)</h2>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Baslik</th>
+                    <th>Severity</th>
+                    <th>Durum</th>
+                    <th>CAPA</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Defects)
+                {
+                    <tr>
+                        <td>@d.Title</td>
+                        <td>@d.Severity</td>
+                        <td>@(d.IsResolved ? "Resolved" : "Open")</td>
+                        <td>
+                            <a asp-controller="Capa" asp-action="Index" asp-route-defectId="@d.Id" class="btn-edit">
+                                CAPA Detay
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

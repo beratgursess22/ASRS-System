@@ -1,0 +1,160 @@
+@model IEnumerable<ASRS.Core.DTOs.QualityInspectionListDto>
+@using ASRS.Core.Enums
+@{
+    ViewData["Title"] = "Kalite Kontrol";
+
+    static string TypeText(InspectionType t) => t switch
+    {
+        InspectionType.Incoming => "Giris",
+        InspectionType.InProcess => "Surec Ici",
+        InspectionType.Final => "Final",
+        _ => t.ToString()
+    };
+
+    static string StatusText(InspectionStatus s) => s switch
+    {
+        InspectionStatus.Pending => "Beklemede",
+        InspectionStatus.InReview => "Incelemede",
+        InspectionStatus.Passed => "Gecti",
+        InspectionStatus.ConditionalPass => "Sartli Gecti",
+        InspectionStatus.Rejected => "Reddedildi",
+        InspectionStatus.Closed => "Kapandi",
+        _ => s.ToString()
+    };
+
+    static string TypeClass(InspectionType t) => t switch
+    {
+        InspectionType.Incoming => "type-incoming",
+        InspectionType.InProcess => "type-process",
+        InspectionType.Final => "type-final",
+        _ => "type-incoming"
+    };
+
+    static string StatusClass(InspectionStatus s) => s switch
+    {
+        InspectionStatus.Pending => "status-pending",
+        InspectionStatus.InReview => "status-review",
+        InspectionStatus.Passed => "status-pass",
+        InspectionStatus.ConditionalPass => "status-conditional",
+        InspectionStatus.Rejected => "status-reject",
+        InspectionStatus.Closed => "status-closed",
+        _ => "status-pending"
+    };
+
+    var totalCount = Model.Count();
+    var openCount = Model.Count(x => x.Status == InspectionStatus.Pending || x.Status == InspectionStatus.InReview);
+    var rejectedCount = Model.Count(x => x.Status == InspectionStatus.Rejected);
+    var closedCount = Model.Count(x => x.Status == InspectionStatus.Closed);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/quality.css" asp-append-version="true" />
+}
+
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <h1 class="page-title">Kalite Kontrol Kayitlari</h1>
+    <a asp-action="Create" class="btn-primary">+ Yeni Kontrol</a>
+</div>
+
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert-box alert-error">@errorMessage</div>
+}
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert-box alert-success">@successMessage</div>
+}
+
+<div class="wo-stats-grid">
+    <div class="wo-stat-card">
+        <div class="wo-stat-label">Toplam</div>
+        <div class="wo-stat-value">@totalCount</div>
+    </div>
+    <div class="wo-stat-card stat-inprocess">
+        <div class="wo-stat-label">Acik Kontrol</div>
+        <div class="wo-stat-value">@openCount</div>
+    </div>
+    <div class="wo-stat-card stat-cancelled">
+        <div class="wo-stat-label">Reddedilen</div>
+        <div class="wo-stat-value">@rejectedCount</div>
+    </div>
+    <div class="wo-stat-card stat-completed">
+        <div class="wo-stat-label">Kapali</div>
+        <div class="wo-stat-value">@closedCount</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">@totalCount kayit</h2>
+        <form method="get" asp-action="Index" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <select name="inspectionType" class="form-input" style="width:170px;">
+                <option value="">Tum Tipler</option>
+                @foreach (var t in Enum.GetValues<InspectionType>())
+                {
+                    if (ViewBag.InspectionType?.ToString() == t.ToString() || ViewBag.InspectionType?.ToString() == ((int)t).ToString())
+                    {
+                        <option value="@((int)t)" selected="selected">@TypeText(t)</option>
+                    }
+                    else
+                    {
+                        <option value="@((int)t)">@TypeText(t)</option>
+                    }
+                }
+            </select>
+            <select name="status" class="form-input" style="width:170px;">
+                <option value="">Tum Durumlar</option>
+                @foreach (var s in Enum.GetValues<InspectionStatus>())
+                {
+                    if (ViewBag.Status?.ToString() == s.ToString() || ViewBag.Status?.ToString() == ((int)s).ToString())
+                    {
+                        <option value="@((int)s)" selected="selected">@StatusText(s)</option>
+                    }
+                    else
+                    {
+                        <option value="@((int)s)">@StatusText(s)</option>
+                    }
+                }
+            </select>
+            <button type="submit" class="btn-primary">Filtrele</button>
+            <a asp-action="Index" class="btn-edit">Temizle</a>
+        </form>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Tip</th>
+                <th>Durum</th>
+                <th>Karar</th>
+                <th>Baglanti</th>
+                <th>Kontrol Tarihi</th>
+                <th>Defect</th>
+                <th>Islem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Model)
+            {
+                var relation = row.WorkOrderId.HasValue
+                    ? $"WO: {row.WorkOrderNumber}"
+                    : row.PurchaseOrderId.HasValue
+                        ? $"PO: {row.PurchaseOrderNumber}"
+                        : "-";
+                <tr>
+                    <td><strong class="order-number">@row.InspectionNumber</strong></td>
+                    <td><span class="quality-pill @TypeClass(row.InspectionType)">@TypeText(row.InspectionType)</span></td>
+                    <td><span class="quality-pill @StatusClass(row.Status)">@StatusText(row.Status)</span></td>
+                    <td>@(row.UsageDecision?.ToString() ?? "-")</td>
+                    <td>@relation</td>
+                    <td>@row.InspectionDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@row.DefectCount</td>
+                    <td><a asp-action="Details" asp-route-id="@row.Id" class="btn-edit">Detay</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

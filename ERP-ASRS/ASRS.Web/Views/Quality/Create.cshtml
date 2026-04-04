@@ -1,0 +1,128 @@
+@using ASRS.Core.Enums
+@{
+    ViewData["Title"] = "Yeni Kalite Kontrol";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/quality.css" asp-append-version="true" />
+}
+
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <h1 class="page-title">Yeni Kalite Kontrol Kaydi</h1>
+    <a asp-action="Index" class="btn-edit">&larr; Listeye Don</a>
+</div>
+
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert-box alert-error">@errorMessage</div>
+}
+
+<form method="post" asp-action="Create" class="card">
+    <div class="card-header">
+        <h2 class="card-title">Ana Bilgiler</h2>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Kontrol Tipi</label>
+            <select name="InspectionType" class="form-input">
+                <option value="@((int)InspectionType.Incoming)">Giris</option>
+                <option value="@((int)InspectionType.InProcess)">Surec Ici</option>
+                <option value="@((int)InspectionType.Final)">Final</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Purchase Order Id (opsiyonel)</label>
+            <input type="number" name="PurchaseOrderId" min="1" class="form-input" />
+        </div>
+        <div class="form-group">
+            <label>Purchase Order Item Id (opsiyonel)</label>
+            <input type="number" name="PurchaseOrderItemId" min="1" class="form-input" />
+        </div>
+        <div class="form-group">
+            <label>Work Order Id (opsiyonel)</label>
+            <input type="number" name="WorkOrderId" min="1" class="form-input" />
+        </div>
+        <div class="form-group">
+            <label>Kontrol Tarihi</label>
+            <input type="datetime-local" name="InspectionDate" class="form-input" />
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:1rem;">
+        <label>Not</label>
+        <textarea name="Notes" class="form-input" rows="3" placeholder="Kontrol aciklamasi"></textarea>
+    </div>
+
+    <div class="card-header" style="margin-top:0.25rem;">
+        <h2 class="card-title">Kontrol Kriterleri</h2>
+        <button type="button" id="addItemBtn" class="btn-edit">+ Kriter Ekle</button>
+    </div>
+
+    <table class="data-table" id="itemTable">
+        <thead>
+            <tr>
+                <th>Kriter Adi</th>
+                <th>Beklenen</th>
+                <th>Olculen</th>
+                <th>Sonuc</th>
+                <th>Not</th>
+                <th>Sil</th>
+            </tr>
+        </thead>
+        <tbody id="itemBody"></tbody>
+    </table>
+
+    <div style="margin-top:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <button type="submit" class="btn-primary">Kaydet</button>
+        <a asp-action="Index" class="btn-delete">Iptal</a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            const body = document.getElementById("itemBody");
+            const addBtn = document.getElementById("addItemBtn");
+            let index = 0;
+
+            function rowTemplate(i) {
+                return `
+                    <tr>
+                        <td><input class="form-input" name="Items[${i}].CharacteristicName" required /></td>
+                        <td><input class="form-input" name="Items[${i}].ExpectedValue" /></td>
+                        <td><input class="form-input" name="Items[${i}].ActualValue" /></td>
+                        <td>
+                            <select class="form-input" name="Items[${i}].IsPassed">
+                                <option value="true">Gecti</option>
+                                <option value="false">Kaldi</option>
+                            </select>
+                        </td>
+                        <td><input class="form-input" name="Items[${i}].Notes" /></td>
+                        <td><button type="button" class="btn-delete js-remove">Sil</button></td>
+                    </tr>
+                `;
+            }
+
+            function addRow() {
+                body.insertAdjacentHTML("beforeend", rowTemplate(index));
+                index += 1;
+            }
+
+            body.addEventListener("click", function (e) {
+                const target = e.target;
+                if (!(target instanceof HTMLElement))
+                    return;
+                if (!target.classList.contains("js-remove"))
+                    return;
+                const tr = target.closest("tr");
+                if (tr) tr.remove();
+            });
+
+            addBtn.addEventListener("click", addRow);
+            addRow();
+        })();
+    </script>
+}

@@ -1,0 +1,101 @@
+@model IEnumerable<ASRS.Core.DTOs.CapaActionDto>
+@using ASRS.Core.Enums
+@{
+    ViewData["Title"] = "CAPA";
+    var defectId = (int)(ViewBag.DefectId ?? 0);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workorder.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/quality.css" asp-append-version="true" />
+}
+
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <h1 class="page-title">CAPA Kayitlari - Defect #@defectId</h1>
+    <a asp-controller="Quality" asp-action="Index" class="btn-edit">&larr; Kalite Liste</a>
+</div>
+
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert-box alert-error">@errorMessage</div>
+}
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert-box alert-success">@successMessage</div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Yeni CAPA</h2>
+    </div>
+    <form method="post" asp-action="Create" class="form-row">
+        <input type="hidden" name="QualityDefectId" value="@defectId" />
+        <div class="form-group">
+            <label>Aksiyon Aciklamasi</label>
+            <input type="text" name="ActionDescription" class="form-input" required />
+        </div>
+        <div class="form-group">
+            <label>Sorumlu Kullanici Id</label>
+            <input type="text" name="ResponsibleUserId" class="form-input" />
+        </div>
+        <div class="form-group">
+            <label>Termin Tarihi</label>
+            <input type="date" name="DueDate" class="form-input" />
+        </div>
+        <div class="form-group" style="justify-content:end;">
+            <button type="submit" class="btn-primary">CAPA Ekle</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">CAPA Listesi (@Model.Count())</h2>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Aksiyon</th>
+                <th>Sorumlu</th>
+                <th>Termin</th>
+                <th>Durum</th>
+                <th>Tamamlanma Notu</th>
+                <th>Guncelle</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Model)
+            {
+                <tr>
+                    <td>@row.ActionDescription</td>
+                    <td>@(string.IsNullOrWhiteSpace(row.ResponsibleUserName) ? "-" : row.ResponsibleUserName)</td>
+                    <td>@(row.DueDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                    <td>@row.Status</td>
+                    <td>@(string.IsNullOrWhiteSpace(row.CompletionNote) ? "-" : row.CompletionNote)</td>
+                    <td>
+                        <form method="post" asp-action="UpdateStatus" style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
+                            <input type="hidden" name="capaId" value="@row.Id" />
+                            <input type="hidden" name="defectId" value="@defectId" />
+                            <select name="status" class="form-input" style="width:150px;">
+                                @foreach (var s in Enum.GetValues<CapaStatus>())
+                                {
+                                    if (s == row.Status)
+                                    {
+                                        <option value="@((int)s)" selected="selected">@s</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@((int)s)">@s</option>
+                                    }
+                                }
+                            </select>
+                            <input type="text" name="completionNote" class="form-input" placeholder="Not" style="width:160px;" />
+                            <button type="submit" class="btn-edit">Kaydet</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

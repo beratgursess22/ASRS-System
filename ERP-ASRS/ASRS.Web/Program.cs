@@ -44,6 +44,10 @@ builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IQualityInspectionService, QualityInspectionService>();
+builder.Services.AddScoped<IQualityDefectService, QualityDefectService>();
+builder.Services.AddScoped<ICapaService, CapaService>();
+
 //end
 
 builder.Services.AddControllersWithViews();
