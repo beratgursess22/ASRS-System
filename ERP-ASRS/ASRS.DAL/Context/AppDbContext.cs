@@ -20,6 +20,10 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 	public DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
 	public DbSet<Supplier> Suppliers { get; set; }
 	public DbSet<SupplierItemPrice> SupplierItemPrices { get; set; }
+	public DbSet<QualityInspection> QualityInspections { get; set; }
+	public DbSet<QualityInspectionItem> QualityInspectionItems { get; set; }
+	public DbSet<QualityDefect> QualityDefects { get; set; }
+	public DbSet<CapaAction> CapaActions { get; set; }
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		base.OnModelCreating(modelBuilder);
@@ -126,5 +130,55 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 			.HasIndex(x => new { x.SupplierId, x.ProductId });
 		modelBuilder.Entity<SupplierItemPrice>()
 			.HasIndex(x => new { x.SupplierId, x.MaterialId });
+					modelBuilder.Entity<QualityInspection>()
+			.HasOne(x => x.PurchaseOrder)
+			.WithMany()
+			.HasForeignKey(x => x.PurchaseOrderId)
+			.OnDelete(DeleteBehavior.SetNull);
+		modelBuilder.Entity<QualityInspection>()
+			.HasOne(x => x.PurchaseOrderItem)
+			.WithMany()
+			.HasForeignKey(x => x.PurchaseOrderItemId)
+			.OnDelete(DeleteBehavior.SetNull);
+		modelBuilder.Entity<QualityInspection>()
+			.HasOne(x => x.WorkOrder)
+			.WithMany()
+			.HasForeignKey(x => x.WorkOrderId)
+			.OnDelete(DeleteBehavior.SetNull);
+		modelBuilder.Entity<QualityInspection>()
+			.HasOne(x => x.InspectedByUser)
+			.WithMany()
+			.HasForeignKey(x => x.InspectedByUserId)
+			.OnDelete(DeleteBehavior.SetNull);
+		modelBuilder.Entity<QualityInspectionItem>()
+			.HasOne(x => x.QualityInspection)
+			.WithMany(x => x.Items)
+			.HasForeignKey(x => x.QualityInspectionId)
+			.OnDelete(DeleteBehavior.Cascade);
+		modelBuilder.Entity<QualityDefect>()
+			.HasOne(x => x.QualityInspection)
+			.WithMany(x => x.Defects)
+			.HasForeignKey(x => x.QualityInspectionId)
+			.OnDelete(DeleteBehavior.Cascade);
+		modelBuilder.Entity<CapaAction>()
+			.HasOne(x => x.QualityDefect)
+			.WithMany(x => x.CapaActions)
+			.HasForeignKey(x => x.QualityDefectId)
+			.OnDelete(DeleteBehavior.Cascade);
+		modelBuilder.Entity<CapaAction>()
+			.HasOne(x => x.ResponsibleUser)
+			.WithMany()
+			.HasForeignKey(x => x.ResponsibleUserId)
+			.OnDelete(DeleteBehavior.SetNull);
+		modelBuilder.Entity<QualityInspection>()
+			.HasIndex(x => x.InspectionNumber)
+			.IsUnique();
+		modelBuilder.Entity<QualityInspection>()
+			.HasIndex(x => x.Status);
+		modelBuilder.Entity<QualityInspection>()
+			.HasIndex(x => x.InspectionType);
+		modelBuilder.Entity<QualityInspection>()
+			.HasIndex(x => x.CreatedAt);
+
 	}
 }

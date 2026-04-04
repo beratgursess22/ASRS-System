@@ -1,0 +1,129 @@
+KALITE KONTROL MODULU - NET YAPILACAKLAR LISTESI
+
+Tarih: 4 Nisan 2026
+Kural: Katmanli mimarinin disina cikmadan ilerle.
+Durum: Plan hazir, kodlama beklemede (kullanici onayi ile baslanacak).
+
+1) HEDEF VE KAPSAM
+- Modulu sadece hata kaydi degil, uc ana akisla kur:
+  - Giris kalite kontrol (Incoming): Satin alma ile gelen urun/malzeme kontrolu
+  - Surec ici kalite kontrol (In-Process): Uretim sirasinda ara kontroller
+  - Final kalite kontrol (Final): Sevk oncesi son karar
+- Her kontrol kaydi bir kararla kapanmali:
+  - Passed, ConditionalPass, Rejected
+- Uygunsuzluk (NCR) ve CAPA akisi kalite modulunun cekirdek parcasi olmali.
+
+2) ERP/SAP BENZERI CEKIRDEK KAVRAMLAR
+- Inspection Lot: Kontrol partisi/kaydi
+- Inspection Characteristics: Kontrol kriterleri
+- Sampling: Ornekleme kurali (opsiyonel, faz 2)
+- Usage Decision: Kabul / Sartli Kabul / Red
+- Quality Notification: Uygunsuzluk bildirimi (NCR)
+- CAPA: Duzeltici ve onleyici faaliyet takibi
+
+3) KATMANLI MIMARIYA GORE ADIMLAR
+
+3.1 ASRS.Core (Entity/DTO/Enum/Interface)
+- Entity:
+  - QualityInspection
+  - QualityInspectionItem
+  - QualityDefect
+  - CapaAction
+- Enum:
+  - InspectionType (Incoming, InProcess, Final)
+  - InspectionStatus (Pending, InReview, Passed, ConditionalPass, Rejected, Closed)
+  - UsageDecision (Passed, ConditionalPass, Rejected)
+  - DefectSeverity (Low, Medium, High, Critical)
+  - CapaStatus (Open, InProgress, Completed, Closed)
+- DTO:
+  - CreateQualityInspectionDto
+  - QualityInspectionListDto
+  - QualityInspectionDetailDto
+  - CreateQualityDefectDto
+  - CreateCapaActionDto
+- Interface:
+  - IQualityInspectionService
+  - IQualityDefectService
+  - ICapaService
+
+3.2 ASRS.DAL (DbContext + Iliski + Migration)
+- AppDbContext'e DbSet ekle:
+  - QualityInspections
+  - QualityInspectionItems
+  - QualityDefects
+  - CapaActions
+- Iliski kurallari:
+  - Incoming kontrol kaydi PurchaseOrder/PurchaseOrderItem ile baglanabilir
+  - InProcess/Final kontrol kaydi WorkOrder ile baglanabilir
+- Zorunlu indexler:
+  - InspectionNumber
+  - Status
+  - InspectionType
+  - CreatedAt
+- Migration olustur ve semayi netlestir.
+
+3.3 ASRS.BLL (Is Kurallari)
+- Inspection numarasi standart:
+  - QIN-YYYYMMDD-XXX
+- Durum gecis kurallari:
+  - Gecersiz gecisler engellenecek (or: Closed -> InReview olmaz)
+- Karar etkileri:
+  - Rejected ise ilgili is akisinda blok/not mekanizmasi
+  - Passed/ConditionalPass ise surec devam kurallari
+- Defect -> CAPA baglantisi:
+  - Kritik/tekrarlayan uygunsuzlukta CAPA zorunlu
+- Audit:
+  - CreatedAt, UpdatedAt, ClosedAt, ClosedBy
+
+3.4 ASRS.Web (Controller + View + UX)
+- Controller:
+  - QualityController
+    - Index
+    - Details
+    - Create
+    - UpdateStatus
+    - Decide (usage decision)
+    - ReportDefect
+  - CapaController
+    - Index
+    - Details
+    - Create
+    - Update
+    - Close
+- View:
+  - Views/Quality/Index.cshtml
+  - Views/Quality/Create.cshtml
+  - Views/Quality/Details.cshtml
+  - Views/Capa/Index.cshtml
+  - Views/Capa/Details.cshtml
+- Frontend:
+  - Bu kisim assistant tarafindan gelistirilecek.
+
+3.5 Yetki ve Guvenlik
+- Role matrix:
+  - Yonetici: tum islemler
+  - Kalite: kalite karar + uygunsuzluk + CAPA
+  - Uretim/Satin Alma: ilgili kayitlari goruntuleme, sinirli aksiyon
+- Kritik aksiyonlar:
+  - Red karari ve kapanis sadece Kalite/Yonetici
+
+3.6 Test Plani
+- Servis birim testleri:
+  - Durum gecisleri
+  - Usage decision kurallari
+  - Defect/CAPA kurallari
+- Entegrasyon testleri:
+  - PO -> Incoming inspection -> Decision
+  - WorkOrder -> Final inspection -> Decision
+
+4) UYGULAMA SIRASI (ONERILEN)
+1. Core katmani (Entity/Enum/DTO/Interface)
+2. DAL katmani (DbContext + Migration)
+3. BLL katmani (Service implementasyonlari)
+4. Web katmani (Controller + View)
+5. Yetki kontrolu
+6. Testler
+
+5) SIMDIKI DURUM
+- Bu dosya plani kalici olarak olusturuldu.
+- Kullanici "kodlara basla" onayi vermeden kod gelistirmeye gecilmeyecek.
