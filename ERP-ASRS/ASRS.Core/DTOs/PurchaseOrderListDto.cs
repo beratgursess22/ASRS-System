@@ -7,6 +7,7 @@ public class PurchaseOrderListDto
 	public int Id { get; set; }
 	public string OrderNumber { get; set; } = string.Empty;
 	public int PurchaseRequestId { get; set; }
+	public int? WorkOrderId { get; set; }
 	public string WorkOrderNumber { get; set; } = string.Empty;
 	public PurchaseOrderStatus Status { get; set; }
 	public DateTime CreatedAt { get; set; }

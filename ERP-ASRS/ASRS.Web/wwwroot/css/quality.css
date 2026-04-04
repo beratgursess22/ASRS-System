@@ -91,8 +91,18 @@
     color: var(--text-primary);
 }
 
+.quality-main-row .form-group label {
+    min-height: 2.15rem;
+    display: flex;
+    align-items: flex-end;
+}
+
 @media (max-width: 980px) {
     .quality-grid {
         grid-template-columns: 1fr;
+    }
+
+    .quality-main-row .form-group label {
+        min-height: 0;
     }
 }

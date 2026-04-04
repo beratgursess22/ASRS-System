@@ -1,6 +1,12 @@
 @using ASRS.Core.Enums
 @{
     ViewData["Title"] = "Yeni Kalite Kontrol";
+    var receivedOrders = ViewBag.ReceivedPurchaseOrders as IEnumerable<ASRS.Core.DTOs.PurchaseOrderListDto>
+        ?? Enumerable.Empty<ASRS.Core.DTOs.PurchaseOrderListDto>();
+    var receivedItems = ViewBag.ReceivedPurchaseOrderItems as IEnumerable<dynamic>
+        ?? Enumerable.Empty<dynamic>();
+    var receivedWorkOrders = ViewBag.ReceivedWorkOrders as IEnumerable<dynamic>
+        ?? Enumerable.Empty<dynamic>();
 }
 
 @section Styles {
@@ -24,7 +30,7 @@
         <h2 class="card-title">Ana Bilgiler</h2>
     </div>
 
-    <div class="form-row">
+    <div class="form-row quality-main-row">
         <div class="form-group">
             <label>Kontrol Tipi</label>
             <select name="InspectionType" class="form-input">
@@ -34,16 +40,34 @@
             </select>
         </div>
         <div class="form-group">
-            <label>Purchase Order Id (opsiyonel)</label>
-            <input type="number" name="PurchaseOrderId" min="1" class="form-input" />
+            <label>Purchase Order Id (teslim alinmis)</label>
+            <select id="purchaseOrderIdSelect" name="PurchaseOrderId" class="form-input">
+                <option value="">Seciniz</option>
+                @foreach (var po in receivedOrders)
+                {
+                    <option value="@po.Id" data-work-order-id="@(po.WorkOrderId?.ToString() ?? "")">#@po.Id - @po.OrderNumber</option>
+                }
+            </select>
         </div>
         <div class="form-group">
-            <label>Purchase Order Item Id (opsiyonel)</label>
-            <input type="number" name="PurchaseOrderItemId" min="1" class="form-input" />
+            <label>Purchase Order Item Id (teslim alinmis PO)</label>
+            <select id="purchaseOrderItemIdSelect" name="PurchaseOrderItemId" class="form-input">
+                <option value="">Seciniz</option>
+                @foreach (var item in receivedItems)
+                {
+                    <option value="@item.ItemId" data-po-id="@item.PurchaseOrderId">@item.Label</option>
+                }
+            </select>
         </div>
         <div class="form-group">
-            <label>Work Order Id (opsiyonel)</label>
-            <input type="number" name="WorkOrderId" min="1" class="form-input" />
+            <label>Work Order Id (teslim alinmis PO)</label>
+            <select id="workOrderIdSelect" name="WorkOrderId" class="form-input">
+                <option value="">Seciniz</option>
+                @foreach (var wo in receivedWorkOrders)
+                {
+                    <option value="@wo.WorkOrderId">#@wo.WorkOrderId - @wo.WorkOrderNumber</option>
+                }
+            </select>
         </div>
         <div class="form-group">
             <label>Kontrol Tarihi</label>
@@ -123,6 +147,45 @@
 
             addBtn.addEventListener("click", addRow);
             addRow();
+
+            const poSelect = document.getElementById("purchaseOrderIdSelect");
+            const poiSelect = document.getElementById("purchaseOrderItemIdSelect");
+            const woSelect = document.getElementById("workOrderIdSelect");
+
+            if (poSelect && poiSelect) {
+                const allOptions = Array.from(poiSelect.querySelectorAll("option"));
+
+                function filterItems() {
+                    const selectedPoId = poSelect.value;
+                    poiSelect.innerHTML = "";
+
+                    const defaultOpt = document.createElement("option");
+                    defaultOpt.value = "";
+                    defaultOpt.textContent = "Seciniz";
+                    poiSelect.appendChild(defaultOpt);
+
+                    allOptions.forEach(opt => {
+                        const poId = opt.getAttribute("data-po-id");
+                        if (!poId)
+                            return;
+                        if (!selectedPoId || poId === selectedPoId)
+                            poiSelect.appendChild(opt.cloneNode(true));
+                    });
+
+                    if (woSelect) {
+                        const selectedPoOption = poSelect.options[poSelect.selectedIndex];
+                        const woId = selectedPoOption ? selectedPoOption.getAttribute("data-work-order-id") : "";
+                        if (woId) {
+                            woSelect.value = woId;
+                        } else if (!selectedPoId) {
+                            woSelect.value = "";
+                        }
+                    }
+                }
+
+                poSelect.addEventListener("change", filterItems);
+                filterItems();
+            }
         })();
     </script>
 }

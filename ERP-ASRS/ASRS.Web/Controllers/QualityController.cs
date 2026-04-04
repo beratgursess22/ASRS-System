@@ -12,13 +12,16 @@ public class QualityController : Controller
 {
 	private readonly IQualityInspectionService _qualityInspectionService;
 	private readonly IQualityDefectService _qualityDefectService;
+	private readonly IPurchaseOrderService _purchaseOrderService;
 
 	public QualityController(
 		IQualityInspectionService qualityInspectionService,
-		IQualityDefectService qualityDefectService)
+		IQualityDefectService qualityDefectService,
+		IPurchaseOrderService purchaseOrderService)
 	{
 		_qualityInspectionService = qualityInspectionService;
 		_qualityDefectService = qualityDefectService;
+		_purchaseOrderService = purchaseOrderService;
 	}
 
 	[HttpGet]
@@ -33,9 +36,10 @@ public class QualityController : Controller
 	}
 
 	[HttpGet]
-	public IActionResult Create()
+	public async Task<IActionResult> Create()
 	{
 		ViewBag.Types = Enum.GetValues<InspectionType>();
+		await LoadCreateSelectionsAsync();
 		return View();
 	}
 
@@ -58,6 +62,37 @@ public class QualityController : Controller
 
 		TempData["Success"] = "Kalite kontrol kaydi olusturuldu.";
 		return RedirectToAction(nameof(Index));
+	}
+
+	private async Task LoadCreateSelectionsAsync()
+	{
+		var receivedOrders = (await _purchaseOrderService.GetAllAsync(PurchaseOrderStatus.Received))
+			.OrderByDescending(x => x.CreatedAt)
+			.ToList();
+
+		ViewBag.ReceivedPurchaseOrders = receivedOrders;
+		ViewBag.ReceivedPurchaseOrderItems = receivedOrders
+			.SelectMany(po => po.Items.Select(i => new
+			{
+				PurchaseOrderId = po.Id,
+				PurchaseOrderNumber = po.OrderNumber,
+				ItemId = i.Id,
+				Label = $"{po.OrderNumber} | {(i.ProductCode ?? i.MaterialCode ?? "-")} - {(i.ProductName ?? i.MaterialName ?? "-")} (Kalan: {i.RemainingQuantity})"
+			}))
+			.OrderBy(x => x.PurchaseOrderNumber)
+			.ThenBy(x => x.ItemId)
+			.ToList();
+
+		ViewBag.ReceivedWorkOrders = receivedOrders
+			.Where(x => x.WorkOrderId.HasValue)
+			.GroupBy(x => x.WorkOrderId!.Value)
+			.Select(g => new
+			{
+				WorkOrderId = g.Key,
+				WorkOrderNumber = g.Select(x => x.WorkOrderNumber).FirstOrDefault() ?? string.Empty
+			})
+			.OrderBy(x => x.WorkOrderNumber)
+			.ToList();
 	}
 
 	[HttpGet]

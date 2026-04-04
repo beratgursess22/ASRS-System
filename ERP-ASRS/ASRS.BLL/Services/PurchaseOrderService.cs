@@ -303,6 +303,7 @@ public class PurchaseOrderService : IPurchaseOrderService
 			Id = po.Id,
 			OrderNumber = po.OrderNumber,
 			PurchaseRequestId = po.PurchaseRequestId,
+			WorkOrderId = po.PurchaseRequest?.WorkOrder?.Id,
 			WorkOrderNumber = po.PurchaseRequest?.WorkOrder?.OrderNumber ?? string.Empty,
 			Status = po.Status,
 			CreatedAt = po.CreatedAt,
