@@ -74,6 +74,15 @@ ERP-ASRS cozumunde 5 proje var:
   - Tedarikci-urun/malzeme fiyat kayitlari
   - PO basliginda tedarikci secildiginde uygun fiyatlarin kalemlere otomatik yansimasi
 
+- Kalite kontrol sureci (yeni)
+  - QualityInspection / QualityInspectionItem yapisi
+  - Uygunsuzluk kaydi (QualityDefect)
+  - CAPA aksiyon takibi (CapaAction)
+  - Kontrol tipleri: Incoming, InProcess, Final
+  - Durumlar: Pending, InReview, Passed, ConditionalPass, Rejected, Closed
+  - Yeni kontrol ekraninda PurchaseOrder ve PurchaseOrderItem secimleri teslim alinmis (Received) siparislerden gelir
+  - WorkOrder secimi teslim alinmis siparislere bagli is emirlerinden gelir
+
 ### 3.2 Son Kod Degisikligi Ozeti (27 Mart 2026)
 
 HEAD commit: improve PR PO side (69c655a)
@@ -105,6 +114,8 @@ Controller yapisi:
 - PurchaseRequest
 - PurchaseOrder
 - Supplier
+- Quality
+- Capa
 
 Razor sayfa gruplari:
 
@@ -115,6 +126,8 @@ Razor sayfa gruplari:
 - PurchaseRequest
 - PurchaseOrder
 - Supplier
+- Quality
+- Capa
 - Shared layout/error/validation partial
 
 ### 3.4 Veri Modeli Durumu
@@ -132,6 +145,10 @@ Aktif entity setleri (DbSet):
 - PurchaseOrderItems
 - Suppliers
 - SupplierItemPrices
+- QualityInspections
+- QualityInspectionItems
+- QualityDefects
+- CapaActions
 
 Identity tablolari da ayni context altinda yonetiliyor.
 
@@ -150,6 +167,7 @@ Kodda bulunan migrationlar:
 9. 20260319182535_AddDefaultPricingToProductAndMaterial
 10. 20260320125637_AddSupplierModule
 11. 20260320170719_AddSupplierItemPricing
+12. 20260404150817_AddQualityModule
 
 Bu siralama, projenin urun/malzeme temelinden satin alma ve tedarikci modullerine genisledigini gosteriyor.
 
@@ -168,8 +186,8 @@ Bu siralama, projenin urun/malzeme temelinden satin alma ve tedarikci modullerin
   - Cihaz/RFID/komut endpointleri daha yazilmamis
 
 - Arayuz menu tutarliligi
-  - _Layout icinde Kalite/Lojistik menu linkleri var
-  - Bu controller/view ciftleri su an projede tanimli degil
+  - Quality/Capa ekranlari eklendi ve menu baglantisi duzeltildi
+  - Lojistik ve diger placeholder menu linkleri icin ilgili controller/view ciftleri hala tamamlanmali
 
 - Seed verileri
   - Program.cs icinde kapsamli seed bloklari mevcut
@@ -260,6 +278,7 @@ Not: API su an template seviyesinde oldugu icin islevsel ERP endpointlerini icer
 ### 7.7 Rol Notu
 
 - Kod tarafinda aktif yetkilerde su roller kullaniliyor: `Yonetici`, `Depo`, `Uretim`, `Satin Alma`.
+- Kalite modulu icin aktif roller: `Yonetici`, `Kalite`.
 - Seed acilirsa rol listesinin bu yetkilerle uyumlu oldugunu kontrol etmek gerekir.
 
 ## 8) Rol ve Yetki Ozet Tablosu
