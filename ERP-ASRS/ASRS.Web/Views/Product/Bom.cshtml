@@ -14,9 +14,9 @@
 				display: none;
 				margin: 0 0 1rem;
 				padding: 1rem;
-				border: 1px solid rgba(123, 112, 255, 0.35);
+				border: 1px solid rgba(4,128,170,0.35);
 				border-radius: 10px;
-				background: rgba(123, 112, 255, 0.08);
+				background: rgba(4,128,170,0.08);
 			}
 
 			.bom-edit-banner.active {
@@ -27,7 +27,7 @@
 				margin: 0 0 0.75rem;
 				font-size: 0.95rem;
 				font-weight: 700;
-				color: #d9ddff;
+				color: #FFFFFF;
 			}
 
 			.bom-edit-form {
@@ -246,12 +246,12 @@
 							@if (item.ComponentType == "Product")
 							{
 								<span
-								style="display:inline-block; background:#3b82f6; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Ürün</span>
+								style="display:inline-block; background:#0480AA; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Ürün</span>
 							}
 							else
 							{
 								<span
-								style="display:inline-block; background:#8b5cf6; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Malzeme</span>
+								style="display:inline-block; background:#2083AC; color:#fff; font-weight:600; font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px;">Malzeme</span>
 							}
 						</td>
 						<td><span class="product-code">@item.ComponentCode</span></td>
@@ -262,12 +262,12 @@
 							@if (item.IsStockSufficient)
 							{
 								<span
-								style="display:inline-block; background:#00c864; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yeterli</span>
+								style="display:inline-block; background:#0480AA; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yeterli</span>
 							}
 							else
 							{
 								<span
-								style="display:inline-block; background:#f04e37; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yetersiz</span>
+								style="display:inline-block; background:#2083AC; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yetersiz</span>
 							}
 						</td>
 						<td>@(item.Notes ?? "-")</td>

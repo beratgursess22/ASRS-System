@@ -20,51 +20,51 @@
 }
 
 .quality-pill.type-incoming {
-    color: #7dd3fc;
-    background: rgba(14, 116, 144, 0.22);
-    border-color: rgba(56, 189, 248, 0.35);
+    color: #88AEC6;
+    background: rgba(4,128,170,0.22);
+    border-color: rgba(136,174,198,0.35);
 }
 
 .quality-pill.type-process {
-    color: #fde68a;
-    background: rgba(120, 53, 15, 0.24);
-    border-color: rgba(251, 191, 36, 0.35);
+    color: #88AEC6;
+    background: rgba(32,131,172,0.24);
+    border-color: rgba(136,174,198,0.35);
 }
 
 .quality-pill.type-final {
-    color: #c4b5fd;
-    background: rgba(91, 33, 182, 0.24);
-    border-color: rgba(167, 139, 250, 0.35);
+    color: #88AEC6;
+    background: rgba(32,131,172,0.24);
+    border-color: rgba(136,174,198,0.35);
 }
 
 .quality-pill.status-pending {
-    color: #cbd5e1;
-    background: rgba(100, 116, 139, 0.2);
+    color: #88AEC6;
+    background: rgba(136,174,198,0.2);
 }
 
 .quality-pill.status-review {
-    color: #93c5fd;
-    background: rgba(37, 99, 235, 0.22);
+    color: #88AEC6;
+    background: rgba(4,128,170,0.22);
 }
 
 .quality-pill.status-pass {
-    color: #86efac;
-    background: rgba(22, 163, 74, 0.2);
+    color: #88AEC6;
+    background: rgba(4,128,170,0.2);
 }
 
 .quality-pill.status-conditional {
-    color: #fde68a;
-    background: rgba(202, 138, 4, 0.24);
+    color: #88AEC6;
+    background: rgba(136,174,198,0.24);
 }
 
 .quality-pill.status-reject {
-    color: #fca5a5;
-    background: rgba(220, 38, 38, 0.22);
+    color: #88AEC6;
+    background: rgba(32,131,172,0.22);
 }
 
 .quality-pill.status-closed {
-    color: #e2e8f0;
-    background: rgba(71, 85, 105, 0.22);
+    color: #88AEC6;
+    background: rgba(136,174,198,0.22);
 }
 
 .quality-note {

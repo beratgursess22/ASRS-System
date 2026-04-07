@@ -48,8 +48,8 @@
                 <svg id="orbital-svg" width="290" height="290" viewBox="0 0 290 290" style="overflow:visible">
                     <defs>
                         <radialGradient id="cg" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stop-color="#6366f1" stop-opacity="1"/>
-                            <stop offset="100%" stop-color="#1e1b4b" stop-opacity="1"/>
+                            <stop offset="0%" stop-color="#0480AA" stop-opacity="1"/>
+                            <stop offset="100%" stop-color="#0480AA" stop-opacity="1"/>
                         </radialGradient>
                         <filter id="cglow" x="-50%" y="-50%" width="200%" height="200%">
                             <feGaussianBlur stdDeviation="5" result="b"/>
@@ -61,25 +61,25 @@
                         </filter>
                     </defs>
                     <circle cx="145" cy="145" r="105" fill="none"
-                        stroke="rgba(129,140,248,0.2)" stroke-width="1" stroke-dasharray="4 7"/>
+                        stroke="rgba(136,174,198,0.2)" stroke-width="1" stroke-dasharray="4 7"/>
                     <g id="nodes"></g>
-                    <circle cx="145" cy="145" r="60" fill="rgba(99,102,241,0.12)" filter="url(#cglow)"/>
-                    <circle cx="145" cy="145" r="49" fill="none" stroke="rgba(129,140,248,0.35)"
+                    <circle cx="145" cy="145" r="60" fill="rgba(4,128,170,0.12)" filter="url(#cglow)"/>
+                    <circle cx="145" cy="145" r="49" fill="none" stroke="rgba(136,174,198,0.35)"
                         stroke-width="1" stroke-dasharray="3 5"/>
-                    <circle cx="145" cy="145" r="45" fill="none" stroke="rgba(129,140,248,0.7)" stroke-width="1.5"/>
+                    <circle cx="145" cy="145" r="45" fill="none" stroke="rgba(136,174,198,0.7)" stroke-width="1.5"/>
                     <circle cx="145" cy="145" r="44" fill="url(#cg)"/>
-                    <g transform="translate(129,127)" fill="none" stroke="rgba(199,210,254,0.9)"
+                    <g transform="translate(129,127)" fill="none" stroke="rgba(255,255,255,0.9)"
                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="7" width="26" height="24" rx="1.5"
-                              fill="rgba(129,140,248,0.15)" stroke="rgba(199,210,254,0.9)" stroke-width="1.5"/>
+                              fill="rgba(136,174,198,0.15)" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"/>
                         <path d="M11 31V22h10v9"/>
-                        <rect x="6"  y="12" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
-                        <rect x="14" y="12" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
-                        <rect x="22" y="12" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
-                        <rect x="6"  y="19" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
-                        <rect x="22" y="19" width="4" height="4" rx="0.5" fill="rgba(199,210,254,0.3)" stroke="none"/>
+                        <rect x="6"  y="12" width="4" height="4" rx="0.5" fill="rgba(255,255,255,0.3)" stroke="none"/>
+                        <rect x="14" y="12" width="4" height="4" rx="0.5" fill="rgba(255,255,255,0.3)" stroke="none"/>
+                        <rect x="22" y="12" width="4" height="4" rx="0.5" fill="rgba(255,255,255,0.3)" stroke="none"/>
+                        <rect x="6"  y="19" width="4" height="4" rx="0.5" fill="rgba(255,255,255,0.3)" stroke="none"/>
+                        <rect x="22" y="19" width="4" height="4" rx="0.5" fill="rgba(255,255,255,0.3)" stroke="none"/>
                     </g>
-                    <text x="145" y="185" text-anchor="middle" font-size="8" fill="rgba(165,180,252,0.7)"
+                    <text x="145" y="185" text-anchor="middle" font-size="8" fill="rgba(136,174,198,0.7)"
                         style="font-family:system-ui,sans-serif;font-weight:600;letter-spacing:0.1em">ASRS</text>
                 </svg>
             </div>
@@ -173,14 +173,14 @@
         var angle = 0;
         var last = performance.now();
         var depts = [
-            { color: '#818cf8', paths: ['M3 9.5L12 4l9 5.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z', 'M9 21V13h6v8'] },
-            { color: '#a5b4fc', paths: ['M1 8h13v10H1z', 'M14 10h4l3 4v4h-7V10z'], rects: [{x:1,y:8,w:13,h:10,rx:1.5}] },
-            { color: '#c4b5fd', paths: ['M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z'] },
-            { color: '#818cf8', circle: {cx:12,cy:8,r:3.5}, paths: ['M4 20c0-4 3.6-7 8-7s8 3 8 7'] },
-            { color: '#a5b4fc', paths: ['M2 20h20M4 20V10l6-6 6 6v10'], rects: [{x:9,y:14,w:6,h:6,rx:0.5}] },
-            { color: '#c4b5fd', paths: ['M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z', 'M3 6h18M16 10a4 4 0 01-8 0'] },
-            { color: '#818cf8', circle2: {cx:12,cy:12,r:9}, paths: ['M9 9c0-1.1.9-2 3-2s3 .9 3 2-1.3 2-3 2-3 .9-3 2 .9 2 3 2 3-.9 3-2', 'M12 5v2m0 10v2'] },
-            { color: '#a5b4fc', paths: ['M8 21h8M12 17v4', 'M9 8l2 2-2 2M13 12h2'], rects: [{x:2,y:3,w:20,h:14,rx:2}] }
+            { color: '#88AEC6', paths: ['M3 9.5L12 4l9 5.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z', 'M9 21V13h6v8'] },
+            { color: '#88AEC6', paths: ['M1 8h13v10H1z', 'M14 10h4l3 4v4h-7V10z'], rects: [{x:1,y:8,w:13,h:10,rx:1.5}] },
+            { color: '#88AEC6', paths: ['M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z'] },
+            { color: '#88AEC6', circle: {cx:12,cy:8,r:3.5}, paths: ['M4 20c0-4 3.6-7 8-7s8 3 8 7'] },
+            { color: '#88AEC6', paths: ['M2 20h20M4 20V10l6-6 6 6v10'], rects: [{x:9,y:14,w:6,h:6,rx:0.5}] },
+            { color: '#88AEC6', paths: ['M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z', 'M3 6h18M16 10a4 4 0 01-8 0'] },
+            { color: '#88AEC6', circle2: {cx:12,cy:12,r:9}, paths: ['M9 9c0-1.1.9-2 3-2s3 .9 3 2-1.3 2-3 2-3 .9-3 2 .9 2 3 2 3-.9 3-2', 'M12 5v2m0 10v2'] },
+            { color: '#88AEC6', paths: ['M8 21h8M12 17v4', 'M9 8l2 2-2 2M13 12h2'], rects: [{x:2,y:3,w:20,h:14,rx:2}] }
         ];
         var n = depts.length;
         var nodesG = document.getElementById('nodes');
@@ -189,7 +189,7 @@
         var nodeEls = depts.map(function(d) {
             var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('stroke', 'rgba(129,140,248,0.22)');
+            line.setAttribute('stroke', 'rgba(136,174,198,0.22)');
             line.setAttribute('stroke-width', '0.6');
             line.setAttribute('stroke-dasharray', '3 6');
             g.appendChild(line);
@@ -202,7 +202,7 @@
             g.appendChild(border);
             var fill = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             fill.setAttribute('r', NR - 2);
-            fill.setAttribute('fill', 'rgba(15,12,50,0.85)');
+            fill.setAttribute('fill', 'rgba(255,255,255,0.85)');
             g.appendChild(fill);
             var ig = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             ig.setAttribute('stroke', d.color);

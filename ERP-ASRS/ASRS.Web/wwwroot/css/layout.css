@@ -3,15 +3,18 @@
 :root {
     --sidebar-w: 240px;
     --topbar-h: 60px;
-    --bg-base: #0a0a1a;
-    --bg-surface: #0f0f24;
-    --bg-card: rgba(255,255,255,0.03);
-    --border: rgba(255,255,255,0.07);
-    --accent: #6366f1;
-    --accent2: #8b5cf6;
-    --text-primary: #f1f5f9;
-    --text-muted: #64748b;
-    --text-dim: #94a3b8;
+    --bg-base: #FFFFFF;
+    --bg-surface: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --border: rgba(15, 42, 68, 0.24);
+    --border-strong: rgba(15, 42, 68, 0.34);
+    --accent: #0F2A44;
+    --accent2: #0480AA;
+    --text-primary: #0F2A44;
+    --text-secondary: #335A78;
+    --text-muted: #4E6B84;
+    --text-dim: #335A78;
+    --danger: #0F2A44;
 }
 
 body {
@@ -54,12 +57,12 @@ body {
 .sidebar-logo-icon svg { display: block; }
 .sidebar-logo-text strong {
     display: block;
-    color: #fff;
+    color: #0F2A44;
     font-size: 0.9rem;
     font-weight: 600;
 }
 .sidebar-logo-text span {
-    color: #a5b4fc;
+    color: #2083AC;
     font-size: 0.62rem;
 }
 
@@ -87,13 +90,13 @@ body {
 }
 .nav-item svg { flex-shrink: 0; opacity: 0.7; }
 .nav-item:hover {
-    background: rgba(99,102,241,0.1);
+    background: rgba(15, 42, 68, 0.1);
     color: #fff;
 }
 .nav-item:hover svg { opacity: 1; }
 .nav-item.active {
-    background: rgba(99,102,241,0.15);
-    color: #a5b4fc;
+    background: rgba(15, 42, 68, 0.14);
+    color: #0F2A44;
     font-weight: 500;
 }
 .nav-item.active svg { opacity: 1; }
@@ -131,8 +134,8 @@ body {
 }
 
 .nav-group.active .nav-group-trigger {
-    background: rgba(99,102,241,0.12);
-    color: #c7d2fe;
+    background: rgba(15, 42, 68, 0.1);
+    color: #0F2A44;
 }
 
 .nav-group-items {
@@ -145,11 +148,11 @@ body {
     margin-left: 18px;
     padding-left: 1rem;
     font-size: 0.82rem;
-    border-left: 1px solid rgba(148,163,184,0.25);
+    border-left: 1px solid rgba(136,174,198,0.45);
 }
 
 .nav-sub-item.active {
-    border-left-color: rgba(165,180,252,0.85);
+    border-left-color: rgba(15, 42, 68, 0.65);
 }
 
 .sidebar-footer {
@@ -197,18 +200,18 @@ body {
     gap: 8px;
     width: 100%;
     padding: 0.5rem;
-    background: rgba(239,68,68,0.08);
-    border: 1px solid rgba(239,68,68,0.2);
+    background: rgba(32,131,172,0.08);
+    border: 1px solid rgba(32,131,172,0.2);
     border-radius: 10px;
-    color: #f87171;
+    color: #2083AC;
     font-size: 0.8rem;
     cursor: pointer;
     text-decoration: none;
     transition: background 0.15s;
 }
 .btn-logout:hover {
-    background: rgba(239,68,68,0.15);
-    color: #fca5a5;
+    background: rgba(32,131,172,0.15);
+    color: #0F2A44;
 }
 
 /* ── Main area ── */
@@ -245,11 +248,11 @@ body {
 }
 .topbar-badge {
     padding: 0.3rem 0.75rem;
-    background: rgba(99,102,241,0.12);
-    border: 1px solid rgba(99,102,241,0.25);
+    background: rgba(4,128,170,0.12);
+    border: 1px solid rgba(4,128,170,0.25);
     border-radius: 20px;
     font-size: 0.72rem;
-    color: #a5b4fc;
+    color: #0F2A44;
 }
 
 /* ── Page content ── */
@@ -277,22 +280,22 @@ body {
     font-size: 0.86rem;
     font-weight: 500;
     line-height: 1.35;
-    box-shadow: 0 10px 26px rgba(2, 6, 23, 0.28);
+    box-shadow: 0 10px 26px rgba(4,128,170,0.22);
     backdrop-filter: blur(4px);
     pointer-events: auto;
     animation: toast-in 0.2s ease-out;
 }
 
 .toast-card.toast-success {
-    color: #052e16;
-    background: rgba(187, 247, 208, 0.97);
-    border-color: #16a34a;
+    color: #0480AA;
+    background: rgba(255,255,255,0.97);
+    border-color: #0480AA;
 }
 
 .toast-card.toast-error {
-    color: #450a0a;
-    background: rgba(254, 202, 202, 0.97);
-    border-color: #dc2626;
+    color: #0480AA;
+    background: rgba(136,174,198,0.97);
+    border-color: #2083AC;
 }
 
 .toast-card.toast-hide {

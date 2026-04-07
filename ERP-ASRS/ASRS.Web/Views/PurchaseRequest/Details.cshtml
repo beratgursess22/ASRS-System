@@ -62,7 +62,7 @@
 
 @if (TempData["Success"] is string successMessage)
 {
-    <div class="alert-box" style="border:1px solid #166534; color:#166534; background:#dcfce7;">@successMessage</div>
+    <div class="alert-box" style="border:1px solid #0480AA; color:#0480AA; background:#FFFFFF;">@successMessage</div>
 }
 
 <div class="card" style="margin-bottom:1rem;">
@@ -120,7 +120,7 @@
     @if (Model.Status == PurchaseRequestStatus.Ordered)
     {
         <div style="padding: 0 1rem 1rem 1rem;">
-            <div class="alert-box" style="border:1px solid #1d4ed8; color:#1e40af; background:#dbeafe;">
+            <div class="alert-box" style="border:1px solid #0480AA; color:#0480AA; background:#FFFFFF;">
                 Bu talep icin "Teslim Alindi" gecisi PO ekranindaki kalem teslimi ile otomatik yapilir.
             </div>
         </div>
@@ -135,7 +135,7 @@
     @if (canReviseItems)
     {
         <div style="padding: 0 1rem 1rem 1rem;">
-            <div class="alert-box" style="border:1px solid #14532d; color:#14532d; background:#dcfce7;">
+            <div class="alert-box" style="border:1px solid #0480AA; color:#0480AA; background:#FFFFFF;">
                 Talep beklemede iken eksik miktar ve not kalem bazinda revize edilebilir.
             </div>
         </div>
@@ -164,7 +164,7 @@
                     <td>@(isProduct ? item.ProductName : item.MaterialName)</td>
                     <td>@item.RequiredQuantity</td>
                     <td>@item.CurrentStockQuantity</td>
-                    <td><strong style="color:#b91c1c;">@item.MissingQuantity</strong></td>
+                    <td><strong style="color:#2083AC;">@item.MissingQuantity</strong></td>
                     <td>@(string.IsNullOrWhiteSpace(item.Notes) ? "-" : item.Notes)</td>
                     <td>
                         @if (canReviseItems)
