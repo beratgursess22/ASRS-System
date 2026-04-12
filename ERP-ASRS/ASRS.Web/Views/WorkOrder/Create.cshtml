@@ -92,7 +92,7 @@
                 </tbody>
             </table>
 
-            <div id="bomOk" style="display:none; padding:0.75rem 1rem; margin:1rem; background:rgba(4,128,170,0.1); border-left:3px solid #0480AA; border-radius:4px; color:#0480AA;">
+            <div id="bomOk" style="display:none; padding:0.75rem 1rem; margin:1rem; background:rgba(21,94,142,0.1); border-left:3px solid #155E8E; border-radius:4px; color:#155E8E;">
                  Tüm malzemelerin stoğu yeterli.
             </div>
         </div>
@@ -146,10 +146,10 @@
             const sufficient = item.isStockSufficient;
             if (!sufficient) { hasInsufficient = true; }
 
-            const stockColor  = sufficient ? '#0480AA' : '#2083AC';
+            const stockColor  = sufficient ? '#155E8E' : '#155E8E';
             const statusBadge = sufficient
-                ? '<span style="display:inline-block; background:#0480AA; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yeterli</span>'
-                : '<span style="display:inline-block; background:#2083AC; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yetersiz</span>';
+                ? '<span style="display:inline-block; background:#155E8E; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yeterli</span>'
+                : '<span style="display:inline-block; background:#155E8E; color:#fff; font-weight:600; font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:50px;">Yetersiz</span>';
 
             const row = `
                 <tr>

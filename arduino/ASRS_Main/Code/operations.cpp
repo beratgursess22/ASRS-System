@@ -1,6 +1,26 @@
 
 #include "../library/operations.h"
 
+static float	approachBelow(float targetZ)
+{
+	float	z;
+
+	z = targetZ - Z_APPROACH_OFFSET_MM;
+	if (z < 0.0f)
+		return (0.0f);
+	return (z);
+}
+
+static float	approachAbove(float targetZ)
+{
+	float	z;
+
+	z = targetZ + Z_APPROACH_OFFSET_MM;
+	if (z > Z_MAX_MM)
+		return (Z_MAX_MM);
+	return (z);
+}
+
 bool	isValidShelfPosition(uint8_t col, uint8_t row)
 {
 	if (col >= SHELF_COLS)
@@ -18,63 +38,21 @@ bool	isValidShelfPosition(uint8_t col, uint8_t row)
 	return (true);
 }
 
-void	pickupFromEntryPoint(void)
-{
-	// Serial.println(F("--- Giris noktasindan paket aliyor ---"));
-	moveYForward();
-	delay(200);
-	zLiftUp();
-	delay(200);
-	moveYBack();
-	delay(200);
-	// Serial.println(F("--- Paket alindi ---"));
-}
-
-void	placeOnShelf(void)
-{
-	// Serial.println(F("--- Raf gozune birakiliyor ---"));
-	moveYForward();
-	delay(200);
-	zDropDown();
-	delay(200);
-	moveYBack();
-	delay(200);
-	// Serial.println(F("--- Paket birakildi ---"));
-}
-
-void	liftFromShelf(void)
-{
-	// Serial.println(F("--- Raftan paket kaldiriliyor ---"));
-	moveYForward();
-	delay(200);
-	zLiftUp();
-	delay(200);
-	moveYBack();
-	delay(200);
-	// Serial.println(F("--- Paket raftan alindi ---"));
-}
-
-void	placeAtExitPoint(void)
-{
-	// Serial.println(F("--- Cikis noktasina birakiliyor ---"));
-	moveYForward();
-	delay(200);
-	zDropDown();
-	delay(200);
-	moveYBack();
-	delay(200);
-	// Serial.println(F("--- Paket cikis noktasina birakildi ---"));
-}
-
-void	storePackage(uint8_t col, uint8_t row)
+bool	storePackage(uint8_t col, uint8_t row)
 {
 	float	targetX;
 	float	targetZ;
+	float	entryApproachZ;
+	float	shelfApproachZ;
 
 	if (!isValidShelfPosition(col, row))
-		return ;
+		return (false);
+	if (!homeAll())
+		return (false);
 	targetX = SHELF_X_POS[col];
 	targetZ = SHELF_Z_POS[row];
+	entryApproachZ = approachBelow(ENTRY_PICK_TARGET_Z_MM);
+	shelfApproachZ = approachAbove(targetZ);
 	// DEBUG
 	// Serial.print(F("=== DEPOLAMA: Sutun "));
 	// Serial.print(col + 1);
@@ -85,29 +63,40 @@ void	storePackage(uint8_t col, uint8_t row)
 	// Serial.print(F("mm Z="));
 	// Serial.print(targetZ, 0);
 	// Serial.println(F("mm ==="));
-	pickupFromEntryPoint();
-	// Serial.println(F("[1] Hedef sutuna gidiliyor..."));
+	// [1] Giris/teslim bolgesinde urunu alma (yaklasma asagidan)
+	moveZTo(entryApproachZ);
+	moveYForward();
+	moveZTo(ENTRY_PICK_TARGET_Z_MM);
+	moveYBack();
+	// [2] Hedef sutuna git
 	moveXTo(targetX);
-	// Serial.println(F("[2] Hedef kata cikiliyor..."));
+	// [3] Hedef kata birakma icin yukaridan yaklas
+	moveZTo(shelfApproachZ);
+	// [4] Rafin icine gir ve urunu birak
+	moveYForward();
 	moveZTo(targetZ);
-	// ── AŞAMA 4: Paketi rafa bırak ────────────────────────────────────────────
-	placeOnShelf();
-	// Serial.println(F("[4] Baslangic noktasina donuluyor..."));
-	moveZTo(0.0f); // Önce Z'yi düşür (güvenlik)
-	moveXTo(0.0f); // Sonra X'i sıfıra al
+	moveYBack();
+	// [5] Islem bitisi: tum eksenler tekrar home
+	if (!homeAll())
+		return (false);
 	allSteppersDisable();
 	// Serial.println(F("=== DEPOLAMA TAMAMLANDI ==="));
+	return (true);
 }
 
-void	retrievePackage(uint8_t col, uint8_t row)
+bool	retrievePackage(uint8_t col, uint8_t row)
 {
 	float	targetX;
 	float	targetZ;
+	float	shelfApproachZ;
+	float	exitApproachZ;
 
 	if (!isValidShelfPosition(col, row))
-		return ;
+		return (false);
 	targetX = SHELF_X_POS[col];
 	targetZ = SHELF_Z_POS[row];
+	shelfApproachZ = approachBelow(targetZ);
+	exitApproachZ = approachAbove(EXIT_DROP_TARGET_Z_MM);
 	// DEBUG
 	// Serial.print(F("=== GERI ALMA: Sutun "));
 	// Serial.print(col + 1);
@@ -120,15 +109,23 @@ void	retrievePackage(uint8_t col, uint8_t row)
 	// Serial.println(F("mm ==="));
 	// Serial.println(F("[1] Hedef sutuna gidiliyor..."));
 	moveXTo(targetX);
-	// Serial.println(F("[2] Hedef kata cikiliyor..."));
+	// Serial.println(F("[2] Hedef kata asagidan yaklasiliyor..."));
+	moveZTo(shelfApproachZ);
+	// Serial.println(F("[3] Raf icine giriliyor ve urun aliniyor..."));
+	moveYForward();
 	moveZTo(targetZ);
-	// Serial.println(F("[3] Paketi raftan aliyor..."));
-	liftFromShelf();
-	// Serial.println(F("[4] Baslangic noktasina donuluyor..."));
-	moveZTo(0.0f); // Önce Z'yi düşür
-	moveXTo(0.0f); // Sonra X'i sıfıra al
-	// Serial.println(F("[5] Paket cikis noktasina birakiliyor..."));
-	placeAtExitPoint();
+	moveYBack();
+	// Serial.println(F("[4] Urun giris/teslim bolgesine getiriliyor..."));
+	if (!homeX())
+		return (false);
+	// Serial.println(F("[5] Teslim noktasinda yukaridan yaklasiliyor..."));
+	moveZTo(exitApproachZ);
+	moveYForward();
+	moveZTo(EXIT_DROP_TARGET_Z_MM);
+	moveYBack();
+	if (!homeZ())
+		return (false);
 	allSteppersDisable();
 	// Serial.println(F("=== GERI ALMA TAMAMLANDI ==="));
+	return (true);
 }

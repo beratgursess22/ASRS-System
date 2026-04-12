@@ -16,8 +16,8 @@
 # include "config.h"
 # include <Arduino.h>
 
-void	storePackage(uint8_t col, uint8_t row);
-void	retrievePackage(uint8_t col, uint8_t row);
+bool	storePackage(uint8_t col, uint8_t row);
+bool	retrievePackage(uint8_t col, uint8_t row);
 void	pickupFromEntryPoint(void);
 void	placeOnShelf(void);
 void	liftFromShelf(void);

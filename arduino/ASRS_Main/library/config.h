@@ -72,6 +72,11 @@ static const float	SHELF_Z_POS[SHELF_ROWS] = {
 // BIRAKIM/ALMA HAREKETİ (mm)
 // Paketi rafa bırakırken / raftan alırken Z ekseninde yapılan kısa hareket
 # define Z_DROP_LIFT_MM 15.0f
+// Raf içine girmeden önce hedef kata yaklaşma ofseti (2-3 cm öneri)
+# define Z_APPROACH_OFFSET_MM 25.0f
+// Giris/teslim bolgesi icin hedef Z seviyeleri (kalibrasyonla guncellenmeli)
+# define ENTRY_PICK_TARGET_Z_MM 250.0f
+# define EXIT_DROP_TARGET_Z_MM 250.0f
 
 // SERİ HABERLEŞME
 # define SERIAL_BAUD_RATE 9600
@@ -86,6 +91,6 @@ static const float	SHELF_Z_POS[SHELF_ROWS] = {
 
 // LIMIT SWITCH MANTIGI
 # define LIMIT_TRIGGERED LOW
-# define LIMIT_FREE HIGH
+# define  HIGH
 
 #endif // CONFIG_H

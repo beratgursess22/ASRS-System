@@ -2,7 +2,7 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: linear-gradient(180deg, #FFFFFF 0%, #F3F8FD 100%);
+    background: linear-gradient(180deg, #FFFFFF 0%, #DCEBF5 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -14,7 +14,7 @@ body::before {
     content: '';
     position: absolute;
     width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(4,128,170,0.14), transparent 70%);
+    background: radial-gradient(circle, rgba(21,94,142,0.14), transparent 70%);
     top: -10%; left: -10%;
     border-radius: 50%;
     pointer-events: none;
@@ -23,7 +23,7 @@ body::after {
     content: '';
     position: absolute;
     width: 350px; height: 350px;
-    background: radial-gradient(circle, rgba(15, 42, 68, 0.1), transparent 70%);
+    background: radial-gradient(circle, rgba(5, 39, 64, 0.1), transparent 70%);
     bottom: -5%; right: -5%;
     border-radius: 50%;
     pointer-events: none;
@@ -32,8 +32,8 @@ body::after {
     position: absolute;
     inset: 0;
     background-image:
-        linear-gradient(rgba(4,128,170,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(4,128,170,0.05) 1px, transparent 1px);
+        linear-gradient(rgba(21,94,142,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(21,94,142,0.05) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
 }
@@ -47,13 +47,13 @@ body::after {
     overflow: hidden;
     background: #FFFFFF;
     backdrop-filter: blur(24px);
-    border: 1px solid rgba(15, 42, 68, 0.14);
-    box-shadow: 0 18px 45px rgba(15, 42, 68, 0.14);
+    border: 1px solid rgba(5, 39, 64, 0.14);
+    box-shadow: 0 18px 45px rgba(5, 39, 64, 0.14);
 }
 .top-accent {
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(15, 42, 68, 0.8), rgba(4,128,170,0.75), transparent);
+    background: linear-gradient(90deg, transparent, rgba(5, 39, 64, 0.8), rgba(21,94,142,0.75), transparent);
 }
 .card-body {
     padding: 3rem 2.5rem 1.5rem;
@@ -68,7 +68,7 @@ body::after {
 }
 .logo-icon {
     width: 34px; height: 34px;
-    background: linear-gradient(135deg, #0480AA, #2083AC);
+    background: linear-gradient(135deg, #155E8E, #155E8E);
     border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
@@ -77,20 +77,20 @@ body::after {
 .logo-name { text-align: left; }
 .logo-name strong {
     display: block;
-    color: #0F2A44;
+    color: #052740;
     font-size: 0.9rem;
     font-weight: 600;
     letter-spacing: 0.03em;
 }
-.logo-name span { color: #2083AC; font-size: 0.65rem; }
+.logo-name span { color: #155E8E; font-size: 0.65rem; }
 .divider {
     height: 1px;
-    background: rgba(15, 42, 68, 0.1);
+    background: rgba(5, 39, 64, 0.1);
     margin: 0 0 2rem;
 }
 .divider-mid {
     height: 1px;
-    background: rgba(15, 42, 68, 0.1);
+    background: rgba(5, 39, 64, 0.1);
     margin: 1.75rem 0;
 }
 .error-code {
@@ -98,7 +98,7 @@ body::after {
     font-weight: 800;
     line-height: 1;
     letter-spacing: -0.04em;
-    background: linear-gradient(135deg, #0F2A44 0%, #0480AA 55%, #2083AC 100%);
+    background: linear-gradient(135deg, #052740 0%, #155E8E 55%, #155E8E 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 0.75rem;
@@ -113,17 +113,17 @@ body::after {
     width: 50px; height: 50px;
     border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(4,128,170,0.12);
-    border: 1px solid rgba(4,128,170,0.3);
+    background: rgba(21,94,142,0.12);
+    border: 1px solid rgba(21,94,142,0.3);
 }
 .error-title {
-    color: #0F2A44;
+    color: #052740;
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 0.75rem;
 }
 .error-desc {
-    color: #4E6B84;
+    color: #155E8E;
     font-size: 0.875rem;
     line-height: 1.65;
 }
@@ -131,7 +131,7 @@ body::after {
     display: block;
     width: 100%;
     padding: 0.85rem;
-    background: linear-gradient(135deg, #0F2A44, #0480AA);
+    background: linear-gradient(135deg, #052740, #155E8E);
     color: #fff;
     border: none;
     border-radius: 12px;
@@ -140,12 +140,12 @@ body::after {
     text-decoration: none;
     text-align: center;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(15, 42, 68, 0.25);
+    box-shadow: 0 4px 20px rgba(5, 39, 64, 0.25);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 .btn-back:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(15, 42, 68, 0.35);
+    box-shadow: 0 8px 28px rgba(5, 39, 64, 0.35);
     color: #fff;
     text-decoration: none;
 }
@@ -153,7 +153,7 @@ body::after {
 .card-footer {
     padding-bottom: 1.5rem;
     text-align: center;
-    color: #4E6B84;
+    color: #155E8E;
     font-size: 0.7rem;
 }
 @media (max-width: 480px) {

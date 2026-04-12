@@ -53,7 +53,7 @@ void	loop(void)
 	Command	cmd;
 		char buf[48];
 
-	if (!serialReadCommand(cmd))
+	if (!serialReadCommand(cmd)) // Seri hattan komut okunmaya çalışılır.
 		return ;
 	if (!systemReady && cmd.type != CommandType::HOME)
 	{
@@ -69,9 +69,17 @@ void	loop(void)
 			break ;
 		}
 		serialSendBusy();
-		storePackage(cmd.col, cmd.row);
-		serialSendOK("STORE_DONE");
-		serialSendReady();
+		if (storePackage(cmd.col, cmd.row)) // depolama senaryosu çalıştırılır
+		{
+			systemReady = true;
+			serialSendOK("STORE_DONE");
+			serialSendReady();
+		}
+		else
+		{
+			systemReady = false;
+			serialSendError("STORE_FAILED");
+		}
 		break ;
 	case CommandType::RETRIEVE:
 		if (!cmd.valid || !isValidShelfPosition(cmd.col, cmd.row))
@@ -80,9 +88,17 @@ void	loop(void)
 			break ;
 		}
 		serialSendBusy();
-		retrievePackage(cmd.col, cmd.row);
-		serialSendOK("RETRIEVE_DONE");
-		serialSendReady();
+		if (retrievePackage(cmd.col, cmd.row)) // geri alma senaryosu çalıştırılır
+		{
+			systemReady = true;
+			serialSendOK("RETRIEVE_DONE");
+			serialSendReady();
+		}
+		else
+		{
+			systemReady = false;
+			serialSendError("RETRIEVE_FAILED");
+		}
 		break ;
 	case CommandType::HOME:
 		serialSendBusy();

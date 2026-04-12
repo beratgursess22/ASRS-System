@@ -6,15 +6,15 @@
     --bg-base: #FFFFFF;
     --bg-surface: #FFFFFF;
     --bg-card: #FFFFFF;
-    --border: rgba(15, 42, 68, 0.24);
-    --border-strong: rgba(15, 42, 68, 0.34);
-    --accent: #0F2A44;
-    --accent2: #0480AA;
-    --text-primary: #0F2A44;
-    --text-secondary: #335A78;
-    --text-muted: #4E6B84;
-    --text-dim: #335A78;
-    --danger: #0F2A44;
+    --border: rgba(5, 39, 64, 0.24);
+    --border-strong: rgba(5, 39, 64, 0.34);
+    --accent: #052740;
+    --accent2: #155E8E;
+    --text-primary: #000000;
+    --text-secondary: #052740;
+    --text-muted: #155E8E;
+    --text-dim: #052740;
+    --danger: #052740;
 }
 
 body {
@@ -57,12 +57,12 @@ body {
 .sidebar-logo-icon svg { display: block; }
 .sidebar-logo-text strong {
     display: block;
-    color: #0F2A44;
+    color: #052740;
     font-size: 0.9rem;
     font-weight: 600;
 }
 .sidebar-logo-text span {
-    color: #2083AC;
+    color: #155E8E;
     font-size: 0.62rem;
 }
 
@@ -90,13 +90,13 @@ body {
 }
 .nav-item svg { flex-shrink: 0; opacity: 0.7; }
 .nav-item:hover {
-    background: rgba(15, 42, 68, 0.1);
+    background: rgba(5, 39, 64, 0.1);
     color: #fff;
 }
 .nav-item:hover svg { opacity: 1; }
 .nav-item.active {
-    background: rgba(15, 42, 68, 0.14);
-    color: #0F2A44;
+    background: rgba(5, 39, 64, 0.14);
+    color: #052740;
     font-weight: 500;
 }
 .nav-item.active svg { opacity: 1; }
@@ -134,8 +134,8 @@ body {
 }
 
 .nav-group.active .nav-group-trigger {
-    background: rgba(15, 42, 68, 0.1);
-    color: #0F2A44;
+    background: rgba(5, 39, 64, 0.1);
+    color: #052740;
 }
 
 .nav-group-items {
@@ -148,11 +148,11 @@ body {
     margin-left: 18px;
     padding-left: 1rem;
     font-size: 0.82rem;
-    border-left: 1px solid rgba(136,174,198,0.45);
+    border-left: 1px solid rgba(220,235,245,0.45);
 }
 
 .nav-sub-item.active {
-    border-left-color: rgba(15, 42, 68, 0.65);
+    border-left-color: rgba(5, 39, 64, 0.65);
 }
 
 .sidebar-footer {
@@ -200,18 +200,18 @@ body {
     gap: 8px;
     width: 100%;
     padding: 0.5rem;
-    background: rgba(32,131,172,0.08);
-    border: 1px solid rgba(32,131,172,0.2);
+    background: rgba(21,94,142,0.08);
+    border: 1px solid rgba(21,94,142,0.2);
     border-radius: 10px;
-    color: #2083AC;
+    color: #155E8E;
     font-size: 0.8rem;
     cursor: pointer;
     text-decoration: none;
     transition: background 0.15s;
 }
 .btn-logout:hover {
-    background: rgba(32,131,172,0.15);
-    color: #0F2A44;
+    background: rgba(21,94,142,0.15);
+    color: #052740;
 }
 
 /* ── Main area ── */
@@ -248,11 +248,11 @@ body {
 }
 .topbar-badge {
     padding: 0.3rem 0.75rem;
-    background: rgba(4,128,170,0.12);
-    border: 1px solid rgba(4,128,170,0.25);
+    background: rgba(21,94,142,0.12);
+    border: 1px solid rgba(21,94,142,0.25);
     border-radius: 20px;
     font-size: 0.72rem;
-    color: #0F2A44;
+    color: #052740;
 }
 
 /* ── Page content ── */
@@ -280,22 +280,22 @@ body {
     font-size: 0.86rem;
     font-weight: 500;
     line-height: 1.35;
-    box-shadow: 0 10px 26px rgba(4,128,170,0.22);
+    box-shadow: 0 10px 26px rgba(21,94,142,0.22);
     backdrop-filter: blur(4px);
     pointer-events: auto;
     animation: toast-in 0.2s ease-out;
 }
 
 .toast-card.toast-success {
-    color: #0480AA;
+    color: #155E8E;
     background: rgba(255,255,255,0.97);
-    border-color: #0480AA;
+    border-color: #155E8E;
 }
 
 .toast-card.toast-error {
-    color: #0480AA;
-    background: rgba(136,174,198,0.97);
-    border-color: #2083AC;
+    color: #155E8E;
+    background: rgba(220,235,245,0.97);
+    border-color: #155E8E;
 }
 
 .toast-card.toast-hide {

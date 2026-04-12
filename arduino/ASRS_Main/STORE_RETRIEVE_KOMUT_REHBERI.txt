@@ -1,0 +1,181 @@
+ASRS Arduino Komut Rehberi (STORE / RETRIEVE)
+=============================================
+
+Bu dokuman, Arduino tarafinda STORE ve RETRIEVE komutlarinin nasil calistigini,
+komutun nasil alinip parse edildigini ve Web/API/Raspberry Pi ile entegrasyon akisinin
+nasıl olmasi gerektigini ozetler.
+
+Tarih: 2026-04-12
+Konum: arduino/ASRS_Main
+
+
+1) STORE ve RETRIEVE Komutlari Nasil Calisiyor?
+-----------------------------------------------
+
+1.1 STORE komutu (depolama)
+Komut formati:
+- STORE:<col>:<row>\n
+Ornek:
+- STORE:0:2\n
+Anlam:
+- col: 0-3 (sutun)
+- row: 0-2 (kat)
+
+Mevcut kod akisina gore adimlar:
+1. Komut dogrulanir (cmd.valid + raf araligi kontrolu).
+2. Arduino BUSY doner.
+3. storePackage(col,row) cagrilir.
+4. storePackage icinde:
+   - homeAll() ile sistem baslangicta referanslanir.
+   - Giris/teslim bolgesinde urun alma:
+     a) Z -> ENTRY_PICK_TARGET_Z_MM - Z_APPROACH_OFFSET_MM
+     b) Y ileri
+     c) Z -> ENTRY_PICK_TARGET_Z_MM
+     d) Y geri
+   - X -> hedef sutun (SHELF_X_POS[col])
+   - Raf birakma yaklasimi:
+     a) Z -> hedef raf seviyesinin ustu (targetZ + Z_APPROACH_OFFSET_MM)
+     b) Y ileri
+     c) Z -> targetZ (birakma seviyesi)
+     d) Y geri
+   - Islem sonu tekrar homeAll() yapilir.
+   - Step motorlar disable edilir.
+5. Basariliysa Arduino OK:STORE_DONE ve sonra READY doner.
+6. Basarisizsa Arduino ERR:STORE_FAILED doner.
+
+
+1.2 RETRIEVE komutu (geri alma)
+Komut formati:
+- RETRIEVE:<col>:<row>\n
+Ornek:
+- RETRIEVE:1:0\n
+Mevcut kod akisina gore adimlar:
+1. Komut dogrulanir (cmd.valid + raf araligi kontrolu).
+2. Arduino BUSY doner.
+3. retrievePackage(col,row) cagrilir.
+4. retrievePackage icinde:
+   - X -> hedef sutun (SHELF_X_POS[col])
+   - Raf alma yaklasimi (asagidan):
+     a) Z -> targetZ - Z_APPROACH_OFFSET_MM
+     b) Y ileri
+     c) Z -> targetZ (alinacak seviye)
+     d) Y geri
+   - Urunu teslim bolgesine getirme:
+     a) homeX() ile X fiziksel referansa doner
+   - Teslim birakma yaklasimi (yukaridan):
+     a) Z -> EXIT_DROP_TARGET_Z_MM + Z_APPROACH_OFFSET_MM
+     b) Y ileri
+     c) Z -> EXIT_DROP_TARGET_Z_MM
+     d) Y geri
+   - homeZ() ile Z fiziksel referansa doner
+   - Step motorlar disable edilir.
+5. Basariliysa Arduino OK:RETRIEVE_DONE ve sonra READY doner.
+6. Basarisizsa Arduino ERR:RETRIEVE_FAILED doner.
+
+
+2) Komut Nasil Alinacak? Web Sitesi ile Iliski Nasil Olacak?
+------------------------------------------------------------
+
+Onemli:
+- Arduino kodu RFID UID'yi dogrudan okumaz.
+- Arduino sadece seri hat uzerinden metin komutu alir (STORE/RETRIEVE/HOME/STATUS).
+
+Onerilen sistem mimarisi:
+1. RFID kart okutulur (RFID okuyucu -> Raspberry Pi).
+2. Raspberry Pi UID bilgisini Web/API'ye gonderir.
+3. Web/API UID'ye gore is kuralini calistirir:
+   - Bu paket nereye gidecek?
+   - Hedef raf (col,row) nedir?
+4. Web/API Raspberry Pi'ye komut sonucunu doner (ornek col=1,row=2).
+5. Raspberry Pi Arduino'ya USB serial ile komut yollar:
+   - STORE:1:2\n veya RETRIEVE:1:2\n
+6. Arduino cevap verir:
+   - BUSY
+   - OK:... veya ERR:...
+   - READY
+7. Raspberry Pi bu durumlari tekrar Web/API'ye status olarak gonderebilir.
+
+Kisaca:
+- Karar (hangi raf?) = Web/API + is kurallari
+- Fiziksel hareket = Arduino
+- Kopyru = Raspberry Pi
+
+
+3) Komut Parse Nasil Isleniyor?
+------------------------------
+
+Komut parser mantigi (serialReadCommand):
+1. Serial.available() > 0 iken karakter karakter okunur.
+2. Gelen karakter rxBuffer'a yazilir.
+3. '\n' veya '\r' geldiginde satir tamamlanmis kabul edilir.
+4. Satir trim edilir ve komut tanimlama yapilir:
+   - STORE:x:y
+   - RETRIEVE:x:y
+   - HOME
+   - STATUS
+5. STORE/RETRIEVE icin ':' konumlari bulunur, col ve row sayiya cevrilir.
+6. Command nesnesi doldurulur:
+   - type
+   - col
+   - row
+   - valid
+7. Tanimsiz satir gelirse type=UNKNOWN olur.
+
+Loop tarafi (main loop):
+1. Komut yoksa return.
+2. Sistem hazir degilse (HOME haric) SYSTEM_NOT_READY hatasi.
+3. switch(cmd.type):
+   - STORE -> storePackage
+   - RETRIEVE -> retrievePackage
+   - HOME -> homeAll
+   - STATUS -> X/Z/READY raporu
+   - default -> UNKNOWN_CMD
+
+
+4) Gerekli Teknik Detaylar
+--------------------------
+
+4.1 Raf indeksleme
+- Kod tarafi 0-based indeks kullanir:
+  - col: 0..3
+  - row: 0..2
+
+Web arayuzu 1-based gosterim yapiyorsa donusum gerekir:
+- UI col=1 -> Arduino col=0
+- UI row=3 -> Arduino row=2
+
+4.2 Konum tablolari (mm)
+- SHELF_X_POS: sutun X mesafeleri
+- SHELF_Z_POS: kat Z mesafeleri
+
+4.3 Hiz ve step donusumu
+- STEPS_PER_MM = 80
+- mm -> step donusumu: steps = mm * STEPS_PER_MM
+- Hiz delayUs parametresi ile kontrol edilir.
+
+4.4 Limit switch / referans
+- X ve Z limit switch ile home alir.
+- homeX/homeZ/homeAll fiziksel referansi tekrar kalibre eder.
+- Uzun sureli kullanimda drift onlemek icin home kritik onemdedir.
+
+4.5 Seri protokol cevaplari
+- READY: komut bekliyor
+- BUSY: islemde
+- OK:<mesaj>: basarili
+- ERR:<mesaj>: hata
+
+4.6 Kalibrasyon gereken sabitler
+- Z_APPROACH_OFFSET_MM
+- ENTRY_PICK_TARGET_Z_MM
+- EXIT_DROP_TARGET_Z_MM
+
+Bu 3 deger mekanik sisteme gore sahada test edilerek ayarlanmalidir.
+
+
+5) Ozet
+-------
+- STORE: urunu giristen alir, hedef rafa birakir, home'a doner.
+- RETRIEVE: urunu raftan alir, teslime birakir, X/Z referansina doner.
+- Web/API hedefi belirler, Raspberry Pi komutu iletir, Arduino hareketi yapar.
+- Parser satir bazli metin protokolu ile komutu cozer.
+

@@ -32,18 +32,19 @@
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 600;
+    border: 1px solid rgba(21,94,142,0.35);
 }
 .priority-high {
-    background: rgba(32,131,172,0.12);
-    color: #2083AC;
+    background: rgba(21,94,142,0.18);
+    color: #052740;
 }
 .priority-medium {
-    background: rgba(136,174,198,0.12);
-    color: #2083AC;
+    background: rgba(21,94,142,0.16);
+    color: #052740;
 }
 .priority-low {
-    background: rgba(136,174,198,0.12);
-    color: #88AEC6;
+    background: rgba(21,94,142,0.15);
+    color: #052740;
 }
 
 /* ── Status badges ── */
@@ -52,33 +53,34 @@
     padding: 0.2rem 0.6rem;
     border-radius: 999px;
     font-size: 0.72rem;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
+    border: 1px solid rgba(21,94,142,0.35);
 }
 .status-draft {
-    background: rgba(136,174,198,0.12);
-    color: #88AEC6;
+    background: rgba(21,94,142,0.15);
+    color: #052740;
 }
 .status-approved {
-    background: rgba(4,128,170,0.12);
-    color: #0480AA;
+    background: rgba(21,94,142,0.18);
+    color: #052740;
 }
 .status-waiting {
-    background: rgba(136,174,198,0.12);
-    color: #2083AC;
+    background: rgba(21,94,142,0.15);
+    color: #052740;
 }
 .status-inprogress {
-    background: rgba(4,128,170,0.12);
-    color: #88AEC6;
+    background: rgba(21,94,142,0.18);
+    color: #052740;
 }
 .status-completed {
-    background: rgba(4,128,170,0.15);
-    color: #0480AA;
-    border: 1px solid rgba(4,128,170,0.25);
+    background: rgba(21,94,142,0.2);
+    color: #052740;
+    border: 1px solid rgba(21,94,142,0.4);
 }
 .status-cancelled {
-    background: rgba(32,131,172,0.12);
-    color: #2083AC;
+    background: rgba(21,94,142,0.18);
+    color: #052740;
 }
 
 /* ── Action cell ── */
@@ -137,27 +139,27 @@
 }
 
 .wo-stat-card.stat-completed {
-    border-color: rgba(4,128,170,0.25);
+    border-color: rgba(21,94,142,0.25);
 }
 
 .wo-stat-card.stat-completed .wo-stat-value {
-    color: #0480AA;
+    color: #155E8E;
 }
 
 .wo-stat-card.stat-inprocess {
-    border-color: rgba(136,174,198,0.25);
+    border-color: rgba(220,235,245,0.25);
 }
 
 .wo-stat-card.stat-inprocess .wo-stat-value {
-    color: #2083AC;
+    color: #155E8E;
 }
 
 .wo-stat-card.stat-cancelled {
-    border-color: rgba(32,131,172,0.25);
+    border-color: rgba(21,94,142,0.25);
 }
 
 .wo-stat-card.stat-cancelled .wo-stat-value {
-    color: #2083AC;
+    color: #155E8E;
 }
 
 @media (max-width: 980px) {
@@ -232,11 +234,11 @@
 }
 
 .bom-node-head.is-product {
-    background: rgba(32,131,172,0.09);
+    background: rgba(21,94,142,0.09);
 }
 
 .bom-node-head.is-material {
-    background: rgba(4,128,170,0.09);
+    background: rgba(21,94,142,0.09);
 }
 
 .bom-col {
@@ -261,28 +263,29 @@
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 700;
-    background: rgba(32,131,172,0.18);
-    color: #88AEC6;
+    background: rgba(21,94,142,0.2);
+    color: #052740;
+    border: 1px solid rgba(21,94,142,0.35);
 }
 
 .is-product .bom-pill {
-    background: rgba(32,131,172,0.2);
-    color: #88AEC6;
+    background: rgba(21,94,142,0.2);
+    color: #052740;
 }
 
 .is-material .bom-pill {
-    background: rgba(4,128,170,0.2);
-    color: #88AEC6;
+    background: rgba(21,94,142,0.2);
+    color: #052740;
 }
 
 .bom-pill.type-product {
-    background: rgba(32,131,172,0.2);
-    color: #88AEC6;
+    background: rgba(21,94,142,0.2);
+    color: #052740;
 }
 
 .bom-pill.type-material {
-    background: rgba(4,128,170,0.2);
-    color: #88AEC6;
+    background: rgba(21,94,142,0.2);
+    color: #052740;
 }
 
 .bom-code {
@@ -302,21 +305,22 @@
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 700;
+    border: 1px solid rgba(21,94,142,0.35);
 }
 
 .bom-status.status-ok {
-    background: rgba(4,128,170,0.14);
-    color: #0480AA;
+    background: rgba(21,94,142,0.18);
+    color: #052740;
 }
 
 .bom-status.status-bad {
-    background: rgba(32,131,172,0.14);
-    color: #2083AC;
+    background: rgba(21,94,142,0.18);
+    color: #052740;
 }
 
 .bom-status.status-cycle {
-    background: rgba(136,174,198,0.15);
-    color: #2083AC;
+    background: rgba(21,94,142,0.16);
+    color: #052740;
 }
 
 .bom-node-actions {
@@ -330,7 +334,7 @@
 }
 
 .bom-children {
-    border-top: 1px dashed rgba(15, 42, 68, 0.28);
+    border-top: 1px dashed rgba(5, 39, 64, 0.28);
     padding-top: 0.6rem;
 }
 

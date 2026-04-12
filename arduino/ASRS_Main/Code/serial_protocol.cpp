@@ -13,11 +13,11 @@ static uint8_t	rxIndex = 0;
 
 void	serialProtocolInit(void)
 {
-	Serial.begin(SERIAL_BAUD_RATE);
-	while (!Serial)
+	Serial.begin(SERIAL_BAUD_RATE); // Arduino’nun USB/seri portunu belirtilen baud rate ile açar 
+	while (!Serial) //Seri port hazır olana kadar bekler.
 	{;}
-	memset(rxBuffer, 0, sizeof(rxBuffer));
-	rxIndex = 0;
+	memset(rxBuffer, 0, sizeof(rxBuffer));//Gelen komutları tuttuğun rxBuffer dizisini tamamen sıfırlar.
+	rxIndex = 0;//Tampona yazma pozisyonunu başa alır.
 }
 bool	serialReadCommand(Command &cmd)
 {

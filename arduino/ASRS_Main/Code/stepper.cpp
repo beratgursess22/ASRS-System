@@ -50,9 +50,10 @@ void allSteppersDisable()
 }
 
 
-void stepperStep(StepperMotor &motor, uint8_t dir, unsigned int delayUs) {
+void stepperStep(StepperMotor &motor, uint8_t dir, unsigned int delayUs) 
+{
     digitalWrite(motor.dirPin, dir);
-    delayMicroseconds(5); /
+    delayMicroseconds(5); 
 
     digitalWrite(motor.stepPin, HIGH);
     delayMicroseconds(5);
