@@ -1,5 +1,6 @@
 using ASRS.Core.Entities;
 using ASRS.Core.Enums;
+using ASRS.API.Services;
 using ASRS.DAL.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,10 +39,23 @@ public class AsrsController : ControllerBase
     [HttpPost("rfid-scan")]
     public async Task<IActionResult> RfidScan([FromBody] RfidScanRequest req)
     {
-        var map = await _db.RfidRackMaps.FirstOrDefaultAsync(x => x.CardUid == req.CardUid && x.IsActive);
+        string normalizedUid;
+        try
+        {
+            normalizedUid = RfidUidNormalizer.Normalize(req.CardUid);
+        }
+        catch (FormatException)
+        {
+            return BadRequest("INVALID_RFID_UID_FORMAT");
+        }
+
+        if (string.IsNullOrWhiteSpace(normalizedUid))
+            return BadRequest("EMPTY_RFID_UID");
+
+        var map = await _db.RfidRackMaps.FirstOrDefaultAsync(x => x.CardUid == normalizedUid && x.IsActive);
         if (map is null)
         {
-            _db.RfidEvents.Add(new RfidEvent { CardUid = req.CardUid, Result = "RFID_NOT_MAPPED" });
+            _db.RfidEvents.Add(new RfidEvent { CardUid = normalizedUid, Result = "RFID_NOT_MAPPED" });
             await _db.SaveChangesAsync();
             return NotFound("RFID_NOT_MAPPED");
         }
@@ -63,7 +77,7 @@ public class AsrsController : ControllerBase
         _db.AsrsCommands.Add(cmd);
         await _db.SaveChangesAsync();
 
-        _db.RfidEvents.Add(new RfidEvent { CardUid = req.CardUid, ResultCommandId = cmd.Id, Result = "QUEUED" });
+        _db.RfidEvents.Add(new RfidEvent { CardUid = normalizedUid, ResultCommandId = cmd.Id, Result = "QUEUED" });
         await _db.SaveChangesAsync();
 
         return Ok(new { accepted = true, commandId = cmd.Id, row = cmd.Row, col = cmd.Col, status = cmd.Status.ToString() });
@@ -184,6 +198,27 @@ public class AsrsController : ControllerBase
             failedCount,
             lastCommand
         });
+    }
+
+    [HttpGet("rfid-maps")]
+    public async Task<IActionResult> RfidMaps()
+    {
+        var maps = await _db.RfidRackMaps
+            .OrderBy(x => x.Row)
+            .ThenBy(x => x.Col)
+            .Select(x => new
+            {
+                x.CardUid,
+                x.Row,
+                x.Col,
+                rowUi = x.Row + 1,
+                colUi = x.Col + 1,
+                x.IsActive,
+                x.UpdatedAt
+            })
+            .ToListAsync();
+
+        return Ok(maps);
     }
 }
 

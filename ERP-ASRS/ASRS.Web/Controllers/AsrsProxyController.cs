@@ -22,6 +22,10 @@ public class AsrsProxyController : ControllerBase
     public Task<IActionResult> SystemStatus()
         => RelayGetAsync("api/asrs/system-status");
 
+    [HttpGet("rfid-maps")]
+    public Task<IActionResult> RfidMaps()
+        => RelayGetAsync("api/asrs/rfid-maps");
+
     [HttpPost("retrieve")]
     public Task<IActionResult> Retrieve([FromBody] RetrieveRequest req)
         => RelayPostAsync("api/asrs/retrieve", req);
