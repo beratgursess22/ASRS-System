@@ -578,3 +578,244 @@
     color: #052740;
     border: 1px solid rgba(21,94,142,0.32);
 }
+
+/* ── ASRS Dashboard (New) ───────────────────────────────────────────── */
+.asrs-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.asrs-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 999px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-size: 0.78rem;
+}
+
+.asrs-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: start;
+}
+
+@media (max-width: 1100px) {
+    .asrs-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.asrs-3d-panel,
+.asrs-right-panel,
+.asrs-log-panel {
+    border-radius: 16px;
+}
+
+.asrs-actions {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.asrs-actions {
+    padding: 0.9rem 1rem;
+}
+
+.asrs-input {
+    width: 100%;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: #052740;
+    padding: 0 0.75rem;
+    font-size: 0.85rem;
+}
+
+.asrs-input:focus {
+    outline: none;
+    border-color: #155E8E;
+    box-shadow: 0 0 0 2px rgba(21, 94, 142, 0.14);
+}
+
+.asrs-btn {
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: #155E8E;
+    color: #fff;
+    padding: 0 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.asrs-btn:hover {
+    background: #0f4b72;
+}
+
+.asrs-btn-secondary {
+    background: #f3f7fa;
+    color: #155E8E;
+    border: 1px solid #cfe1ec;
+}
+
+.asrs-btn-secondary:hover {
+    background: #e6f0f6;
+}
+
+.asrs-3d-host {
+    border-top: 1px solid var(--border);
+    padding: 0.9rem 1rem 0.5rem;
+    position: relative;
+    min-height: 520px;
+}
+
+.asrs-3d-placeholder {
+    min-height: 500px;
+    border-radius: 12px;
+    border: 1px dashed #9ebed1;
+    background:
+        radial-gradient(circle at 20% 15%, rgba(21,94,142,0.08), transparent 42%),
+        radial-gradient(circle at 80% 80%, rgba(5,39,64,0.07), transparent 44%),
+        linear-gradient(140deg, #f7fbfe 0%, #edf5fb 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #155E8E;
+    padding: 1rem;
+    position: absolute;
+    inset: 0.9rem 1rem 0.5rem;
+    z-index: 2;
+}
+
+.asrs-3d-placeholder[hidden] {
+    display: none !important;
+}
+
+.asrs-3d-placeholder-title {
+    font-weight: 700;
+    margin-bottom: 0.45rem;
+}
+
+.asrs-3d-placeholder-sub {
+    font-size: 0.8rem;
+    max-width: 430px;
+    color: #2a5874;
+}
+
+.asrs-3d-frame {
+    width: 100%;
+    min-height: 500px;
+    height: 500px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+.asrs-rack-wrap {
+    padding: 0.9rem 1rem;
+}
+
+.asrs-rack-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.6rem;
+}
+
+.asrs-rack-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.asrs-cell {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    min-height: 64px;
+    text-align: left;
+    padding: 0.45rem 0.55rem;
+    cursor: pointer;
+    transition: transform 0.1s ease, border-color 0.2s ease;
+}
+
+.asrs-cell:hover {
+    transform: translateY(-1px);
+    border-color: #155E8E;
+}
+
+.asrs-cell-pos {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #052740;
+    margin-bottom: 0.25rem;
+}
+
+.asrs-cell-state {
+    font-size: 0.68rem;
+}
+
+.asrs-cell-empty {
+    background: #f6fbff;
+}
+
+.asrs-cell-empty .asrs-cell-state {
+    color: #4f7289;
+}
+
+.asrs-cell-full {
+    background: #fff6f6;
+    border-color: #e4b2b2;
+}
+
+.asrs-cell-full .asrs-cell-state {
+    color: #9f3232;
+}
+
+
+.asrs-log-list {
+    padding: 0.8rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-height: 260px;
+    overflow: auto;
+}
+
+.asrs-log-item {
+    font-size: 0.76rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 0.45rem 0.55rem;
+    background: #fff;
+    color: #29465a;
+}
+
+.asrs-log-success {
+    border-color: #b6d9c3;
+    background: #f4fff7;
+    color: #21643d;
+}
+
+.asrs-log-error {
+    border-color: #ebc1c1;
+    background: #fff5f5;
+    color: #8a2f2f;
+}

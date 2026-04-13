@@ -1,330 +1,214 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
-    bool isAdmin    = User.IsInRole("Yönetici");
-    bool isDepo     = User.IsInRole("Depo");
-    bool isLojistik = User.IsInRole("Lojistik");
-    bool isUretim   = User.IsInRole("Üretim");
-    bool isKalite   = User.IsInRole("Kalite");
+@{
+    ViewData["Title"] = "AS/RS Dashboard";
 }
-
-@* // Dashboard sayfası, kullanıcıların rollerine göre farklı bölümler görebileceği bir ana sayfadır. Sistemin genel durumunu, depo doluluk oranını, günlük işlem sayılarını ve diğer önemli bilgileri görsel olarak sunar. Yönetici, Depo ve Lojistik rollerine sahip kullanıcılar daha fazla bilgiye erişebilirken, Üretim ve Kalite rollerine sahip kullanıcılar daha sınırlı bir görünüm elde ederler. *@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
 }
 
-<div class="db-section-label">Sistem Durumu</div>
-<div class="sys-banner">
-    <div class="sys-banner-item">
-        <div class="sys-banner-dot dot-green"></div>
-        <div>
-            <div class="sys-banner-name">ASRS Sistemi</div>
-            <div class="sys-banner-sub">Aktif</div>
-        </div>
-    </div>
-    <div class="sys-banner-divider"></div>
-    <div class="sys-banner-item">
-        <div class="sys-banner-dot dot-red"></div>
-        <div>
-            <div class="sys-banner-name">Arduino Bağlantısı</div>
-            <div class="sys-banner-sub">Bağlantı Yok</div>
-        </div>
-    </div>
-    <div class="sys-banner-divider"></div>
-    <div class="sys-banner-item">
-        <div class="sys-banner-dot dot-yellow"></div>
-        <div>
-            <div class="sys-banner-name">Raspberry Pi</div>
-            <div class="sys-banner-sub">192.168.1.42 — Bekleniyor</div>
-        </div>
-    </div>
-    <div class="sys-banner-divider"></div>
-    <div class="sys-banner-item">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#155E8E" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <div>
-            <div class="sys-banner-name">Son Çalıştırma</div>
-            <div class="sys-banner-sub">Bugün, 08:30</div>
-        </div>
-    </div>
-    <div class="sys-banner-divider"></div>
-    <div class="sys-banner-item">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#155E8E" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <div>
-            <div class="sys-banner-name">Son Hata</div>
-            <div class="sys-banner-sub">Serial timeout — 07:58</div>
-        </div>
-    </div>
+<div class="db-section-label">AS/RS Kontrol Paneli</div>
+
+<div class="asrs-status-row">
+    <div class="asrs-status-pill"><span class="dot-green"></span>ASRS: Hazır</div>
+    <div class="asrs-status-pill"><span class="dot-yellow"></span>Komut Kuyruğu: İzleniyor</div>
+    <div class="asrs-status-pill"><span class="dot-red"></span>Arduino: Beklemede</div>
 </div>
 
-<div class="db-section-label" style="margin-top:1.5rem;">Arduino & Robot Durumu</div>
-<div class="stats-grid" style="margin-bottom:1.5rem;">
-    <div class="stat-card">
-        <div class="stat-icon icon-indigo">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/>
-                <line x1="9" y1="2" x2="9" y2="4"/><line x1="15" y1="2" x2="15" y2="4"/>
-                <line x1="9" y1="20" x2="9" y2="22"/><line x1="15" y1="20" x2="15" y2="22"/>
-                <line x1="20" y1="9" x2="22" y2="9"/><line x1="20" y1="14" x2="22" y2="14"/>
-                <line x1="2" y1="9" x2="4" y2="9"/><line x1="2" y1="14" x2="4" y2="14"/>
-            </svg>
-        </div>
-        <div class="stat-body">
-            <div class="stat-label">Arduino</div>
-            <div class="stat-value" style="color:#155E8E;font-size:1rem;">Bağlı Değil</div>
-            <div class="stat-sub">COM3 — Serial</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon icon-violet">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/><line x1="5" y1="5" x2="19" y2="5"/><line x1="5" y1="19" x2="19" y2="19"/>
-            </svg>
-        </div>
-        <div class="stat-body">
-            <div class="stat-label">Gantry Konumu</div>
-            <div class="stat-value" style="font-size:1rem;">X:12 Y:04 Z:02</div>
-            <div class="stat-sub">Son alınan konum</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon icon-emerald">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>
-            </svg>
-        </div>
-        <div class="stat-body">
-            <div class="stat-label">Tamamlanan Komut</div>
-            <div class="stat-value">284</div>
-            <div class="stat-sub">Bu oturumda</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon icon-rose">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-        </div>
-        <div class="stat-body">
-            <div class="stat-label">Hata Sayısı</div>
-            <div class="stat-value" style="color:#155E8E;">3</div>
-            <div class="stat-sub">Son 24 saatte</div>
-        </div>
-    </div>
-</div>
-
-@* ── Depo + Lojistik + Yönetici görür ── *@
-@if (isAdmin || isDepo || isLojistik)
-{
-<div class="db-section-label">Günlük İşlem Sayısı</div>
-<div class="stats-grid" style="margin-bottom:1.5rem;">
-    <div class="stat-card">
-        <div class="stat-icon icon-emerald">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-            </svg>
-        </div>
-        <div class="stat-body">
-            <div class="stat-label">Depoya Giren</div>
-            <div class="stat-value">47</div>
-            <div class="stat-sub">ürün / paket</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon icon-rose">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-            </svg>
-        </div>
-        <div class="stat-body">
-            <div class="stat-label">Depodan Çıkan</div>
-            <div class="stat-value">31</div>
-            <div class="stat-sub">ürün / paket</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon icon-amber">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1" y="3" width="15" height="13" rx="1"/>
-                <path d="M16 8h4l3 3v5h-7V8z"/>
-                <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-            </svg>
-        </div>
-        <div class="stat-body">
-            <div class="stat-label">Taşınan Paket</div>
-            <div class="stat-value">93</div>
-            <div class="stat-sub">robot tarafından</div>
-        </div>
-    </div>
-</div>
-}
-
-@* ── Sadece Depo + Yönetici görür ── *@
-@if (isAdmin || isDepo)
-{
-
-<div class="db-section-label">Depo Doluluk Oranı</div>
-<div class="depo-row" style="margin-bottom:1.5rem;">
-    <div class="depo-occ-card">
-        <div class="depo-occ-header">
-            <span class="depo-occ-title">Genel Doluluk</span>
-            <span class="depo-occ-pct">%68</span>
-        </div>
-        <div class="occ-bar-track">
-            <div class="occ-bar-fill" style="width:68%;"></div>
-        </div>
-        <div class="depo-occ-stats">
-            <div class="depo-occ-stat">
-                <span class="depo-stat-val">240</span>
-                <span class="depo-stat-lbl">Toplam Raf</span>
-            </div>
-            <div class="depo-occ-stat">
-                <span class="depo-stat-val" style="color:#155E8E;">163</span>
-                <span class="depo-stat-lbl">Dolu</span>
-            </div>
-            <div class="depo-occ-stat">
-                <span class="depo-stat-val" style="color:#052740;">77</span>
-                <span class="depo-stat-lbl">Boş</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. En çok kullanılan raflar -->
-    <div class="panel" style="flex:1;">
+<div class="asrs-dashboard-grid">
+    <section class="panel asrs-3d-panel">
         <div class="panel-header">
-            <div class="panel-title"><span class="panel-title-dot"></span>En Çok Kullanılan Raflar</div>
+            <div class="panel-title"><span class="panel-title-dot"></span>3D Sistem Görünümü</div>
         </div>
-        <div style="padding:0.75rem 1.25rem;display:flex;flex-direction:column;gap:0.55rem;">
-            @{
-                var raflar = new[] {
-                    new { Ad = "A-01", Pct = 94 },
-                    new { Ad = "B-03", Pct = 87 },
-                    new { Ad = "C-02", Pct = 76 },
-                    new { Ad = "A-04", Pct = 65 },
-                    new { Ad = "D-01", Pct = 52 },
-                };
-            }
-            @foreach (var r in raflar)
-            {
-                <div class="raf-row">
-                    <span class="raf-name">@r.Ad</span>
-                    <div class="raf-bar-track">
-                        <div class="raf-bar-fill" style="width:@(r.Pct)%;"></div>
-                    </div>
-                    <span class="raf-pct">%@r.Pct</span>
+
+        <div id="asrs3DHost" class="asrs-3d-host">
+            <div class="asrs-3d-placeholder">
+                <div class="asrs-3d-placeholder-title">3D model otomatik yükleniyor</div>
+                <div class="asrs-3d-placeholder-sub">
+                    Sayfa açıldığında projedeki STEP dosyasını okuyacak viewer otomatik başlatılır.
                 </div>
-            }
-        </div>
-    </div>
-</div>
-}
-
-@* ── Sadece Yönetici görür ── *@
-@if (isAdmin)
-{
-<div class="dashboard-grid" style="margin-bottom:1.5rem;">
-
-    <!-- 6. Son İşlemler -->
-    <div class="panel">
-        <div class="panel-header">
-            <div class="panel-title"><span class="panel-title-dot"></span>Son İşlemler</div>
-            <span class="admin-only-badge">Sadece Yönetici</span>
-        </div>
-        <table class="mv-table">
-            <thead>
-                <tr>
-                    <th>Ürün</th>
-                    <th>İşlem</th>
-                    <th>Miktar</th>
-                    <th>Lokasyon</th>
-                    <th>Tarih</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Motor Kasnak A4</td>
-                    <td><span class="badge badge-in">Giriş</span></td>
-                    <td>24</td><td>A-03-02</td><td>Bugün, 09:14</td>
-                </tr>
-                <tr>
-                    <td>Vida M8x30</td>
-                    <td><span class="badge badge-out">Çıkış</span></td>
-                    <td>150</td><td>B-01-07</td><td>Bugün, 08:55</td>
-                </tr>
-                <tr>
-                    <td>Flanş DN50</td>
-                    <td><span class="badge badge-transfer">Transfer</span></td>
-                    <td>6</td><td>C-02-01</td><td>Dün, 17:30</td>
-                </tr>
-                <tr>
-                    <td>Rulman 6205</td>
-                    <td><span class="badge badge-in">Giriş</span></td>
-                    <td>80</td><td>A-01-05</td><td>Dün, 16:10</td>
-                </tr>
-                <tr>
-                    <td>Kablo 2.5mm²</td>
-                    <td><span class="badge badge-out">Çıkış</span></td>
-                    <td>200</td><td>D-04-03</td><td>Dün, 14:42</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Sağ kolon: Kullanıcı Aktivitesi + Mini Chart -->
-    <div style="display:flex;flex-direction:column;gap:1rem;">
-
-        <!-- 7. Kullanıcı Aktivitesi -->
-        <div class="panel">
-            <div class="panel-header">
-                <div class="panel-title"><span class="panel-title-dot"></span>Kullanıcı Aktivitesi</div>
-                <span class="admin-only-badge">Sadece Yönetici</span>
             </div>
-            <div style="padding:0.75rem 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
-                @{
-                    var aktivite = new[] {
-                        new { Ad = "admin@asrs.com",   Rol = "Yönetici", Zaman = "09:14" },
-                        new { Ad = "depo1@asrs.com",   Rol = "Depo",     Zaman = "08:55" },
-                        new { Ad = "kalite@asrs.com",  Rol = "Kalite",   Zaman = "08:30" },
-                        new { Ad = "loj@asrs.com",     Rol = "Lojistik", Zaman = "Dün" },
-                    };
-                }
-                @foreach (var u in aktivite)
+            <iframe id="asrs3DFrame" class="asrs-3d-frame" title="ASRS 3D Viewer"></iframe>
+        </div>
+
+    </section>
+
+    <section class="panel asrs-right-panel">
+        <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-dot"></span>Raf Hücreleri (RETRIEVE)</div>
+        </div>
+
+        <div class="asrs-rack-wrap">
+            <div class="asrs-rack-header">
+                <span>Satır / Sütun</span>
+                <span>Durum</span>
+            </div>
+
+            <div id="asrsRackGrid" class="asrs-rack-grid">
+                @for (var row = 1; row <= 3; row++)
                 {
-                    <div class="ua-row">
-                        <div class="ua-avatar">@u.Ad.Substring(0,1).ToUpper()</div>
-                        <div class="ua-info">
-                            <div class="ua-name">@u.Ad</div>
-                            <div class="ua-role">@u.Rol</div>
-                        </div>
-                        <div class="ua-time">@u.Zaman</div>
-                    </div>
+                    for (var col = 1; col <= 4; col++)
+                    {
+                        <button
+                            type="button"
+                            class="asrs-cell asrs-cell-empty"
+                            data-row="@row"
+                            data-col="@col"
+                            aria-label="Raf @row,@col RETRIEVE">
+                            <span class="asrs-cell-pos">@row,@col</span>
+                            <span class="asrs-cell-state">Boş</span>
+                        </button>
+                    }
                 }
             </div>
         </div>
 
-        <!-- Mini chart -->
-        <div class="panel">
-            <div class="panel-header">
-                <div class="panel-title"><span class="panel-title-dot"></span>Haftalık Hareket</div>
-            </div>
-            <div class="chart-wrap">
-                <div class="chart-bar-group">
-                    <div class="chart-bar" style="height:55%;" title="Pzt: 42"></div>
-                    <div class="chart-bar" style="height:72%;" title="Sal: 65"></div>
-                    <div class="chart-bar" style="height:48%;" title="Çar: 38"></div>
-                    <div class="chart-bar" style="height:90%;" title="Per: 81"></div>
-                    <div class="chart-bar" style="height:63%;" title="Cum: 55"></div>
-                    <div class="chart-bar" style="height:35%;" title="Cmt: 28"></div>
-                    <div class="chart-bar" style="height:80%;" title="Paz: 70"></div>
-                </div>
-                <div class="chart-labels">
-                    <span>Pzt</span><span>Sal</span><span>Çar</span>
-                    <span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
-                </div>
-            </div>
+        <div class="asrs-actions">
+            <button id="refreshRackBtn" class="asrs-btn asrs-btn-secondary" type="button">Raf Durumunu Yenile</button>
+            <button id="statusBtn" class="asrs-btn asrs-btn-secondary" type="button">Sistem Durumu</button>
         </div>
 
-    </div>
+    </section>
 </div>
+
+<section class="panel asrs-log-panel">
+    <div class="panel-header">
+        <div class="panel-title"><span class="panel-title-dot"></span>Komut Günlüğü</div>
+    </div>
+    <div id="asrsLog" class="asrs-log-list"></div>
+</section>
+
+@section Scripts {
+<script>
+(() => {
+    const apiBase = '/api/asrs';
+    const stepFilePath = '/models/asrs-system.step';
+    const stepViewerPath = '/3d/step-viewer/index.html';
+
+    const rackGrid = document.getElementById('asrsRackGrid');
+    const logEl = document.getElementById('asrsLog');
+    const refreshRackBtn = document.getElementById('refreshRackBtn');
+    const statusBtn = document.getElementById('statusBtn');
+
+    const asrs3DFrame = document.getElementById('asrs3DFrame');
+    const asrs3DHost = document.getElementById('asrs3DHost');
+    const asrs3DPlaceholder = asrs3DHost ? asrs3DHost.querySelector('.asrs-3d-placeholder') : null;
+
+    function log(message, type = 'info') {
+        const item = document.createElement('div');
+        item.className = `asrs-log-item asrs-log-${type}`;
+        const time = new Date().toLocaleTimeString('tr-TR');
+        item.textContent = `[${time}] ${message}`;
+        logEl.prepend(item);
+    }
+
+    async function requestJson(url, options) {
+        const res = await fetch(url, options);
+        const text = await res.text();
+        let data = null;
+        if (text) {
+            try { data = JSON.parse(text); } catch { data = text; }
+        }
+        if (!res.ok) {
+            const err = typeof data === 'string' ? data : (data?.message || res.statusText);
+            throw new Error(err || 'İstek başarısız.');
+        }
+        return data;
+    }
+
+    function setCellState(row, col, occupied) {
+        const cell = rackGrid.querySelector(`.asrs-cell[data-row="${row}"][data-col="${col}"]`);
+        if (!cell) return;
+
+        cell.classList.remove('asrs-cell-empty', 'asrs-cell-full');
+        cell.classList.add(occupied ? 'asrs-cell-full' : 'asrs-cell-empty');
+
+        const stateEl = cell.querySelector('.asrs-cell-state');
+        if (stateEl) stateEl.textContent = occupied ? 'Dolu' : 'Boş';
+    }
+
+    async function loadRackState() {
+        try {
+            const data = await requestJson(`${apiBase}/rack-state`);
+            if (Array.isArray(data)) {
+                data.forEach(x => {
+                    const row = Number(x.row) + 1; // API 0-based -> UI 1-based
+                    const col = Number(x.col) + 1;
+                    setCellState(row, col, !!x.isOccupied);
+                });
+                log('Raf durumu güncellendi.', 'success');
+            }
+        } catch (err) {
+            log(`Raf durumu alınamadı: ${err.message}`, 'error');
+        }
+    }
+
+    async function sendRetrieve(uiRow, uiCol) {
+        const payload = { row: uiRow - 1, col: uiCol - 1 }; // UI 1-based -> API 0-based
+        try {
+            const result = await requestJson(`${apiBase}/retrieve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            log(`RETRIEVE kuyruğa alındı: Hücre ${uiRow},${uiCol} (Komut #${result.commandId})`, 'success');
+        } catch (err) {
+            log(`RETRIEVE hata (${uiRow},${uiCol}): ${err.message}`, 'error');
+        }
+    }
+
+    async function loadSystemStatus() {
+        try {
+            const status = await requestJson(`${apiBase}/system-status`);
+            log(`Sistem durumu: ${JSON.stringify(status)}`, 'info');
+        } catch (err) {
+            log(`Sistem durumu alınamadı: ${err.message}`, 'error');
+        }
+    }
+
+    rackGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.asrs-cell');
+        if (!btn) return;
+        const row = Number(btn.dataset.row);
+        const col = Number(btn.dataset.col);
+        sendRetrieve(row, col);
+    });
+
+    refreshRackBtn.addEventListener('click', loadRackState);
+    statusBtn.addEventListener('click', loadSystemStatus);
+
+    function bootStepViewer(filePath = stepFilePath, viewerPath = stepViewerPath) {
+        const src = `${viewerPath}?file=${encodeURIComponent(filePath)}`;
+        if (asrs3DPlaceholder) asrs3DPlaceholder.hidden = false;
+        asrs3DFrame.onload = () => {
+            if (asrs3DPlaceholder) asrs3DPlaceholder.hidden = true;
+        };
+        asrs3DFrame.src = src;
+        // Bazı tarayıcı/caching durumlarında onload geç gelebiliyor.
+        // Viewer aynı alanda kalsın diye kısa bir süre sonra placeholder'ı kaldır.
+        window.setTimeout(() => {
+            if (asrs3DPlaceholder) asrs3DPlaceholder.hidden = true;
+        }, 1200);
+        log(`3D viewer başlatıldı: ${filePath}`, 'success');
+    }
+
+    // Dışarıdan özel 3D HTML embed etmek istersen:
+    // window.asrsSet3DContent('<model-viewer ...></model-viewer>')
+    window.asrsSet3DContent = function (html) {
+        const host = document.getElementById('asrs3DHost');
+        if (!host || !html) return;
+        host.innerHTML = html;
+        log('Özel 3D embed yüklendi.', 'success');
+    };
+
+    // STEP dosya yolu/viewer yolunu runtime'da değiştirmek istersen:
+    // window.asrsSetStepSources('/models/xxx.step', '/3d/step-viewer/index.html')
+    window.asrsSetStepSources = function (filePath, viewerPath) {
+        if (!filePath || !viewerPath) return;
+        bootStepViewer(filePath, viewerPath);
+    };
+
+    bootStepViewer();
+    loadRackState();
+})();
+</script>
 }

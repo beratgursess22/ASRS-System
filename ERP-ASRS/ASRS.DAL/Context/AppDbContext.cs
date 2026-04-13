@@ -24,6 +24,11 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 	public DbSet<QualityInspectionItem> QualityInspectionItems { get; set; }
 	public DbSet<QualityDefect> QualityDefects { get; set; }
 	public DbSet<CapaAction> CapaActions { get; set; }
+	public DbSet<RackCell> RackCells { get; set; }
+	public DbSet<RfidRackMap> RfidRackMaps { get; set; }
+	public DbSet<AsrsCommand> AsrsCommands { get; set; }
+	public DbSet<RfidEvent> RfidEvents { get; set; }
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		base.OnModelCreating(modelBuilder);
@@ -130,7 +135,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 			.HasIndex(x => new { x.SupplierId, x.ProductId });
 		modelBuilder.Entity<SupplierItemPrice>()
 			.HasIndex(x => new { x.SupplierId, x.MaterialId });
-					modelBuilder.Entity<QualityInspection>()
+		modelBuilder.Entity<QualityInspection>()
 			.HasOne(x => x.PurchaseOrder)
 			.WithMany()
 			.HasForeignKey(x => x.PurchaseOrderId)
@@ -179,6 +184,40 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string> // "Iden
 			.HasIndex(x => x.InspectionType);
 		modelBuilder.Entity<QualityInspection>()
 			.HasIndex(x => x.CreatedAt);
+		modelBuilder.Entity<RackCell>()
+			.HasIndex(x => new { x.Row, x.Col })
+			.IsUnique();
+		modelBuilder.Entity<RfidRackMap>()
+			.HasIndex(x => x.CardUid)
+			.IsUnique();
+		modelBuilder.Entity<RfidRackMap>()
+			.HasIndex(x => new { x.Row, x.Col })
+			.IsUnique();
+		modelBuilder.Entity<AsrsCommand>()
+			.HasIndex(x => new { x.Status, x.CreatedAt });
+			modelBuilder.Entity<RfidEvent>()
+				.HasIndex(x => x.TriggeredAt);
+
+			// 3x4 raf seed (0-based)
+			var seedTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+			var rackCells = new List<RackCell>();
+			var id = 1;
+			for (var row = 0; row < 3; row++)
+			{
+				for (var col = 0; col < 4; col++)
+			{
+				rackCells.Add(new RackCell
+				{
+						Id = id++,
+						Row = row,
+						Col = col,
+						IsOccupied = false,
+						UpdatedAt = seedTime
+					});
+				}
+			}
+		modelBuilder.Entity<RackCell>().HasData(rackCells);
+
 
 	}
 }

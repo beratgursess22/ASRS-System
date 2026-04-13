@@ -4,6 +4,7 @@ using ASRS.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASRS.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260413104506_AddAsrsIntegration")]
+    partial class AddAsrsIntegration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -727,7 +730,7 @@ namespace ASRS.DAL.Migrations
                             Col = 0,
                             IsOccupied = false,
                             Row = 0,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3220)
                         },
                         new
                         {
@@ -735,7 +738,7 @@ namespace ASRS.DAL.Migrations
                             Col = 1,
                             IsOccupied = false,
                             Row = 0,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -743,7 +746,7 @@ namespace ASRS.DAL.Migrations
                             Col = 2,
                             IsOccupied = false,
                             Row = 0,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -751,7 +754,7 @@ namespace ASRS.DAL.Migrations
                             Col = 3,
                             IsOccupied = false,
                             Row = 0,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -759,7 +762,7 @@ namespace ASRS.DAL.Migrations
                             Col = 0,
                             IsOccupied = false,
                             Row = 1,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -767,7 +770,7 @@ namespace ASRS.DAL.Migrations
                             Col = 1,
                             IsOccupied = false,
                             Row = 1,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -775,7 +778,7 @@ namespace ASRS.DAL.Migrations
                             Col = 2,
                             IsOccupied = false,
                             Row = 1,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -783,7 +786,7 @@ namespace ASRS.DAL.Migrations
                             Col = 3,
                             IsOccupied = false,
                             Row = 1,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -791,7 +794,7 @@ namespace ASRS.DAL.Migrations
                             Col = 0,
                             IsOccupied = false,
                             Row = 2,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -799,7 +802,7 @@ namespace ASRS.DAL.Migrations
                             Col = 1,
                             IsOccupied = false,
                             Row = 2,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -807,7 +810,7 @@ namespace ASRS.DAL.Migrations
                             Col = 2,
                             IsOccupied = false,
                             Row = 2,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         },
                         new
                         {
@@ -815,7 +818,7 @@ namespace ASRS.DAL.Migrations
                             Col = 3,
                             IsOccupied = false,
                             Row = 2,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 4, 13, 10, 45, 6, 416, DateTimeKind.Utc).AddTicks(3350)
                         });
                 });
 

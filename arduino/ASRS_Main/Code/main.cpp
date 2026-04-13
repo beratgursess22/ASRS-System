@@ -14,7 +14,7 @@
  *   Raspberry Pi  ──USB──►  Arduino Mega (Serial @ 9600 baud)
  */
 
-#include "../config.h"
+#include "../library/config.h"
 #include "../library/axes.h"
 #include "../library/operations.h"
 #include "../library/serial_protocol.h"

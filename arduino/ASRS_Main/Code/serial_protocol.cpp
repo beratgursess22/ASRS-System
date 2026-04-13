@@ -4,7 +4,7 @@
  * Raspberry Pi ↔ Arduino seri protokolü implementasyonu.
  */
 
-#include "config.h"
+#include "../library/config.h"
 #include "../library/serial_protocol.h"
 
 // Satır tamponu
@@ -23,10 +23,6 @@ bool	serialReadCommand(Command &cmd)
 {
 	char	c;
 	String	line;
-	int		firstColon;
-	int		secondColon;
-	uint8_t	col;
-	uint8_t	row;
 	int		firstColon;
 	int		secondColon;
 	uint8_t	col;
