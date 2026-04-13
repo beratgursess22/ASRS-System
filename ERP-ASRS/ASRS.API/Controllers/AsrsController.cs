@@ -145,6 +145,46 @@ public class AsrsController : ControllerBase
 
         return Ok(data);
     }
+
+    [HttpGet("system-status")]
+    public async Task<IActionResult> SystemStatus()
+    {
+        var queuedCount = await _db.AsrsCommands.CountAsync(x => x.Status == AsrsCommandStatus.Queued);
+        var sentCount = await _db.AsrsCommands.CountAsync(x => x.Status == AsrsCommandStatus.Sent);
+        var busyCount = await _db.AsrsCommands.CountAsync(x => x.Status == AsrsCommandStatus.Busy);
+        var failedCount = await _db.AsrsCommands.CountAsync(x => x.Status == AsrsCommandStatus.Failed);
+
+        var lastCommand = await _db.AsrsCommands
+            .OrderByDescending(x => x.Id)
+            .Select(x => new
+            {
+                x.Id,
+                type = x.Type.ToString(),
+                status = x.Status.ToString(),
+                x.Row,
+                x.Col,
+                x.CreatedAt,
+                x.SentAt,
+                x.CompletedAt
+            })
+            .FirstOrDefaultAsync();
+
+        var asrsState = busyCount > 0 ? "BUSY" : "READY";
+        var queueState = (queuedCount + sentCount + busyCount) > 0 ? "ACTIVE" : "IDLE";
+        var arduinoState = busyCount > 0 ? "WORKING" : "WAITING";
+
+        return Ok(new
+        {
+            asrsState,
+            queueState,
+            arduinoState,
+            queuedCount,
+            sentCount,
+            busyCount,
+            failedCount,
+            lastCommand
+        });
+    }
 }
 
 public record RetrieveRequest(int Row, int Col);

@@ -52,6 +52,11 @@ builder.Services.AddScoped<ICapaService, CapaService>();
 //end
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient("AsrsApi", client =>
+{
+    var baseUrl = builder.Configuration["AsrsApi:BaseUrl"] ?? "http://localhost:5217/";
+    client.BaseAddress = new Uri(baseUrl);
+});
 
 var app = builder.Build();
 
@@ -77,6 +82,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
