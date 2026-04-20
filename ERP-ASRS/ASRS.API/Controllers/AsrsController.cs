@@ -4,6 +4,7 @@ using ASRS.API.Services;
 using ASRS.DAL.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ASRS.API.Controllers;
 
@@ -12,7 +13,13 @@ namespace ASRS.API.Controllers;
 public class AsrsController : ControllerBase
 {
     private readonly AppDbContext _db;
-    public AsrsController(AppDbContext db) => _db = db;
+    private readonly ILogger<AsrsController> _logger;
+
+    public AsrsController(AppDbContext db, ILogger<AsrsController> logger)
+    {
+        _db = db;
+        _logger = logger;
+    }
 
     [HttpPost("retrieve")]
     public async Task<IActionResult> Retrieve([FromBody] RetrieveRequest req)
@@ -39,33 +46,55 @@ public class AsrsController : ControllerBase
     [HttpPost("rfid-scan")]
     public async Task<IActionResult> RfidScan([FromBody] RfidScanRequest req)
     {
+        _logger.LogInformation("RFID_SCAN_START RawUid='{RawUid}'", req.CardUid);
+
         string normalizedUid;
         try
         {
             normalizedUid = RfidUidNormalizer.Normalize(req.CardUid);
+            _logger.LogInformation("RFID_UID_NORMALIZED RawUid='{RawUid}' NormalizedUid='{NormalizedUid}'", req.CardUid, normalizedUid);
         }
         catch (FormatException)
         {
+            _logger.LogWarning("RFID_UID_NORMALIZE_FAILED RawUid='{RawUid}' Reason=INVALID_RFID_UID_FORMAT", req.CardUid);
             return BadRequest("INVALID_RFID_UID_FORMAT");
         }
 
         if (string.IsNullOrWhiteSpace(normalizedUid))
+        {
+            _logger.LogWarning("RFID_UID_EMPTY_AFTER_NORMALIZE RawUid='{RawUid}'", req.CardUid);
             return BadRequest("EMPTY_RFID_UID");
+        }
 
+        _logger.LogInformation("RFID_MAP_LOOKUP_START NormalizedUid='{NormalizedUid}'", normalizedUid);
         var map = await _db.RfidRackMaps.FirstOrDefaultAsync(x => x.CardUid == normalizedUid && x.IsActive);
         if (map is null)
         {
+            _logger.LogWarning("RFID_MAP_NOT_FOUND NormalizedUid='{NormalizedUid}'", normalizedUid);
             _db.RfidEvents.Add(new RfidEvent { CardUid = normalizedUid, Result = "RFID_NOT_MAPPED" });
             await _db.SaveChangesAsync();
+            _logger.LogInformation("RFID_EVENT_SAVED NormalizedUid='{NormalizedUid}' Result='RFID_NOT_MAPPED'", normalizedUid);
             return NotFound("RFID_NOT_MAPPED");
         }
+        _logger.LogInformation("RFID_MAP_FOUND NormalizedUid='{NormalizedUid}' Row={Row} Col={Col} IsActive={IsActive}", normalizedUid, map.Row, map.Col, map.IsActive);
 
+        _logger.LogInformation("RACK_CELL_LOOKUP_START Row={Row} Col={Col}", map.Row, map.Col);
         var cell = await _db.RackCells.FirstOrDefaultAsync(x => x.Row == map.Row && x.Col == map.Col);
-        if (cell is null) 
+        if (cell is null)
+        {
+            _logger.LogWarning("RACK_CELL_NOT_FOUND Row={Row} Col={Col}", map.Row, map.Col);
             return NotFound("CELL_NOT_FOUND");
-        if (cell.IsOccupied) 
-            return Conflict("CELL_ALREADY_OCCUPIED");
+        }
+        _logger.LogInformation("RACK_CELL_FOUND Row={Row} Col={Col} IsOccupied={IsOccupied}", cell.Row, cell.Col, cell.IsOccupied);
 
+        if (cell.IsOccupied)
+        {
+            _logger.LogWarning("RACK_CELL_ALREADY_OCCUPIED Row={Row} Col={Col}", cell.Row, cell.Col);
+            return Conflict("CELL_ALREADY_OCCUPIED");
+        }
+
+        _logger.LogInformation("ASRS_COMMAND_CREATE_START Type={Type} Source={Source} Row={Row} Col={Col}",
+            AsrsCommandType.Store, AsrsCommandSource.Rfid, map.Row, map.Col);
         var cmd = new AsrsCommand
         {
             Type = AsrsCommandType.Store,
@@ -76,9 +105,18 @@ public class AsrsController : ControllerBase
         };
         _db.AsrsCommands.Add(cmd);
         await _db.SaveChangesAsync();
+        _logger.LogInformation("ASRS_COMMAND_SAVED CommandId={CommandId} Status={Status} Type={Type} Row={Row} Col={Col}",
+            cmd.Id, cmd.Status, cmd.Type, cmd.Row, cmd.Col);
 
+        _logger.LogInformation("RFID_EVENT_CREATE_START NormalizedUid='{NormalizedUid}' CommandId={CommandId} Result='QUEUED'",
+            normalizedUid, cmd.Id);
         _db.RfidEvents.Add(new RfidEvent { CardUid = normalizedUid, ResultCommandId = cmd.Id, Result = "QUEUED" });
         await _db.SaveChangesAsync();
+        _logger.LogInformation("RFID_EVENT_SAVED NormalizedUid='{NormalizedUid}' CommandId={CommandId} Result='QUEUED'",
+            normalizedUid, cmd.Id);
+
+        _logger.LogInformation("RFID_SCAN_SUCCESS CommandId={CommandId} Row={Row} Col={Col} Status={Status}",
+            cmd.Id, cmd.Row, cmd.Col, cmd.Status);
 
         return Ok(new { accepted = true, commandId = cmd.Id, row = cmd.Row, col = cmd.Col, status = cmd.Status.ToString() });
     }

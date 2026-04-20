@@ -57,14 +57,24 @@ public class AsrsSerialWorker : BackgroundService
                     continue;
                 }
 
-                var commandText = BuildArduinoCommand(cmd);
+                string commandText;
+                try
+                {
+                    commandText = BuildArduinoCommandAsync(cmd);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to build Arduino command (CommandId={CommandId})", cmd.Id);
+                    await MarkFailedAsync(cmd.Id, $"BUILD_CMD_FAILED:{ex.Message}", stoppingToken);
+                    continue;
+                }
                 _logger.LogInformation("Sending to Arduino: {Command} (CommandId={CommandId})", commandText, cmd.Id);
                 var port = serial;
                 if (port is null)
                     throw new InvalidOperationException("Serial port is not open.");
                 port.Write(commandText + "\n");
 
-                await WaitAndProcessArduinoResponsesAsync(port, cmd.Id, commandTimeoutSec, stoppingToken);
+                await WaitAndProcessArduinoResponsesAsync(port, cmd.Id, cmd.Type, commandTimeoutSec, stoppingToken);
             }
             catch (OperationCanceledException)
             {
@@ -114,7 +124,7 @@ public class AsrsSerialWorker : BackgroundService
         return cmd;
     }
 
-    private static string BuildArduinoCommand(AsrsCommand cmd)
+    private static string BuildArduinoCommandAsync(AsrsCommand cmd)
     {
         return cmd.Type switch
         {
@@ -143,12 +153,11 @@ public class AsrsSerialWorker : BackgroundService
     private async Task WaitAndProcessArduinoResponsesAsync(
         SerialPort serial,
         int commandId,
+        AsrsCommandType commandType,
         int timeoutSeconds,
         CancellationToken cancellationToken)
     {
         var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
-        var completed = false;
-
         while (!cancellationToken.IsCancellationRequested && DateTime.UtcNow < deadline)
         {
             string? line = null;
@@ -176,11 +185,19 @@ public class AsrsSerialWorker : BackgroundService
 
             if (upper.StartsWith("OK"))
             {
-                completed = true;
+                if (IsTerminalOkForCommand(upper, commandType))
+                {
+                    await MarkDoneAsync(commandId, cancellationToken);
+                    return;
+                }
+
+                _logger.LogWarning(
+                    "Arduino returned non-terminal OK for command type {CommandType}: {Line} (CommandId={CommandId})",
+                    commandType, raw, commandId);
                 continue;
             }
 
-            if (upper.StartsWith("ERROR"))
+            if (upper.StartsWith("ERR") || upper.StartsWith("ERROR"))
             {
                 await MarkFailedAsync(commandId, raw, cancellationToken);
                 return;
@@ -188,17 +205,27 @@ public class AsrsSerialWorker : BackgroundService
 
             if (upper == "READY")
             {
-                if (completed)
-                {
-                    await MarkDoneAsync(commandId, cancellationToken);
-                    return;
-                }
-                // Ignore READY if command not yet completed
+                // Some sketches send READY periodically; ignore.
+                continue;
             }
         }
+        await MarkFailedAsync(commandId, "TIMEOUT_WAITING_ARDUINO_RESPONSE", cancellationToken);
+    }
 
-        if (!completed)
-            await MarkFailedAsync(commandId, "TIMEOUT_WAITING_ARDUINO_RESPONSE", cancellationToken);
+    private static bool IsTerminalOkForCommand(string upperResponse, AsrsCommandType commandType)
+    {
+        // Accept plain OK as completion for compatibility with minimal sketches.
+        if (upperResponse == "OK")
+            return true;
+
+        return commandType switch
+        {
+            AsrsCommandType.Store => upperResponse.Contains("STORE_DONE"),
+            AsrsCommandType.Retrieve => upperResponse.Contains("RETRIEVE_DONE"),
+            AsrsCommandType.Home => upperResponse.Contains("HOMED"),
+            AsrsCommandType.Status => true,
+            _ => false
+        };
     }
 
     private async Task MarkBusyAsync(int commandId, CancellationToken cancellationToken)

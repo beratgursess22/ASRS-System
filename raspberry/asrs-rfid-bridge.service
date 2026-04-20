@@ -1,0 +1,22 @@
+[Unit]
+Description=ASRS RFID Bridge (MFRC522 -> ASRS.API)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=isu
+WorkingDirectory=/home/isu/Desktop/ASRS-System/raspberry
+Environment=ASRS_API_URL=http://localhost:5217/api/asrs/rfid-scan
+Environment=ASRS_HTTP_TIMEOUT_SEC=8
+Environment=ASRS_RFID_POLL_INTERVAL_SEC=0.2
+Environment=ASRS_RFID_SAME_CARD_COOLDOWN_SEC=2.5
+ExecStart=/usr/bin/python3 /home/isu/Desktop/ASRS-System/raspberry/rfid_bridge.py
+Restart=always
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
