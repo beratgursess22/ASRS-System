@@ -35,7 +35,7 @@ public class AsrsSerialWorker : BackgroundService
             return;
         }
 
-        var portName = _configuration["AsrsSerial:PortName"] ?? "/dev/ttyACM0";
+        var portName = _configuration["AsrsSerial:PortName"] ?? "/dev/ttyUSB0";
         var baudRate = _configuration.GetValue("AsrsSerial:BaudRate", 9600);
         var pollMs = _configuration.GetValue("AsrsSerial:PollIntervalMs", 400);
         var commandTimeoutSec = _configuration.GetValue("AsrsSerial:CommandTimeoutSec", 180);
