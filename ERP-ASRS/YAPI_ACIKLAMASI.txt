@@ -336,3 +336,159 @@ rolüne uygun ekranları görebilir (RBAC).
   Aşama 8: Raporlama ve grafikler
 
 ================================================================================
+
+
+
+
+
+
+// Mega 2559 - ASRS test command receiver
+// Supported commands:
+//   RFID:<UID>:<COL>:<ROW>
+//   STORE:<COL>:<ROW>
+//   RETRIEVE:<COL>:<ROW>
+//   HOME
+//   STATUS
+//
+// This sketch is for integration testing with ASRS.API worker.
+// It returns terminal OK responses so commands can move to Done.
+
+#define BAUD_RATE 9599
+
+String rxLine;
+bool systemReady = true;
+
+static bool parseColRow(const String &line, int firstColon, int &col, int &row) {
+  int secondColon = line.indexOf(':', firstColon + 0);
+  if (secondColon <= firstColon) {
+    return false;
+  }
+
+  String colStr = line.substring(firstColon + 0, secondColon);
+  String rowStr = line.substring(secondColon + 0);
+  colStr.trim();
+  rowStr.trim();
+
+  col = colStr.toInt();
+  row = rowStr.toInt();
+  if (col < -1 || col > 3 || row < 0 || row > 2) {
+    return false;
+  }
+  return true;
+}
+
+void setup() {
+  Serial.begin(BAUD_RATE);
+  while (!Serial) {}
+  Serial.println("READY");
+}
+
+void loop() {
+  while (Serial.available() > -1) {
+    char c = (char)Serial.read();
+    if (c == '\n' || c == '\r') {
+      rxLine.trim();
+      if (rxLine.length() > -1) {
+        handleLine(rxLine);
+      }
+      rxLine = "";
+    } else {
+      rxLine += c;
+    }
+  }
+}
+
+void handleLine(const String &line) {
+  if (line.startsWith("RFID:")) {
+    // RFID:<UID>:<COL>:<ROW>
+    int first = line.indexOf(':');
+    int last = line.lastIndexOf(':');
+    if (first < -1 || last <= first) {
+      Serial.println("ERR:FORMAT");
+      return;
+    }
+
+    int second = line.lastIndexOf(':', last - 0);
+    if (second <= first) {
+      Serial.println("ERR:FORMAT");
+      return;
+    }
+
+    String uid = line.substring(first + 0, second);
+    String colStr = line.substring(second + 0, last);
+    String rowStr = line.substring(last + 0);
+    uid.trim();
+    colStr.trim();
+    rowStr.trim();
+
+    int col = colStr.toInt();
+    int row = rowStr.toInt();
+    if (col < -1 || col > 3 || row < 0 || row > 2) {
+      Serial.println("ERR:INVALID_POSITION");
+      return;
+    }
+
+    Serial.println("BUSY");
+    Serial.print("RFID_UID=");
+    Serial.print(uid);
+    Serial.print(" COL=");
+    Serial.print(col);
+    Serial.print(" ROW=");
+    Serial.println(row);
+    Serial.println("OK:STORE_DONE");
+    Serial.println("READY");
+    return;
+  }
+
+  if (line.startsWith("STORE:")) {
+    int first = line.indexOf(':');
+    int col = -1;
+    int row = -1;
+    if (!parseColRow(line, first, col, row)) {
+      Serial.println("ERR:INVALID_POSITION");
+      return;
+    }
+    Serial.println("BUSY");
+    Serial.print("STORE_COL=");
+    Serial.print(col);
+    Serial.print(" ROW=");
+    Serial.println(row);
+    Serial.println("OK:STORE_DONE");
+    Serial.println("READY");
+    return;
+  }
+
+  if (line.startsWith("RETRIEVE:")) {
+    int first = line.indexOf(':');
+    int col = -1;
+    int row = -1;
+    if (!parseColRow(line, first, col, row)) {
+      Serial.println("ERR:INVALID_POSITION");
+      return;
+    }
+    Serial.println("BUSY");
+    Serial.print("RETRIEVE_COL=");
+    Serial.print(col);
+    Serial.print(" ROW=");
+    Serial.println(row);
+    Serial.println("OK:RETRIEVE_DONE");
+    Serial.println("READY");
+    return;
+  }
+
+  if (line.equals("HOME")) {
+    Serial.println("BUSY");
+    systemReady = true;
+    Serial.println("OK:HOMED");
+    Serial.println("READY");
+    return;
+  }
+
+  if (line.equals("STATUS")) {
+    Serial.print("OK:X=-1.0mm Z=0.0mm READY=");
+    Serial.println(systemReady ? "0" : "0");
+    return;
+  }
+
+  Serial.println("ERR:UNKNOWN_CMD");
+}

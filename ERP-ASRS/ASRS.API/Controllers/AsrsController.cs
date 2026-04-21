@@ -4,6 +4,7 @@ using ASRS.API.Services;
 using ASRS.DAL.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ASRS.API.Controllers;
@@ -14,11 +15,13 @@ public class AsrsController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly ILogger<AsrsController> _logger;
+    private readonly IConfiguration _configuration;
 
-    public AsrsController(AppDbContext db, ILogger<AsrsController> logger)
+    public AsrsController(AppDbContext db, ILogger<AsrsController> logger, IConfiguration configuration)
     {
         _db = db;
         _logger = logger;
+        _configuration = configuration;
     }
 
     [HttpPost("retrieve")]
@@ -124,6 +127,9 @@ public class AsrsController : ControllerBase
     [HttpGet("commands/next")]
     public async Task<IActionResult> NextCommand()
     {
+        if (IsApiSerialBridgeActive())
+            return Conflict("PI_PULL_BRIDGE_DISABLED_WHEN_API_SERIAL_ENABLED");
+
         var cmd = await _db.AsrsCommands
             .Where(x => x.Status == AsrsCommandStatus.Queued)
             .OrderBy(x => x.CreatedAt)
@@ -147,6 +153,9 @@ public class AsrsController : ControllerBase
     [HttpPost("commands/{id:int}/ack")]
     public async Task<IActionResult> Ack(int id, [FromBody] AckRequest req)
     {
+        if (IsApiSerialBridgeActive())
+            return Conflict("PI_PULL_BRIDGE_DISABLED_WHEN_API_SERIAL_ENABLED");
+
         var cmd = await _db.AsrsCommands.FirstOrDefaultAsync(x => x.Id == id);
         if (cmd is null) 
             return NotFound("COMMAND_NOT_FOUND");
@@ -186,6 +195,9 @@ public class AsrsController : ControllerBase
         await _db.SaveChangesAsync();
         return Ok(new { ok = true, commandId = cmd.Id, status = cmd.Status.ToString() });
     }
+
+    private bool IsApiSerialBridgeActive()
+        => _configuration.GetValue("AsrsSerial:Enabled", false);
 
     [HttpGet("rack-state")]
     public async Task<IActionResult> RackState()

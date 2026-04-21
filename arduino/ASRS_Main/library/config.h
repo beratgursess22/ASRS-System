@@ -91,6 +91,6 @@ static const float	SHELF_Z_POS[SHELF_ROWS] = {
 
 // LIMIT SWITCH MANTIGI
 # define LIMIT_TRIGGERED LOW
-# define  HIGH
+# define LIMIT_NOT_TRIGGERED HIGH
 
 #endif // CONFIG_H
