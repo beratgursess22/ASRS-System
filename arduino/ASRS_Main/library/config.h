@@ -10,19 +10,19 @@
 #ifndef CONFIG_H
 # define CONFIG_H
 
-# define X_STEP_PIN 2   // Step pini
-# define X_DIR_PIN 3    // Yön pini
-# define X_ENABLE_PIN 4 // Enable pini
-# define X_LIMIT_PIN 5  // Sağ uç limit switch (X = 0 referans noktası)
+# define X_STEP_PIN 54  // RAMPS X_STEP
+# define X_DIR_PIN 55   // RAMPS X_DIR
+# define X_ENABLE_PIN 38 // RAMPS X_ENABLE
+# define X_LIMIT_PIN 3  // RAMPS X- (X_MIN)
 
-# define Z_STEP_PIN 6   // Step pini
-# define Z_DIR_PIN 7    // Yön pini
-# define Z_ENABLE_PIN 8 // Enable pini
-# define Z_LIMIT_PIN 9  // Alt uç limit switch (Z = 0 referans noktası)
+# define Z_STEP_PIN 46  // RAMPS Z_STEP
+# define Z_DIR_PIN 48   // RAMPS Z_DIR
+# define Z_ENABLE_PIN 62 // RAMPS Z_ENABLE
+# define Z_LIMIT_PIN 18 // RAMPS Z- (Z_MIN)
 
-# define Y_STEP_PIN 10   // Step pini
-# define Y_DIR_PIN 11    // Yön pini
-# define Y_ENABLE_PIN 12 // Limit switch YOK – yazılım mesafesi ile kontrol
+# define Y_STEP_PIN 60   // RAMPS Y_STEP
+# define Y_DIR_PIN 61    // RAMPS Y_DIR
+# define Y_ENABLE_PIN 56 // RAMPS Y_ENABLE (Limit switch YOK)
 
 # define STEPS_PER_REV 200   // 1.8° adım açısı → 200 adım/tur
 # define MICROSTEP_FACTOR 16 // A4988 1/16 mikro adım
@@ -48,7 +48,7 @@
 
 # define X_MAX_MM 1300.0f   // X ekseni maksimum mesafe
 # define Z_MAX_MM 1000.0f   // Z ekseni maksimum mesafe
-# define Y_TRAVEL_MM 160.0f // Y ekseni tek yön hareket mesafesi
+# define Y_TRAVEL_MM 50.0f // Y ekseni tek yön hareket mesafesi (5 cm)
 
 // RAF KONUMLARİ
 # define SHELF_COLS 4
