@@ -10,30 +10,36 @@
 // config.h
 // =========================
 
+// RAMPS 1.6 + Mega 2560 standart pin eslestirmesi.
+// Bu dosyada X ve Z limit switch'ler sadece X- ve Z- endstop girislerinde kullaniliyor.
+// Standart RAMPS Mega haritasi:
+// X STEP 54, DIR 55, ENABLE 38, MIN 3, MAX 2
+// Y STEP 60, DIR 61, ENABLE 56, MIN 14, MAX 15
+// Z STEP 46, DIR 48, ENABLE 62, MIN 18, MAX 19
 #define X_STEP_PIN 54
 #define X_DIR_PIN 55
 #define X_ENABLE_PIN 38
-#define X_LIMIT_PIN 3
+#define X_LIMIT_PIN 3   // RAMPS X- / Mega D3
 
-#define Z_STEP_PIN 46
-#define Z_DIR_PIN 48
-#define Z_ENABLE_PIN 62
-#define Z_LIMIT_PIN 18
+#define Z_STEP_PIN 36
+#define Z_DIR_PIN 34
+#define Z_ENABLE_PIN 30
+#define Z_LIMIT_PIN 18  // RAMPS Z- / Mega D18
 
 #define Y_STEP_PIN 60
 #define Y_DIR_PIN 61
 #define Y_ENABLE_PIN 56
 
 #define STEPS_PER_REV 200
-#define MICROSTEP_FACTOR 16
+#define MICROSTEP_FACTOR 32
 #define PULLEY_TEETH 20
 #define BELT_PITCH_MM 2.0f
-#define STEPS_PER_MM 80.0f
+#define STEPS_PER_MM 160.0f
 
 #define SPEED_X_US 250
 #define SPEED_Z_US 450
 #define SPEED_Y_US 550
-#define SPEED_HOMING_US 8333
+#define SPEED_HOMING_US 550
 
 #define X_MAX_MM 1300.0f
 #define Z_MAX_MM 1000.0f
@@ -242,8 +248,8 @@ float stepsToMm(long steps)
 // axes.cpp
 // =========================
 
-static const long X_HOMING_MAX_STEPS = 124800L;
-static const long Z_HOMING_MAX_STEPS = 96000L;
+static const long X_HOMING_MAX_STEPS = 249600L;
+static const long Z_HOMING_MAX_STEPS = 192000L;
 
 void axesInitLimitPins(void)
 {
@@ -261,11 +267,11 @@ bool homeX(void)
   {
     stepperStep(motorX, DIR_NEGATIVE, SPEED_HOMING_US);
     steps++;
-    if (steps > X_HOMING_MAX_STEPS)
-    {
-      stepperDisable(motorX);
-      return false;
-    }
+    // if (steps > X_HOMING_MAX_STEPS)
+    // {
+    //   stepperDisable(motorX);
+    //   return false;
+    // }
   }
   motorX.currentSteps = 0;
   stepperDisable(motorX);
@@ -283,11 +289,11 @@ bool homeZ(void)
   {
     stepperStep(motorZ, DIR_NEGATIVE, SPEED_HOMING_US);
     steps++;
-    if (steps > Z_HOMING_MAX_STEPS)
-    {
-      stepperDisable(motorZ);
-      return false;
-    }
+    // if (steps > Z_HOMING_MAX_STEPS)
+    // {
+    //   stepperDisable(motorZ);
+    //   return false;
+    // }
   }
   motorZ.currentSteps = 0;
   stepperDisable(motorZ);
@@ -686,6 +692,8 @@ void setup(void)
     serialSendError("HOMING_FAILED");
   }
 }
+
+//ERR:HOMING_FAILED
 
 void loop(void)
 {

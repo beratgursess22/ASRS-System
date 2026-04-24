@@ -15,9 +15,9 @@
 # define X_ENABLE_PIN 38 // RAMPS X_ENABLE
 # define X_LIMIT_PIN 3  // RAMPS X- (X_MIN)
 
-# define Z_STEP_PIN 46  // RAMPS Z_STEP
-# define Z_DIR_PIN 48   // RAMPS Z_DIR
-# define Z_ENABLE_PIN 62 // RAMPS Z_ENABLE
+# define Z_STEP_PIN 36  // RAMPS E1_STEP (Z ekseni E1 slotuna taşındı)
+# define Z_DIR_PIN 34   // RAMPS E1_DIR  (Z ekseni E1 slotuna taşındı)
+# define Z_ENABLE_PIN 30 // RAMPS E1_ENABLE (Z ekseni E1 slotuna taşındı)
 # define Z_LIMIT_PIN 18 // RAMPS Z- (Z_MIN)
 
 # define Y_STEP_PIN 60   // RAMPS Y_STEP
@@ -25,24 +25,24 @@
 # define Y_ENABLE_PIN 56 // RAMPS Y_ENABLE (Limit switch YOK)
 
 # define STEPS_PER_REV 200   // 1.8° adım açısı → 200 adım/tur
-# define MICROSTEP_FACTOR 16 // A4988 1/16 mikro adım
+# define MICROSTEP_FACTOR 32 // DRV8825 1/32 mikro adım
 # define PULLEY_TEETH 20     // Kasnak diş sayısı
 # define BELT_PITCH_MM 2.0f  // GT2 kayış diş aralığı (mm)
 
-// Teorik değer: (200 * 16) / (20 * 2.0) = 80 adım/mm
-# define STEPS_PER_MM 80.0f
+// Teorik değer: (200 * 32) / (20 * 2.0) = 160 adım/mm
+# define STEPS_PER_MM 160.0f
 
 // HIZ AYARLARI (microsaniye cinsinden adımlar arası gecikme)
 //
 // Formül: delay_us = 1_000_000 / (hız_mm_s * STEPS_PER_MM)
-//   - 5 mm/s  → 1.000.000 / (5  * 80) = 2500 µs
-//   - 3 mm/s  → 1.000.000 / (3  * 80) = 4167 µs (ana hareket hızı)
-//   - 2 mm/s  → 1.000.000 / (2  * 80) = 6250 µs
-//   - 1 mm/s  → 1.000.000 / (1  * 80) = 12500 µs (homing hızı)
+//   - 5 mm/s  → 1.000.000 / (5  * 160) = 1250 µs
+//   - 3 mm/s  → 1.000.000 / (3  * 160) = 2083 µs (ana hareket hızı)
+//   - 2 mm/s  → 1.000.000 / (2  * 160) = 3125 µs
+//   - 1 mm/s  → 1.000.000 / (1  * 160) = 6250 µs (homing hızı)
 
-# define SPEED_NORMAL_US 4167  // Normal hareket: ~3 mm/s
-# define SPEED_SLOW_US 6250    // Yavaş hareket:  ~2 mm/s
-# define SPEED_HOMING_US 12500 // Homing hızı:    ~1 mm/s
+# define SPEED_NORMAL_US 2083  // Normal hareket: ~3 mm/s
+# define SPEED_SLOW_US 3125    // Yavaş hareket:  ~2 mm/s
+# define SPEED_HOMING_US 6250  // Homing hızı:    ~1 mm/s
 
 // EKSENLERİN FİZİKSEL SINIR DEĞERLERİ (mm)
 

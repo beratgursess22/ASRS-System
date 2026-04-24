@@ -1,10 +1,10 @@
 #include "../library/axes.h"
 
 // Homing işleminde beklenen maksimum adım sayısı (güvenlik timeout)
-// X: 1300 mm × 80 adım/mm × 1.2 güvenlik katsayısı ≈ 124800
-// Z:  1000 mm × 80 adım/mm × 1.2 güvenlik katsayısı ≈ 96000
-static const long	X_HOMING_MAX_STEPS = 124800L;
-static const long	Z_HOMING_MAX_STEPS = 96000L;
+// X: 1300 mm × 160 adım/mm × 1.2 güvenlik katsayısı ≈ 249600
+// Z:  1000 mm × 160 adım/mm × 1.2 güvenlik katsayısı ≈ 192000
+static const long	X_HOMING_MAX_STEPS = 249600L;
+static const long	Z_HOMING_MAX_STEPS = 192000L;
 
 void	axesInitLimitPins(void)
 {
