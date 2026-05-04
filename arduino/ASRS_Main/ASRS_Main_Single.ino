@@ -46,25 +46,27 @@
 #define Y_TRAVEL_MM 50.0f
 
 #define SHELF_COLS 4
-#define SHELF_ROWS 6
+#define SHELF_ROWS 3
 
 static const float SHELF_X_POS[SHELF_COLS] = {
-  160.0f,
-  320.0f,
-  480.0f,
-  640.0f
+  250.0f,
+  490.0f,
+  730.0f,
+  970.0f
 };
 
 static const float SHELF_Z_POS[SHELF_ROWS] = {
-  250.0f,
-  500.0f,
-  750.0f
+  110.0f,
+  360.0f,
+  610.0f
 };
 
-#define Z_DROP_LIFT_MM 15.0f
-#define Z_APPROACH_OFFSET_MM 25.0f
-#define ENTRY_PICK_TARGET_Z_MM 250.0f
-#define EXIT_DROP_TARGET_Z_MM 250.0f
+#define CARGO_ENTRY_X_OFFSET_MM 25.0f
+#define CARGO_ENTRY_TARGET_Z_MM 110.0f
+#define PICKUP_BELOW_OFFSET_MM 60.0f
+#define DROP_ABOVE_OFFSET_MM 60.0f
+#define PICKUP_LIFT_MM 100.0f
+#define DROP_DESCEND_MM 100.0f
 
 #define SERIAL_BAUD_RATE 9600
 
@@ -147,8 +149,6 @@ void moveXTo(float targetMm, unsigned int delayUs = SPEED_X_US);
 void moveZTo(float targetMm, unsigned int delayUs = SPEED_Z_US);
 void moveYForward(unsigned int delayUs = SPEED_Y_US);
 void moveYBack(unsigned int delayUs = SPEED_Y_US);
-void zDropDown(void);
-void zLiftUp(void);
 float getCurrentX(void);
 float getCurrentZ(void);
 
@@ -267,11 +267,6 @@ bool homeX(void)
   {
     stepperStep(motorX, DIR_NEGATIVE, SPEED_HOMING_US);
     steps++;
-    // if (steps > X_HOMING_MAX_STEPS)
-    // {
-    //   stepperDisable(motorX);
-    //   return false;
-    // }
   }
   motorX.currentSteps = 0;
   stepperDisable(motorX);
@@ -289,11 +284,6 @@ bool homeZ(void)
   {
     stepperStep(motorZ, DIR_NEGATIVE, SPEED_HOMING_US);
     steps++;
-    // if (steps > Z_HOMING_MAX_STEPS)
-    // {
-    //   stepperDisable(motorZ);
-    //   return false;
-    // }
   }
   motorZ.currentSteps = 0;
   stepperDisable(motorZ);
@@ -392,27 +382,6 @@ void moveYBack(unsigned int delayUs)
   delay(100);
 }
 
-void zDropDown(void)
-{
-  long steps;
-
-  steps = mmToSteps(Z_DROP_LIFT_MM);
-  stepperMoveSteps(motorZ, steps, DIR_NEGATIVE, SPEED_Z_US);
-  motorZ.currentSteps -= steps;
-  stepperDisable(motorZ);
-  delay(100);
-}
-
-void zLiftUp(void)
-{
-  long steps;
-
-  steps = mmToSteps(Z_DROP_LIFT_MM);
-  stepperMoveSteps(motorZ, steps, DIR_POSITIVE, SPEED_Z_US);
-  stepperDisable(motorZ);
-  delay(100);
-}
-
 float getCurrentX(void)
 {
   return stepsToMm(motorX.currentSteps);
@@ -427,21 +396,10 @@ float getCurrentZ(void)
 // operations.cpp
 // =========================
 
-static float approachBelow(float targetZ)
+static float clampZ(float z)
 {
-  float z;
-
-  z = targetZ - Z_APPROACH_OFFSET_MM;
   if (z < 0.0f)
     return 0.0f;
-  return z;
-}
-
-static float approachAbove(float targetZ)
-{
-  float z;
-
-  z = targetZ + Z_APPROACH_OFFSET_MM;
   if (z > Z_MAX_MM)
     return Z_MAX_MM;
   return z;
@@ -466,8 +424,8 @@ bool storePackage(uint8_t col, uint8_t row)
 {
   float targetX;
   float targetZ;
-  float entryApproachZ;
-  float shelfApproachZ;
+  float cargoPickupStartZ;
+  float shelfDropStartZ;
 
   if (!isValidShelfPosition(col, row))
     return false;
@@ -476,20 +434,22 @@ bool storePackage(uint8_t col, uint8_t row)
 
   targetX = SHELF_X_POS[col];
   targetZ = SHELF_Z_POS[row];
-  entryApproachZ = approachBelow(ENTRY_PICK_TARGET_Z_MM);
-  shelfApproachZ = approachAbove(targetZ);
+  cargoPickupStartZ = clampZ(CARGO_ENTRY_TARGET_Z_MM - PICKUP_BELOW_OFFSET_MM);
+  shelfDropStartZ = clampZ(targetZ + DROP_ABOVE_OFFSET_MM);
 
-  moveZTo(entryApproachZ);
+  // Kargo girisinden alma: home noktasindan X ekseninde 2.5 cm sola kay.
+  moveXTo(CARGO_ENTRY_X_OFFSET_MM);
+  moveZTo(cargoPickupStartZ);
   moveYForward();
-  moveZTo(ENTRY_PICK_TARGET_Z_MM);
+  moveZTo(cargoPickupStartZ + PICKUP_LIFT_MM);
   moveYBack();
 
   moveXTo(targetX);
 
-  moveZTo(shelfApproachZ);
-
+  // Rafa birakma: hedefin 6 cm ustunde bekleyip 10 cm asagi in.
+  moveZTo(shelfDropStartZ);
   moveYForward();
-  moveZTo(targetZ);
+  moveZTo(shelfDropStartZ - DROP_DESCEND_MM);
   moveYBack();
 
   if (!homeAll())
@@ -503,33 +463,40 @@ bool retrievePackage(uint8_t col, uint8_t row)
 {
   float targetX;
   float targetZ;
-  float shelfApproachZ;
-  float exitApproachZ;
+  float shelfPickupStartZ;
+  float safeTransitZ;
+  float cargoDropStartZ;
 
   if (!isValidShelfPosition(col, row))
+    return false;
+  if (!homeAll())
     return false;
 
   targetX = SHELF_X_POS[col];
   targetZ = SHELF_Z_POS[row];
-  shelfApproachZ = approachBelow(targetZ);
-  exitApproachZ = approachAbove(EXIT_DROP_TARGET_Z_MM);
+  shelfPickupStartZ = clampZ(targetZ - PICKUP_BELOW_OFFSET_MM);
+  safeTransitZ = clampZ(CARGO_ENTRY_TARGET_Z_MM - PICKUP_BELOW_OFFSET_MM);
+  cargoDropStartZ = clampZ(CARGO_ENTRY_TARGET_Z_MM + DROP_ABOVE_OFFSET_MM);
 
   moveXTo(targetX);
-  moveZTo(shelfApproachZ);
+  moveZTo(shelfPickupStartZ);
 
+  // Raftan alma: hedefin 6 cm altindan yaklasip 10 cm yukari cikar.
   moveYForward();
-  moveZTo(targetZ);
+  moveZTo(shelfPickupStartZ + PICKUP_LIFT_MM);
   moveYBack();
 
-  if (!homeX())
-    return false;
+  // Raf yamuklugu nedeniyle: once Z'yi guvenli dusuk seviyeye indir, sonra X hareket etsin.
+  moveZTo(safeTransitZ);
 
-  moveZTo(exitApproachZ);
+  // Kargo girisine birakma: X'te 2.5 cm sola kay.
+  moveXTo(CARGO_ENTRY_X_OFFSET_MM);
+  moveZTo(cargoDropStartZ);
   moveYForward();
-  moveZTo(EXIT_DROP_TARGET_Z_MM);
+  moveZTo(cargoDropStartZ - DROP_DESCEND_MM);
   moveYBack();
 
-  if (!homeZ())
+  if (!homeAll())
     return false;
 
   allSteppersDisable();
