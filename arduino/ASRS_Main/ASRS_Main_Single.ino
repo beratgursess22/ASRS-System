@@ -39,7 +39,7 @@
 #define SPEED_X_US 250
 #define SPEED_Z_US 450
 #define SPEED_Y_US 550
-#define SPEED_HOMING_US 550
+#define SPEED_HOMING_US 450
 
 #define X_MAX_MM 1300.0f
 #define Z_MAX_MM 1000.0f
@@ -61,7 +61,7 @@ static const float SHELF_Z_POS[SHELF_ROWS] = {
   610.0f
 };
 
-#define CARGO_ENTRY_X_OFFSET_MM 25.0f
+#define CARGO_ENTRY_X_OFFSET_MM 17.0f
 #define CARGO_ENTRY_TARGET_Z_MM 110.0f
 #define PICKUP_BELOW_OFFSET_MM 60.0f
 #define DROP_ABOVE_OFFSET_MM 60.0f
