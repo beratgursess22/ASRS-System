@@ -43,7 +43,7 @@
 
 #define X_MAX_MM 1300.0f
 #define Z_MAX_MM 1000.0f
-#define Y_TRAVEL_MM 50.0f
+#define Y_TRAVEL_MM 75.0f
 
 #define SHELF_COLS 4
 #define SHELF_ROWS 3
@@ -67,6 +67,7 @@ static const float SHELF_Z_POS[SHELF_ROWS] = {
 #define DROP_ABOVE_OFFSET_MM 60.0f
 #define PICKUP_LIFT_MM 100.0f
 #define DROP_DESCEND_MM 100.0f
+#define DROP_DESCEND_HELP_ME_MM 20.0f
 
 #define SERIAL_BAUD_RATE 9600
 
@@ -441,15 +442,16 @@ bool storePackage(uint8_t col, uint8_t row)
   moveXTo(CARGO_ENTRY_X_OFFSET_MM);
   moveZTo(cargoPickupStartZ);
   moveYForward();
-  moveZTo(cargoPickupStartZ + PICKUP_LIFT_MM);
+  moveZTo(PICKUP_LIFT_MM); // 1. 
   moveYBack();
 
   moveXTo(targetX);
 
   // Rafa birakma: hedefin 6 cm ustunde bekleyip 10 cm asagi in.
-  moveZTo(shelfDropStartZ);
+
+  moveZTo(shelfDropStartZ - 60.0f); // 1. hedefin 5 cm ustunde bekle
   moveYForward();
-  moveZTo(shelfDropStartZ - DROP_DESCEND_MM);
+  moveZTo(shelfDropStartZ - DROP_DESCEND_MM - DROP_DESCEND_HELP_ME_MM );
   moveYBack();
 
   if (!homeAll())
@@ -490,10 +492,10 @@ bool retrievePackage(uint8_t col, uint8_t row)
   moveZTo(safeTransitZ);
 
   // Kargo girisine birakma: X'te 2.5 cm sola kay.
-  moveXTo(CARGO_ENTRY_X_OFFSET_MM);
-  moveZTo(cargoDropStartZ);
+  moveXTo(CARGO_ENTRY_X_OFFSET_MM );
+  moveZTo(cargoDropStartZ - 60.0f);
   moveYForward();
-  moveZTo(cargoDropStartZ - DROP_DESCEND_MM);
+  moveZTo(cargoDropStartZ - DROP_DESCEND_MM - DROP_DESCEND_HELP_ME_MM);
   moveYBack();
 
   if (!homeAll())
