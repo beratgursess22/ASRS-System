@@ -195,6 +195,8 @@ Veritabani guncellemek icin:
 dotnet ef database update --project ASRS.DAL --startup-project ASRS.Web
 ```
 
+<img width="810" height="604" alt="Screenshot 2026-05-24 at 18 06 40" src="https://github.com/user-attachments/assets/3229c2ba-be49-4ea5-80ad-241b6f494e6d" />
+
 ## Calistirma
 
 Cozumu derlemek icin:
