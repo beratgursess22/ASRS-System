@@ -6,26 +6,6 @@ ASRS-System, ERP yonetimi ile fiziksel otomatik depolama ve geri alma mekanizmas
 
 Bu proje; urun, malzeme, BOM, is emri, satin alma, tedarikci, kalite kontrol ve ASRS raf operasyonlarini tek merkezden yonetmek icin gelistirildi. ERP tarafi karar ve kayit merkezidir; Arduino fiziksel hareketleri uygular; Raspberry Pi ise RFID okuyucu ile API arasinda kopru gorevi gorur.
 
-## Genel Mimari
-
-```text
-RFID Kart
-   |
-   v
-Raspberry Pi + MFRC522
-   |
-   | HTTP POST /api/asrs/rfid-scan
-   v
-ASRS.API + MySQL
-   |
-   | AsrsCommand kuyrugu
-   v
-Arduino Mega + RAMPS + Step Motorlar
-   |
-   v
-3x4 ASRS Raf Mekanizmasi
-```
-
 ## Ana Klasorler
 
 ```text
