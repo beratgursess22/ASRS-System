@@ -182,9 +182,6 @@ Arduino'dan gelen `BUSY`, `OK:*`, `ERR:*` ve `READY` cevaplarina gore `AsrsComma
 
 Veritabani MySQL uzerindedir. Varsayilan connection string `appsettings.json` icinden okunur. API tarafinda connection string bulunamazsa kodda fallback olarak su deger kullanilir:
 
-```text
-Server=localhost;Database=asrs_db;User=root;Password=123456;
-```
 
 Migration dosyalari:
 
