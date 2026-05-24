@@ -31,11 +31,8 @@ ERP-ASRS/
 
 ## Layered Architecture
 
-```text
-ASRS.Web --\
-            +-- ASRS.BLL -- ASRS.DAL -- ASRS.Core
-ASRS.API --/
-```
+<img width="656" height="618" alt="Screenshot 2026-05-24 at 18 00 59" src="https://github.com/user-attachments/assets/f6fc7d7b-df61-4a3c-b336-0c71c73cf7fd" />
+
 
 `ASRS.Web` and `ASRS.API` use business rules through the BLL layer. Database access is centralized in the DAL layer. The Core layer contains the shared domain models and contracts.
 
@@ -183,21 +180,8 @@ Arduino responses such as `BUSY`, `OK:*`, `ERR:*`, and `READY` are used to updat
 
 The database runs on MySQL. Connection strings are read from `appsettings.json`. If the API connection string is missing, the code falls back to:
 
-```text
-Server=localhost;Database=asrs_db;User=root;Password=123456;
-```
+<img width="810" height="604" alt="Screenshot 2026-05-24 at 18 06 40" src="https://github.com/user-attachments/assets/b300ab14-30e8-4c1c-aa25-8c925ee75edf" />
 
-Migration files are located in:
-
-```text
-ASRS.DAL/Migrations/
-```
-
-Apply migrations:
-
-```bash
-dotnet ef database update --project ASRS.DAL --startup-project ASRS.Web
-```
 
 ## Running
 
