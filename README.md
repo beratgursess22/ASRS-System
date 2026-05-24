@@ -59,7 +59,7 @@ The PDF report is available at `docs/SmartRack_FinalReport.pdf`.
 
 ## System Workflow
 
-<img width="819" height="533" alt="Screenshot 2026-05-24 at 18 51 57" src="https://github.com/user-attachments/assets/a80ff730-2564-4ff9-8f19-513cf2c4a643" />
+<img width="793" height="529" alt="Screenshot 2026-05-24 at 18 53 10" src="https://github.com/user-attachments/assets/b597d63e-039d-4593-a2d9-236eaceb679d" />
 
 
 ## Technology Stack
