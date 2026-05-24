@@ -1,0 +1,167 @@
+# SmartRack Proje Raporu
+
+Bu klasor, SmartRack AS/RS projesinin tam final raporunu icerir. Rapor, otomatik depolama ve geri alma sistemi prototipinin mekanik tasarimini, gomulu sistem mimarisini, ERP yazilim katmanini, RFID entegrasyonunu ve endustri muhendisligi analizlerini birlikte aciklar.
+
+## Raporu Goruntule
+
+- [SmartRack Final Report PDF](./SmartRack_FinalReport.pdf)
+
+## Rapor Bilgileri
+
+- Baslik: SmartRack: a Smart Automated Storage and Retrieval System (AS/RS)
+- Rapor turu: Capstone Project Final Report
+- Sayfa sayisi: 104
+- Tarih: Mayis 2026
+- Ogrenciler: Asude Hazal Peker, Duygu Kudat, Ibrahim Berat Gurses
+- Danismanlar: Assoc. Prof. Saliha Karadayi Usta, Asst. Prof. Husamettin Osmanoglu
+
+## Kisa Ozet
+
+SmartRack, manuel depo operasyonlarindaki is gucu bagimliligi, hatali yerlestirme/geri alma, dusuk izlenebilirlik ve gereksiz malzeme hareketi problemlerini azaltmak icin gelistirilmis dusuk maliyetli bir AS/RS prototipidir.
+
+Sistem; 3x4 raf yapisi, uc eksenli hareket mekanizmasi, RFID tabanli kimliklendirme, Arduino Mega ve RAMPS 1.6 ile motor kontrolu, Raspberry Pi ile RFID/komunikasyon katmani, MySQL veritabani ve ASP.NET Core MVC tabanli ERP arayuzunden olusur.
+
+## Sistem Kapsami
+
+Raporda sistem su ana basliklarla incelenir:
+
+- Manuel depo sistemlerindeki problemler ve AS/RS ihtiyaci
+- Literaturde AS/RS, slotting, enerji, otomasyon ve depo yonetimi yaklasimlari
+- SmartRack mekanik tasarimi ve 3x4 raf prototipi
+- X, Y ve Z eksenli hareket sistemi
+- Arduino Mega, RAMPS 1.6, DRV8825, NEMA 17 motorlar ve limit switch yapisi
+- Raspberry Pi ve MFRC522 RFID okuyucu ile UID okuma
+- ERP, REST API, MySQL veritabani ve komut kuyrugu mimarisi
+- STORE ve RETRIEVE operasyon akislari
+- Endustri muhendisligi analizleri ve proje sonuclari
+
+## Donanim ve Yazilim Ozeti
+
+Mekanik prototip 130 cm uzunluk, 100 cm yukseklik ve 25 cm derinlikte tasarlanmistir. Raf sistemi 4 sutun ve 3 kat olmak uzere toplam 12 hucreden olusur. Raf araliklari yatay ve dikey olarak 25 cm olacak sekilde planlanmistir.
+
+Hareket sistemi:
+
+- X ekseni: yatay raf konumlandirma
+- Z ekseni: dikey kat konumlandirma
+- Y ekseni: paketi rafa itme veya raftan alma
+
+Kontrol sistemi:
+
+- Arduino Mega 2560 dusuk seviyeli step motor kontrolunu yapar.
+- RAMPS 1.6 ve DRV8825 suruculer motorlari yonetir.
+- Raspberry Pi RFID okuma ve ust seviye haberlesme gorevini ustlenir.
+- ERP/API katmani komut uretir, veritabani kayitlarini tutar ve sistemi izler.
+
+## Endustri Muhendisligi Analizleri
+
+Rapor sadece teknik prototipi degil, sistemin endustriyel uygulanabilirligini de analiz eder.
+
+### ABC-Pareto Slotting Analizi
+
+ABC analizi, urunlerin geri alma talep frekansina gore raf yerlesimini optimize etmek icin kullanilmistir. Sonuclara gore:
+
+- A sinifi urunler en yuksek operasyonel talebe sahiptir.
+- A segmenti toplam 18,875 talep birimi uretmistir.
+- B segmenti 5,710 talep birimi, C segmenti 1,100 talep birimi uretmistir.
+- Yuksek frekansli A urunleri giris/cikis noktasina daha yakin hucrelere atanmalidir.
+
+Bu yaklasim seyahat mesafesini, islem suresini ve gereksiz enerji tuketimini azaltmayi hedefler.
+
+### AHP Performans Degerlendirmesi
+
+AHP yontemi, SmartRack ile forklift tabanli geleneksel depo yaklasimini performans kriterleri uzerinden karsilastirmak icin kullanilmistir.
+
+Degerlendirilen kriterler:
+
+- Retrieval & Storage Speed
+- Accuracy
+- Safety
+- Cost Efficiency
+- Energy Efficiency
+
+Rapor sonucuna gore Retrieval & Storage Speed ve Safety en kritik kriterler arasindadir. Tutarlilik orani kabul edilebilir sinir olan 0.10'un altinda kaldigi icin AHP karsilastirmalari tutarli kabul edilmistir.
+
+### Maliyet-Fayda ve Geri Odeme Analizi
+
+Cost-benefit ve payback analizinde CAPEX, OPEX, is gucu ihtiyaci, bakim maliyeti, operasyonel tasarruf ve uzun vadeli ekonomik uygunluk birlikte incelenmistir.
+
+One cikan sonuclar:
+
+- SmartRack, forklift tabanli yapiya gore daha dusuk yillik operasyon maliyeti sunar.
+- Otomasyon is gucu bagimliligini azaltir.
+- Is gucu ihtiyaci 10 operatorden 2 operatore dusurulerek yaklasik %80 is gucu tasarrufu saglanabilecegi hesaplanmistir.
+- Benefit-Cost Ratio degeri 1'in uzerindedir.
+- Tahmini geri odeme suresi yaklasik 2 yildir.
+
+### Karbon Ayak Izi Analizi
+
+Karbon ayak izi analizi, LPG forklift, elektrikli forklift ve Smart AS/RS alternatiflerini 10 yillik isletim donemi icin karsilastirir.
+
+Sonuclar:
+
+- LPG forklift: 428.56 ton CO2
+- Elektrikli forklift basit hesap: 140.24 ton CO2
+- Elektrikli forklift batarya/sarj kayiplari dahil: 311.64 ton CO2
+- Smart AS/RS dogrudan operasyonel karbon ayak izi: 39.62 ton CO2
+- Smart AS/RS isitma etkisi dahil kismi toplam: 189.36 ton CO2
+
+Bu sonuclar, Smart AS/RS yapisinin dogrudan operasyonel emisyon acisindan en dusuk karbon ayak izine sahip alternatif oldugunu gosterir.
+
+### FMEA Risk Analizi
+
+FMEA, sistemdeki olasi hata modlarini onceliklendirmek icin kullanilmistir. Severity, Occurrence ve Detection degerleri ile RPN hesaplanmistir.
+
+En kritik riskler:
+
+- Nesne yerlestirme sirasinda hatali konumlandirma: RPN 100
+- Z ekseni / shuttle hareket problemi: RPN 100
+- Controller haberlesme problemi: RPN 54
+- Raf yapisal stabilitesi: RPN 50
+- X ve Y ekseni hareket kontrol riskleri: RPN 48
+
+Rapor, ozellikle kalibrasyon, limit switch kontrolu, hareket testleri ve duzenli mekanik denetimi oncelikli iyilestirme alanlari olarak belirtir.
+
+## Test ve Sonuclar
+
+Raporun test sonuclari, SmartRack prototipinin otonom depolama ve geri alma islemlerini prototip olceginde basarili sekilde gerceklestirdigini gosterir.
+
+Dogrulanan alanlar:
+
+- Mekanik raf ve shuttle hareketi
+- Arduino Mega, RAMPS 1.6 ve DRV8825 tabanli motor kontrolu
+- X/Z homing mekanizmasi
+- RFID UID okuma ve ERP ile eslestirme
+- Limit switch geri bildirimi
+- STORE ve RETRIEVE komut akislari
+- ERP dashboard ile raf doluluk takibi
+- MySQL veritabani ve komut kuyrugu
+- REST API uzerinden sistem entegrasyonu
+
+## Sinirlamalar
+
+Rapor, prototipin bazi sinirlarini da belirtir:
+
+- Sistem endustriyel olcekte agir yuk ve surekli calisma kosullarinda test edilmemistir.
+- Y ekseninde titresim, Z ekseninde yer yer asagi kayma ve kayis atlama problemleri gozlemlenmistir.
+- Sistem yerel ve kontrollu ag ortaminda test edilmistir.
+- Yapay zeka destekli rota optimizasyonu, tahmine dayali bakim ve gelismis envanter tahmini bu kapsamda uygulanmamistir.
+- Endustri hesaplamalari prototip olcegindeki varsayimlara ve sinirli uzun donem veriye dayanmaktadir.
+
+## Gelecek Gelistirmeler
+
+Raporda onerilen gelecek calismalar:
+
+- Daha guclu mekanik yapi ve endustriyel motorlar
+- Daha yuksek tasima kapasiteli raf sistemi
+- Ayrilmis giris ve cikis noktalari
+- Konveyor destekli urun giris/cikis yapisi
+- Y ekseni ve sinir noktalarina ek sensorler
+- PLC tabanli endustriyel kontrol mimarisi
+- Es zamanli X/Z eksen hareketi
+- Kamera ve goruntu isleme ile raf doluluk dogrulama
+- Bulut tabanli izleme ve uzaktan erisim
+- AI tabanli slotting, rota optimizasyonu ve predictive maintenance
+
+## Sonuc
+
+SmartRack raporu, projenin yalnizca calisan bir teknik prototip olmadigini; ayni zamanda operasyonel, ekonomik, cevresel ve risk yonetimi acisindan olculebilir bir depo otomasyon cozumunu temsil ettigini ortaya koyar. Sistem, Industry 4.0 yaklasimina uygun olarak RFID, gomulu otomasyon, ERP destekli envanter yonetimi ve analitik karar verme yontemlerini tek prototipte birlestirir.

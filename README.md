@@ -47,6 +47,15 @@ Raspberry Pi tarafi, MFRC522 RFID okuyucudan UID okur ve bu bilgiyi ASRS.API tar
 
 Detay: [raspberry/README.md](./raspberry/README.md)
 
+## Proje Raporu
+
+Projenin tam teknik raporu `docs/` klasoru altinda tutulur. Rapor PDF dosyasi eklendiginde asagidaki sayfadan goruntulenebilir:
+
+- [Proje Raporu Sayfasi](./docs/README.md)
+- [SmartRack Final Report PDF](./docs/SmartRack_FinalReport.pdf)
+
+PDF rapor dosyasi `docs/SmartRack_FinalReport.pdf` yolu altindadir.
+
 ## Calisma Akisi
 
 1. Kullanici veya fiziksel operator RFID karti okutur.
