@@ -153,8 +153,8 @@ When `STORE:<col>:<row>` is received:
 7. The Y axis places the package into the rack.
 8. Arduino returns `OK:STORE_DONE` on success or `ERR:*` on failure
 
-<img width="571" height="453" alt="Screenshot 2026-05-24 at 18 04 35" src="https://github.com/user-attachments/assets/a937e36b-5ed1-42bc-b826-01ba9c9faaf2" />
 
+<img width="562" height="535" alt="Screenshot 2026-05-24 at 18 04 41" src="https://github.com/user-attachments/assets/6c57ae05-2c5f-4bbb-9692-06b8d03069fb" />
 
 ## RETRIEVE Flow
 
@@ -167,7 +167,8 @@ When `RETRIEVE:<col>:<row>` is received:
 5. The package is moved to the exit/drop-off point.
 6. Arduino returns `OK:RETRIEVE_DONE` on success or `ERR:*` on failure.
 
-<img width="562" height="535" alt="Screenshot 2026-05-24 at 18 04 41" src="https://github.com/user-attachments/assets/6c57ae05-2c5f-4bbb-9692-06b8d03069fb" />
+<img width="571" height="453" alt="Screenshot 2026-05-24 at 18 04 35" src="https://github.com/user-attachments/assets/a937e36b-5ed1-42bc-b826-01ba9c9faaf2" />
+
 
 
 ## Development Notes
