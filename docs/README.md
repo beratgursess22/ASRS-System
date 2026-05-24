@@ -70,6 +70,10 @@ Main results:
 
 This approach aims to reduce travel distance, operation time, and unnecessary energy consumption.
 
+<img width="321" height="193" alt="Screenshot 2026-05-24 at 18 16 06" src="https://github.com/user-attachments/assets/000b0e53-b6e9-40b8-9d58-3eb68fbf5827" />
+<img width="320" height="187" alt="Screenshot 2026-05-24 at 18 16 16" src="https://github.com/user-attachments/assets/2302b0cc-c4c4-4528-ad4c-c58794cf1dde" />
+<img width="422" height="128" alt="Screenshot 2026-05-24 at 18 16 10" src="https://github.com/user-attachments/assets/77ff729a-8157-492c-bab6-316b5a112f0b" />
+
 ### AHP Performance Evaluation
 
 AHP was used to compare SmartRack with a conventional forklift-based warehouse approach.
@@ -84,6 +88,10 @@ Evaluation criteria:
 
 The report concludes that retrieval/storage speed and safety are among the most critical criteria. The consistency ratio stayed below the acceptable 0.10 threshold, so the AHP comparisons were considered consistent.
 
+<img width="150" height="97" alt="Screenshot 2026-05-24 at 18 17 44" src="https://github.com/user-attachments/assets/d81a059a-9f6b-4226-a9f9-bb8c33f69118" />
+<img width="168" height="133" alt="Screenshot 2026-05-24 at 18 17 39" src="https://github.com/user-attachments/assets/b13ca69c-8033-46fb-9973-b2d53610de25" />
+<img width="417" height="127" alt="Screenshot 2026-05-24 at 18 17 35" src="https://github.com/user-attachments/assets/b837a34c-66c8-40d8-a8b3-19448aad72cd" />
+
 ### Cost-Benefit and Payback Analysis
 
 The cost-benefit and payback analysis considered CAPEX, OPEX, labor requirements, maintenance cost, operational savings, and long-term feasibility.
@@ -95,6 +103,12 @@ Key findings:
 - Labor requirement can be reduced from 10 operators to 2 operators, corresponding to approximately 80% labor savings.
 - The Benefit-Cost Ratio is greater than 1.
 - The estimated payback period is approximately 2 years.
+
+<img width="700" height="517" alt="Screenshot 2026-05-24 at 18 18 30" src="https://github.com/user-attachments/assets/1a5742b7-621b-4d6d-ae01-ee18ac5906db" />
+<img width="819" height="193" alt="Screenshot 2026-05-24 at 18 18 35" src="https://github.com/user-attachments/assets/695dadea-47d8-4ccf-8a64-54691acfddf8" />
+<img width="358" height="383" alt="Screenshot 2026-05-24 at 18 18 42" src="https://github.com/user-attachments/assets/aa634cf2-434e-49a6-9c81-a8eae6407ace" />
+<img width="819" height="114" alt="Screenshot 2026-05-24 at 18 18 52" src="https://github.com/user-attachments/assets/311e5f04-91b5-4a84-8b67-b68a09f9c69a" />
+<img width="478" height="363" alt="Screenshot 2026-05-24 at 18 18 56" src="https://github.com/user-attachments/assets/f6b50f47-78f7-4ae7-a86d-10f173a6a365" />
 
 ### Carbon Footprint Analysis
 
@@ -110,6 +124,9 @@ Results:
 
 These results show that Smart AS/RS has the lowest direct operational carbon footprint among the compared alternatives.
 
+<img width="586" height="426" alt="Screenshot 2026-05-24 at 18 20 05" src="https://github.com/user-attachments/assets/84de3327-b1fd-4e98-ac6a-7752f0f9aac9" />
+<img width="813" height="417" alt="Screenshot 2026-05-24 at 18 20 12" src="https://github.com/user-attachments/assets/b14cb20f-e3ec-4746-9f20-96b6d23e6513" />
+
 ### FMEA Risk Analysis
 
 FMEA was used to prioritize possible failure modes. Risk Priority Number (RPN) was calculated using Severity, Occurrence, and Detection values.
@@ -123,6 +140,8 @@ Most critical risks:
 - X and Y axis motion-control risks: RPN 48
 
 The report identifies calibration, limit-switch control, movement testing, and regular mechanical inspection as priority improvement areas.
+
+<img width="606" height="502" alt="Screenshot 2026-05-24 at 18 20 18" src="https://github.com/user-attachments/assets/25bdc6c6-faf7-48ce-b81b-452576f9edf3" />
 
 ## Testing and Results
 
