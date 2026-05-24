@@ -59,14 +59,8 @@ The PDF report is available at `docs/SmartRack_FinalReport.pdf`.
 
 ## System Workflow
 
-1. An operator scans an RFID card.
-2. `raspberry/rfid_bridge.py` sends the card UID to `ASRS.API`.
-3. The API normalizes the UID and looks up the active mapping in `RfidRackMaps`.
-4. If the mapped rack cell is empty, the API creates a `Store` command in `AsrsCommands`.
-5. If `AsrsSerialWorker` is enabled, the API sends the command directly to Arduino through serial communication.
-6. Alternatively, a Raspberry Pi pull-based bridge can retrieve queued commands from `/api/asrs/commands/next`.
-7. Arduino executes the command and returns `BUSY`, `OK:*`, or `ERR:*`.
-8. The API updates the command status and rack occupancy information.
+<img width="819" height="533" alt="Screenshot 2026-05-24 at 18 51 57" src="https://github.com/user-attachments/assets/a80ff730-2564-4ff9-8f19-513cf2c4a643" />
+
 
 ## Technology Stack
 
