@@ -107,6 +107,8 @@ One cikan sonuclar:
 <img width="819" height="193" alt="Screenshot 2026-05-24 at 18 18 35" src="https://github.com/user-attachments/assets/695dadea-47d8-4ccf-8a64-54691acfddf8" />
 <img width="358" height="383" alt="Screenshot 2026-05-24 at 18 18 42" src="https://github.com/user-attachments/assets/aa634cf2-434e-49a6-9c81-a8eae6407ace" />
 <img width="819" height="114" alt="Screenshot 2026-05-24 at 18 18 52" src="https://github.com/user-attachments/assets/311e5f04-91b5-4a84-8b67-b68a09f9c69a" />
+<img width="478" height="363" alt="Screenshot 2026-05-24 at 18 18 56" src="https://github.com/user-attachments/assets/f6b50f47-78f7-4ae7-a86d-10f173a6a365" />
+
 
 ### Karbon Ayak Izi Analizi
 
@@ -122,6 +124,9 @@ Sonuclar:
 
 Bu sonuclar, Smart AS/RS yapisinin dogrudan operasyonel emisyon acisindan en dusuk karbon ayak izine sahip alternatif oldugunu gosterir.
 
+<img width="586" height="426" alt="Screenshot 2026-05-24 at 18 20 05" src="https://github.com/user-attachments/assets/84de3327-b1fd-4e98-ac6a-7752f0f9aac9" />
+<img width="813" height="417" alt="Screenshot 2026-05-24 at 18 20 12" src="https://github.com/user-attachments/assets/b14cb20f-e3ec-4746-9f20-96b6d23e6513" />
+
 ### FMEA Risk Analizi
 
 FMEA, sistemdeki olasi hata modlarini onceliklendirmek icin kullanilmistir. Severity, Occurrence ve Detection degerleri ile RPN hesaplanmistir.
@@ -135,6 +140,8 @@ En kritik riskler:
 - X ve Y ekseni hareket kontrol riskleri: RPN 48
 
 Rapor, ozellikle kalibrasyon, limit switch kontrolu, hareket testleri ve duzenli mekanik denetimi oncelikli iyilestirme alanlari olarak belirtir.
+
+<img width="606" height="502" alt="Screenshot 2026-05-24 at 18 20 18" src="https://github.com/user-attachments/assets/25bdc6c6-faf7-48ce-b81b-452576f9edf3" />
 
 ## Test ve Sonuclar
 
