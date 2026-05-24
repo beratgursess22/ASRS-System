@@ -91,11 +91,6 @@ Rapor sonucuna gore Retrieval & Storage Speed ve Safety en kritik kriterler aras
 <img width="417" height="127" alt="Screenshot 2026-05-24 at 18 17 35" src="https://github.com/user-attachments/assets/b837a34c-66c8-40d8-a8b3-19448aad72cd" />
 
 
-
-
-
-
-
 ### Maliyet-Fayda ve Geri Odeme Analizi
 
 Cost-benefit ve payback analizinde CAPEX, OPEX, is gucu ihtiyaci, bakim maliyeti, operasyonel tasarruf ve uzun vadeli ekonomik uygunluk birlikte incelenmistir.
@@ -107,6 +102,11 @@ One cikan sonuclar:
 - Is gucu ihtiyaci 10 operatorden 2 operatore dusurulerek yaklasik %80 is gucu tasarrufu saglanabilecegi hesaplanmistir.
 - Benefit-Cost Ratio degeri 1'in uzerindedir.
 - Tahmini geri odeme suresi yaklasik 2 yildir.
+
+<img width="700" height="517" alt="Screenshot 2026-05-24 at 18 18 30" src="https://github.com/user-attachments/assets/1a5742b7-621b-4d6d-ae01-ee18ac5906db" />
+<img width="819" height="193" alt="Screenshot 2026-05-24 at 18 18 35" src="https://github.com/user-attachments/assets/695dadea-47d8-4ccf-8a64-54691acfddf8" />
+<img width="358" height="383" alt="Screenshot 2026-05-24 at 18 18 42" src="https://github.com/user-attachments/assets/aa634cf2-434e-49a6-9c81-a8eae6407ace" />
+<img width="819" height="114" alt="Screenshot 2026-05-24 at 18 18 52" src="https://github.com/user-attachments/assets/311e5f04-91b5-4a84-8b67-b68a09f9c69a" />
 
 ### Karbon Ayak Izi Analizi
 
