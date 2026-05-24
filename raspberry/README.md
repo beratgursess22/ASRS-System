@@ -1,51 +1,51 @@
 # Raspberry Pi RFID Bridge
 
-Bu klasor, MFRC522 RFID okuyucu ile ERP-ASRS API arasinda calisan Python bridge uygulamasini icerir. Raspberry Pi'nin temel gorevi RFID kart UID bilgisini okumak ve API tarafina bildirmektir.
+This folder contains the Python bridge application that connects an MFRC522 RFID reader to the ERP-ASRS API. The Raspberry Pi reads card UIDs and reports them to the API.
 
-## Kullanilan Teknolojiler
+## Technologies
 
 - Python 3
-- MFRC522 RFID okuyucu
+- MFRC522 RFID reader
 - Raspberry Pi GPIO
 - `requests`
 - `mfrc522`
 - `RPi.GPIO`
-- systemd servis yapisi
+- systemd service
 
-## Klasor Yapisi
+## Folder Structure
 
 ```text
 raspberry/
-|-- rfid_bridge.py              # RFID okuma ve API'ye POST gonderme uygulamasi
-|-- requirements.txt            # Python bagimliliklari
-`-- asrs-rfid-bridge.service    # systemd servis tanimi
+|-- rfid_bridge.py              # RFID reader loop and API POST client
+|-- requirements.txt            # Python dependencies
+`-- asrs-rfid-bridge.service    # systemd service definition
 ```
 
-## Sistem Icindeki Gorevi
+## Role in the System
 
 Raspberry Pi:
 
-- MFRC522 okuyucuyu baslatir.
-- RFID kart okutulunca UID bilgisini okur.
-- 5 byte UID donen kartlarda BCC byte'ini ayiklar.
-- UID bilgisini hex formatinda API'ye gonderir.
-- Ayni kartin cok kisa surede tekrar gonderilmesini engeller.
-- Hata ve basari loglarini stdout uzerinden yazar.
-- Servis kapanirken GPIO temizligi yapar.
+- Initializes the MFRC522 RFID reader.
+- Reads RFID card UIDs.
+- Removes the BCC byte when 5-byte UID responses contain a 4-byte UID plus checksum.
+- Sends the UID to the API in hexadecimal format.
+- Prevents repeated sends of the same card within a short cooldown window.
+- Writes success and error logs to stdout.
+- Cleans up GPIO on shutdown.
 
-Karar mekanizmasi API/ERP tarafindadir. Raspberry Pi mevcut kodda sadece RFID okuma ve HTTP POST gorevini yapar.
+The API/ERP layer makes the storage decision. In the current implementation, the Raspberry Pi bridge only handles RFID reading and HTTP POST communication.
 
-## Ana Uygulama
+## Main Application
 
-`rfid_bridge.py`, surekli calisan bir donguyle kart okur.
+`rfid_bridge.py` runs continuously and polls for RFID cards.
 
-Varsayilan API endpoint:
+Default API endpoint:
 
 ```text
 http://localhost:5217/api/asrs/rfid-scan
 ```
 
-Gonderilen JSON:
+JSON payload:
 
 ```json
 {
@@ -53,11 +53,11 @@ Gonderilen JSON:
 }
 ```
 
-API cevabi loglanir. Cevap govdesi cok uzunsa log icin kisaltilir.
+The API response is logged. Long response bodies are shortened in logs.
 
-## Ortam Degiskenleri
+## Environment Variables
 
-Uygulama su environment variable'lari destekler:
+The application supports:
 
 ```text
 ASRS_API_URL
@@ -66,7 +66,7 @@ ASRS_RFID_POLL_INTERVAL_SEC
 ASRS_RFID_SAME_CARD_COOLDOWN_SEC
 ```
 
-Varsayilanlar:
+Defaults:
 
 ```text
 ASRS_API_URL=http://localhost:5217/api/asrs/rfid-scan
@@ -75,7 +75,7 @@ ASRS_RFID_POLL_INTERVAL_SEC=0.2
 ASRS_RFID_SAME_CARD_COOLDOWN_SEC=2.5
 ```
 
-## Bagimliliklar
+## Dependencies
 
 `requirements.txt`:
 
@@ -84,44 +84,44 @@ requests==2.32.3
 mfrc522==0.0.7
 ```
 
-Kurulum:
+Install:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Calistirma
+## Running
 
-Manuel calistirma:
+Manual run:
 
 ```bash
 python3 rfid_bridge.py
 ```
 
-API baska bir adreste calisiyorsa:
+Run with a custom API address:
 
 ```bash
 ASRS_API_URL=http://<api-host>:5217/api/asrs/rfid-scan python3 rfid_bridge.py
 ```
 
-## systemd Servisi
+## systemd Service
 
-Servis dosyasi:
+Service file:
 
 ```text
 asrs-rfid-bridge.service
 ```
 
-Mevcut servis tanimi su yolu kullanir:
+The current service definition uses:
 
 ```text
 WorkingDirectory=/home/isu/Desktop/ASRS-System/raspberry
 ExecStart=/usr/bin/python3 /home/isu/Desktop/ASRS-System/raspberry/rfid_bridge.py
 ```
 
-Farkli bir kullanici veya farkli proje yolu kullaniliyorsa servis dosyasindaki `User`, `WorkingDirectory` ve `ExecStart` alanlari guncellenmelidir.
+If the project path or Linux user is different, update `User`, `WorkingDirectory`, and `ExecStart`.
 
-Servis kurulumu:
+Install service:
 
 ```bash
 sudo cp asrs-rfid-bridge.service /etc/systemd/system/
@@ -130,30 +130,30 @@ sudo systemctl enable asrs-rfid-bridge
 sudo systemctl start asrs-rfid-bridge
 ```
 
-Log takibi:
+Follow logs:
 
 ```bash
 journalctl -u asrs-rfid-bridge -f
 ```
 
-Servis durumu:
+Check service status:
 
 ```bash
 systemctl status asrs-rfid-bridge
 ```
 
-## API ile Iliski
+## API Interaction
 
-Raspberry Pi, UID bilgisini `POST /api/asrs/rfid-scan` endpoint'ine yollar. API tarafinda:
+Raspberry Pi sends the UID to `POST /api/asrs/rfid-scan`. The API then:
 
-1. UID normalize edilir.
-2. Aktif `RfidRackMap` kaydi aranir.
-3. Eslesen raf hucresi bos ise `Store` komutu kuyruga alinir.
-4. Olay `RfidEvent` olarak kaydedilir.
+1. Normalizes the UID.
+2. Looks for an active `RfidRackMap`.
+3. Queues a `Store` command if the mapped rack cell is empty.
+4. Records the event as `RfidEvent`.
 
-## Gelistirme Notlari
+## Development Notes
 
-- Mevcut Python bridge Arduino'ya dogrudan seri komut gondermez.
-- Arduino seri haberlesmesi API icindeki `AsrsSerialWorker` ile yapilabilir.
-- Alternatif mimaride Raspberry Pi, API'den `/api/asrs/commands/next` ile komut cekip Arduino'ya seri porttan iletecek sekilde genisletilebilir.
-- Fiziksel Raspberry Pi uzerinde SPI ve GPIO izinlerinin dogru ayarlanmis olmasi gerekir.
+- The current Python bridge does not send serial commands directly to Arduino.
+- Arduino serial communication can be handled by `AsrsSerialWorker` in the API.
+- An alternative architecture can extend Raspberry Pi to pull commands from `/api/asrs/commands/next` and send them to Arduino over serial.
+- SPI and GPIO permissions must be configured correctly on the physical Raspberry Pi.

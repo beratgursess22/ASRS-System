@@ -1,0 +1,202 @@
+ASRS Arduino Command Guide (STORE / RETRIEVE)
+=============================================
+
+This document explains how STORE and RETRIEVE commands work on the Arduino side,
+how commands are received and parsed, and how the Arduino layer integrates with
+the Web/API/Raspberry Pi layers.
+
+Date: 2026-04-12
+Location: arduino/ASRS_Main
+
+
+1) How STORE and RETRIEVE Commands Work
+---------------------------------------
+
+1.1 STORE command
+
+Command format:
+- STORE:<col>:<row>\n
+
+Example:
+- STORE:0:2\n
+
+Meaning:
+- col: 0..3
+- row: 0..2
+
+Current code flow:
+1. The command is validated using `cmd.valid` and rack range checks.
+2. Arduino returns `BUSY`.
+3. `storePackage(col, row)` is called.
+4. Inside `storePackage`:
+   - The system references itself with `homeAll()`.
+   - Package pick-up at the entry station:
+     a) Z -> ENTRY_PICK_TARGET_Z_MM - Z_APPROACH_OFFSET_MM
+     b) Y moves forward
+     c) Z -> ENTRY_PICK_TARGET_Z_MM
+     d) Y moves backward
+   - X -> target column position using `SHELF_X_POS[col]`
+   - Rack placement approach:
+     a) Z -> targetZ + Z_APPROACH_OFFSET_MM
+     b) Y moves forward
+     c) Z -> targetZ
+     d) Y moves backward
+   - At the end, `homeAll()` is executed again.
+   - Stepper motors are disabled.
+5. On success, Arduino returns `OK:STORE_DONE` and then `READY`.
+6. On failure, Arduino returns `ERR:STORE_FAILED`.
+
+
+1.2 RETRIEVE command
+
+Command format:
+- RETRIEVE:<col>:<row>\n
+
+Example:
+- RETRIEVE:1:0\n
+
+Current code flow:
+1. The command is validated using `cmd.valid` and rack range checks.
+2. Arduino returns `BUSY`.
+3. `retrievePackage(col, row)` is called.
+4. Inside `retrievePackage`:
+   - X -> target column position using `SHELF_X_POS[col]`
+   - Rack pick-up approach from below:
+     a) Z -> targetZ - Z_APPROACH_OFFSET_MM
+     b) Y moves forward
+     c) Z -> targetZ
+     d) Y moves backward
+   - The package is carried to the output station:
+     a) `homeX()` returns X to the physical reference.
+   - Output drop-off approach from above:
+     a) Z -> EXIT_DROP_TARGET_Z_MM + Z_APPROACH_OFFSET_MM
+     b) Y moves forward
+     c) Z -> EXIT_DROP_TARGET_Z_MM
+     d) Y moves backward
+   - `homeZ()` returns Z to the physical reference.
+   - Stepper motors are disabled.
+5. On success, Arduino returns `OK:RETRIEVE_DONE` and then `READY`.
+6. On failure, Arduino returns `ERR:RETRIEVE_FAILED`.
+
+
+2) How Commands Are Received and Related to the Web System
+----------------------------------------------------------
+
+Important notes:
+- Arduino does not read RFID UIDs directly.
+- Arduino only receives text commands over the serial line:
+  STORE, RETRIEVE, HOME, STATUS.
+
+Recommended architecture:
+1. An RFID card is scanned by the RFID reader connected to Raspberry Pi.
+2. Raspberry Pi sends the UID to the Web/API layer.
+3. Web/API applies the business rules:
+   - Which rack cell should this item use?
+   - What is the target row/column?
+4. Web/API creates or returns the command result.
+5. Raspberry Pi or API serial worker sends a USB serial command to Arduino:
+   - STORE:1:2\n
+   - RETRIEVE:1:2\n
+6. Arduino responds:
+   - BUSY
+   - OK:... or ERR:...
+   - READY
+7. The upper layer records this status in the database.
+
+In short:
+- Decision layer = Web/API + business rules
+- Physical movement layer = Arduino
+- Bridge layer = Raspberry Pi or API serial worker
+
+
+3) Command Parser Logic
+-----------------------
+
+Parser function: `serialReadCommand`
+
+1. Characters are read while `Serial.available() > 0`.
+2. Each incoming character is written into `rxBuffer`.
+3. `\n` or `\r` marks the end of a command line.
+4. The line is trimmed and parsed:
+   - STORE:x:y
+   - RETRIEVE:x:y
+   - HOME
+   - STATUS
+5. For STORE/RETRIEVE, the parser finds `:` separators and converts col/row to numbers.
+6. The `Command` object is filled:
+   - type
+   - col
+   - row
+   - valid
+7. Unknown input sets `type=UNKNOWN`.
+
+Main loop behavior:
+1. If there is no command, return.
+2. If the system is not ready, reject all commands except HOME.
+3. Switch by command type:
+   - STORE -> `storePackage`
+   - RETRIEVE -> `retrievePackage`
+   - HOME -> `homeAll`
+   - STATUS -> X/Z/READY status report
+   - default -> UNKNOWN_CMD
+
+
+4) Technical Details
+--------------------
+
+4.1 Rack indexing
+
+Firmware uses zero-based indexing:
+- col: 0..3
+- row: 0..2
+
+If the web UI displays one-based values, conversion is required:
+- UI col=1 -> Arduino col=0
+- UI row=3 -> Arduino row=2
+
+4.2 Position tables
+
+- `SHELF_X_POS`: X-axis column positions in millimeters
+- `SHELF_Z_POS`: Z-axis row positions in millimeters
+
+4.3 Speed and step conversion
+
+Current firmware uses:
+- `STEPS_PER_MM = 160`
+- mm to steps: `steps = mm * STEPS_PER_MM`
+- Speed is controlled with delay values in microseconds.
+
+4.4 Limit switches and homing
+
+- X and Z axes use limit switches for homing.
+- `homeX`, `homeZ`, and `homeAll` recalibrate physical references.
+- Homing is important for preventing accumulated positioning drift.
+
+4.5 Serial protocol responses
+
+- READY: waiting for command
+- BUSY: operation in progress
+- OK:<message>: successful result
+- ERR:<message>: error result
+
+4.6 Values that require calibration
+
+- `Z_APPROACH_OFFSET_MM`
+- `ENTRY_PICK_TARGET_Z_MM`
+- `EXIT_DROP_TARGET_Z_MM`
+- `SHELF_X_POS`
+- `SHELF_Z_POS`
+- `Y_TRAVEL_MM`
+
+These values should be tested and adjusted on the physical prototype.
+
+
+5) Summary
+----------
+
+- STORE picks an item from the entry station, places it into the target rack cell, and returns home.
+- RETRIEVE picks an item from a rack cell, moves it to the output station, and returns to reference.
+- Web/API determines the target.
+- Raspberry Pi or API serial worker transmits the command.
+- Arduino performs the physical movement.
+- The parser uses a line-based text protocol.

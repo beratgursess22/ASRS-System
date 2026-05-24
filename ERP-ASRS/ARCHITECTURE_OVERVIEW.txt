@@ -1,0 +1,293 @@
+ASRS-ERP System Architecture and Structure Description
+======================================================
+
+This document explains the current project structure, the responsibility of
+each layer, and how the ERP software integrates with the ASRS hardware layer.
+
+
+General Architecture: Layered Architecture
+------------------------------------------
+
+The ERP-ASRS solution is divided into five .NET projects. Each project has a
+clear responsibility and depends only on the appropriate lower layers.
+
+Dependency flow:
+
+```text
+ASRS.Web --\
+            +-- ASRS.BLL -- ASRS.DAL -- ASRS.Core
+ASRS.API --/
+```
+
+Layer rules:
+
+- ASRS.Core has no dependency on other project layers.
+- ASRS.DAL depends on ASRS.Core.
+- ASRS.BLL depends on ASRS.Core and ASRS.DAL.
+- ASRS.Web depends on ASRS.BLL.
+- ASRS.API depends on ASRS.BLL/DAL services and is used for hardware integration.
+
+
+1) ASRS.Core - Core Domain Layer
+--------------------------------
+
+This layer defines the domain concepts of the system. It contains entities,
+DTOs, enums, and service interfaces.
+
+Important entity groups:
+
+- Identity and organization:
+  - AppUser
+  - AppRole
+  - Department
+
+- Product and stock:
+  - Product
+  - Material
+  - BillOfMaterial
+
+- Production:
+  - WorkOrder
+
+- Purchasing:
+  - PurchaseRequest
+  - PurchaseRequestItem
+  - PurchaseOrder
+  - PurchaseOrderItem
+
+- Supplier management:
+  - Supplier
+  - SupplierItemPrice
+
+- Quality management:
+  - QualityInspection
+  - QualityInspectionItem
+  - QualityDefect
+  - CapaAction
+
+- ASRS integration:
+  - RackCell
+  - RfidRackMap
+  - AsrsCommand
+  - RfidEvent
+
+DTOs are used to transfer data between layers without exposing entity objects
+directly to the UI or API boundary.
+
+Enums define important state machines and categories such as work order status,
+purchase order status, inspection status, CAPA status, command type, command
+source, and command status.
+
+
+2) ASRS.DAL - Data Access Layer
+-------------------------------
+
+This layer handles database access through Entity Framework Core and MySQL.
+
+Main files:
+
+- Context/AppDbContext.cs
+  The main EF Core DbContext. It inherits from IdentityDbContext and manages
+  both ASP.NET Identity tables and project-specific tables.
+
+- Context/AppDbContextFactory.cs
+  Design-time factory used by EF Core migration commands.
+
+- Migrations/
+  Contains the database migration history.
+
+AppDbContext responsibilities:
+
+- DbSet definitions
+- Table relationships
+- Delete behaviors
+- Unique indexes
+- Rack cell seed data
+
+Important ASRS indexes:
+
+- RackCells(Row, Col) is unique.
+- RfidRackMaps(CardUid) is unique.
+- RfidRackMaps(Row, Col) is unique.
+- AsrsCommands(Status, CreatedAt) is indexed for queue processing.
+- RfidEvents(TriggeredAt) is indexed for event history.
+
+
+3) ASRS.BLL - Business Logic Layer
+----------------------------------
+
+This layer contains business rules and service implementations. Controllers
+call services instead of writing business logic directly.
+
+Current services:
+
+- UserService
+- ProductService
+- MaterialService
+- BomService
+- WorkOrderService
+- PurchaseRequestService
+- PurchaseOrderService
+- SupplierService
+- QualityInspectionService
+- QualityDefectService
+- CapaService
+
+Typical responsibilities:
+
+- Validate user operations.
+- Apply stock and purchasing rules.
+- Manage BOM requirements.
+- Handle work order status transitions.
+- Process purchase request/order flows.
+- Manage quality inspection, defect, and CAPA operations.
+
+
+4) ASRS.Web - MVC Web Interface
+-------------------------------
+
+This project contains the user-facing ERP interface.
+
+Important areas:
+
+- Controllers/
+  MVC controllers for account, dashboard, users, products, materials, work
+  orders, purchasing, suppliers, quality, CAPA, and ASRS proxy actions.
+
+- Views/
+  Razor views grouped by module.
+
+- wwwroot/
+  Static CSS, JavaScript, libraries, 3D viewer assets, and STEP model files.
+
+Main modules:
+
+- Account and login
+- Dashboard
+- User management
+- Product management
+- Material management
+- BOM management
+- Work orders
+- Purchase requests
+- Purchase orders
+- Suppliers
+- Quality inspections
+- CAPA actions
+- ASRS dashboard/proxy operations
+
+The web application uses ASP.NET Identity for authentication and role-based
+authorization. It also includes an HTTP client named `AsrsApi` for communicating
+with the ASRS API.
+
+
+5) ASRS.API - Hardware and ASRS Integration API
+-----------------------------------------------
+
+This project exposes endpoints used by the dashboard, Raspberry Pi, and ASRS
+hardware workflow.
+
+Important files:
+
+- Program.cs
+  Configures controllers, Swagger, MySQL, DbContext, RFID map seeding, and the
+  optional AsrsSerialWorker background service.
+
+- Controllers/AsrsController.cs
+  Contains RFID scan, retrieve, command queue, acknowledgement, rack state,
+  system status, and RFID map endpoints.
+
+- Services/RfidUidNormalizer.cs
+  Normalizes RFID UID strings.
+
+- Services/AsrsRfidMapSeeder.cs
+  Seeds default RFID-to-rack mappings.
+
+- Services/AsrsSerialWorker.cs
+  Optional background worker that reads queued commands from the database and
+  sends them to Arduino over a serial port.
+
+Main endpoints:
+
+- POST /api/asrs/rfid-scan
+- POST /api/asrs/retrieve
+- GET /api/asrs/commands/next
+- POST /api/asrs/commands/{id}/ack
+- GET /api/asrs/rack-state
+- GET /api/asrs/system-status
+- GET /api/asrs/rfid-maps
+
+
+6) ASRS Command Flow
+--------------------
+
+RFID STORE flow:
+
+1. RFID card is scanned by Raspberry Pi.
+2. Raspberry Pi posts the UID to /api/asrs/rfid-scan.
+3. The API normalizes the UID.
+4. The API finds the matching RfidRackMap.
+5. If the target RackCell is empty, a Store command is queued.
+6. RfidEvent is recorded.
+7. The command is executed by either AsrsSerialWorker or a Raspberry Pi pull bridge.
+8. RackCell occupancy is updated when the command completes successfully.
+
+Dashboard RETRIEVE flow:
+
+1. User selects an occupied rack cell in the dashboard.
+2. The web layer sends row/col to /api/asrs/retrieve.
+3. The API creates a Retrieve command.
+4. The command is sent to Arduino.
+5. On success, the RackCell is marked empty.
+
+
+7) Arduino Integration
+----------------------
+
+Arduino receives text commands through serial communication:
+
+```text
+STORE:<col>:<row>
+RETRIEVE:<col>:<row>
+HOME
+STATUS
+```
+
+Arduino returns:
+
+```text
+READY
+BUSY
+OK:<message>
+ERR:<message>
+```
+
+Coordinate convention:
+
+- col: 0..3
+- row: 0..2
+- Coordinates are zero-based in the API/Arduino layer.
+
+
+8) Database and Migration Notes
+-------------------------------
+
+The solution uses MySQL with Entity Framework Core migrations.
+
+Migration command:
+
+```bash
+dotnet ef database update --project ASRS.DAL --startup-project ASRS.Web
+```
+
+The API startup also calls RFID map seeding so that the ASRS demo mappings can
+be available automatically.
+
+
+9) Summary
+----------
+
+ERP-ASRS is the software center of the SmartRack/ASRS project. It manages ERP
+operations, user access, purchasing, production, quality, and hardware command
+flows. The layered architecture keeps domain models, database access, business
+logic, web UI, and hardware API responsibilities separated and maintainable.

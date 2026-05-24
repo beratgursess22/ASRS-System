@@ -1,57 +1,57 @@
-# Arduino ASRS Kontrol Yazilimi
+# Arduino ASRS Motion-Control Firmware
 
-Bu klasor, ASRS sisteminin fiziksel hareketlerini yoneten Arduino yazilimini icerir. Arduino, karar veren katman degildir; seri porttan gelen komutlari uygular ve step motorlari kontrol ederek urunu rafa yerlestirir veya raftan geri alir.
+This folder contains the Arduino firmware that controls the physical movement of the ASRS prototype. Arduino does not make storage decisions; it executes serial commands and drives the stepper motors to store or retrieve items.
 
-## Kullanilan Donanim ve Teknolojiler
+## Hardware and Technologies
 
 - Arduino Mega
-- RAMPS pin yapisi
-- Step motorlar
-- DRV8825/A4988 tarzi step suruculer
-- X ve Z limit switch
-- GT2 kayis/kasnak mantigina gore step/mm hesabi
+- RAMPS pin layout
+- Stepper motors
+- DRV8825/A4988-style stepper drivers
+- X and Z limit switches
+- GT2 belt/pulley based step-per-millimeter calculation
 - Arduino C/C++
-- USB/seri haberlesme
+- USB/serial communication
 
-## Klasor Yapisi
+## Folder Structure
 
 ```text
 arduino/
 |-- ASRS_Main/
-|   |-- ASRS_Main_Single.ino              # Arduino IDE icin tek dosyalik surum
+|   |-- ASRS_Main_Single.ino              # Single-file Arduino IDE version
 |   |-- Code/
-|   |   |-- main.cpp                      # Ana loop ve komut isleme akisi
-|   |   |-- serial_protocol.cpp           # Seri komut parser ve cevap fonksiyonlari
-|   |   |-- operations.cpp                # STORE/RETRIEVE operasyonlari
-|   |   |-- axes.cpp                      # X/Y/Z eksen hareketleri ve homing
-|   |   `-- stepper.cpp                   # Step motor temel surme fonksiyonlari
+|   |   |-- main.cpp                      # Main loop and command handling
+|   |   |-- serial_protocol.cpp           # Serial command parser and responses
+|   |   |-- operations.cpp                # STORE/RETRIEVE operations
+|   |   |-- axes.cpp                      # X/Y/Z motion and homing
+|   |   `-- stepper.cpp                   # Low-level stepper motor helpers
 |   |-- library/
-|   |   |-- config.h                      # Pinler, hizlar, raf konumlari, kalibrasyon
+|   |   |-- config.h                      # Pins, speeds, rack positions, calibration
 |   |   |-- serial_protocol.h
 |   |   |-- operations.h
 |   |   |-- axes.h
 |   |   `-- stepper.h
-|   `-- STORE_RETRIEVE_KOMUT_REHBERI.txt  # Komut ve entegrasyon rehberi
-`-- raspberyy_pi.txt
+|   `-- STORE_RETRIEVE_COMMAND_GUIDE.txt  # Command and integration guide
+`-- RASPBERRY_PI_INTEGRATION_NOTES.txt
 ```
 
-## Sistem Icindeki Gorevi
+## Role in the System
 
-Arduino su isleri yapar:
+Arduino performs the following tasks:
 
-- Seri porttan komut okur.
-- Komutu parse eder.
-- X ve Z eksenlerinde limit switch ile referans alir.
-- X ekseninde hedef raf sutununa gider.
-- Z ekseninde hedef raf katina gider.
-- Y ekseniyle paketi rafa iter veya raftan alir.
-- Islem sonucunu seri porttan bildirir.
+- Reads commands from the serial port.
+- Parses command lines.
+- Homes the X and Z axes using limit switches.
+- Moves the X axis to the target rack column.
+- Moves the Z axis to the target rack row.
+- Uses the Y axis to push an item into the rack or retrieve it.
+- Reports operation status through the serial port.
 
-Karar mekanizmasi ERP/API tarafindadir. Arduino sadece `STORE`, `RETRIEVE`, `HOME` ve `STATUS` komutlarini uygular.
+The ERP/API layer decides what should happen. Arduino only executes `STORE`, `RETRIEVE`, `HOME`, and `STATUS` commands.
 
-## Desteklenen Komutlar
+## Supported Commands
 
-Komutlar satir bazli metin protokolu ile gonderilir. Her komut sonunda newline olmalidir.
+Commands use a line-based text protocol. Each command must end with a newline.
 
 ```text
 STORE:<col>:<row>
@@ -60,7 +60,7 @@ HOME
 STATUS
 ```
 
-Ornekler:
+Examples:
 
 ```text
 STORE:0:2
@@ -69,60 +69,58 @@ HOME
 STATUS
 ```
 
-## Raf Indeksleme
+## Rack Indexing
 
-Kod tarafinda raf indeksleri 0-based tutulur.
+Rack coordinates are zero-based in firmware.
 
 ```text
 col: 0..3
 row: 0..2
 ```
 
-Yani fiziksel olarak 4 sutun ve 3 kat vardir. UI tarafinda kullaniciya 1-based gosterim yapiliyorsa donusum gerekir:
+The physical rack contains 4 columns and 3 rows. If the UI displays one-based coordinates, conversion is required:
 
 ```text
 UI col=1 -> Arduino col=0
 UI row=3 -> Arduino row=2
 ```
 
-## Seri Cevaplar
+## Serial Responses
 
-Arduino islem durumunu su cevaplarla bildirir:
+Arduino reports operation status with:
 
 ```text
 READY
 BUSY
 OK:STORE_DONE
 OK:RETRIEVE_DONE
-ERR:<hata_mesaji>
+ERR:<error_message>
 ```
 
-API tarafindaki `AsrsSerialWorker`, bu cevaplara gore `AsrsCommand` durumunu gunceller.
+`ASRS.API` uses these responses to update `AsrsCommand` status when `AsrsSerialWorker` is enabled.
 
-## Kalibrasyon ve Konfigurasyon
+## Calibration and Configuration
 
-Ana konfigurasyon dosyasi:
+Main configuration file:
 
 ```text
 ASRS_Main/library/config.h
 ```
 
-Bu dosyada:
+This file defines:
 
-- RAMPS pin tanimlari
-- X, Y, Z step/dir/enable pinleri
-- X ve Z limit switch pinleri
-- Step/mm hesabi
-- Hareket hizlari
-- Maksimum eksen mesafeleri
-- Raf sutun ve kat konumlari
-- Y ekseni hareket mesafesi
-- Giris ve cikis hedef Z seviyeleri
-- Seri baud rate
+- RAMPS pin assignments
+- X, Y, and Z step/dir/enable pins
+- X and Z limit switch pins
+- Step-per-millimeter value
+- Movement speeds
+- Maximum axis travel distances
+- Rack column and row positions
+- Y-axis travel distance
+- Entry and exit target Z levels
+- Serial baud rate
 
-tanimlanir.
-
-Guncel raf konumu sabitleri:
+Current rack constants:
 
 ```text
 SHELF_COLS = 4
@@ -133,7 +131,7 @@ SERIAL_BAUD_RATE = 9600
 STEPS_PER_MM = 160
 ```
 
-Sahada ozellikle su degerler mekanige gore test edilmelidir:
+Values that should be verified on the physical prototype:
 
 - `SHELF_X_POS`
 - `SHELF_Z_POS`
@@ -142,39 +140,33 @@ Sahada ozellikle su degerler mekanige gore test edilmelidir:
 - `ENTRY_PICK_TARGET_Z_MM`
 - `EXIT_DROP_TARGET_Z_MM`
 
-## STORE Akisi
+## STORE Flow
 
-`STORE:<col>:<row>` komutu geldiginde:
+When `STORE:<col>:<row>` is received:
 
-1. Komut ve raf araligi dogrulanir.
-2. Arduino `BUSY` cevabi verir.
-3. Sistem gerekli referans/hareket adimlarini calistirir.
-4. Paket giris noktasindan alinir.
-5. X ekseni hedef sutuna gider.
-6. Z ekseni hedef kata gider.
-7. Y ekseni paketi rafa birakir.
-8. Basariliysa `OK:STORE_DONE`, hata varsa `ERR:*` doner.
+1. The command and rack range are validated.
+2. Arduino returns `BUSY`.
+3. The required reference and motion sequence starts.
+4. The package is picked from the entry point.
+5. The X axis moves to the target column.
+6. The Z axis moves to the target row.
+7. The Y axis places the package into the rack.
+8. Arduino returns `OK:STORE_DONE` on success or `ERR:*` on failure.
 
-<img width="562" height="535" alt="Screenshot 2026-05-24 at 18 04 41" src="https://github.com/user-attachments/assets/77b763ad-7f64-455c-9f5f-836457b0e2e1" />
+## RETRIEVE Flow
 
+When `RETRIEVE:<col>:<row>` is received:
 
-## RETRIEVE Akisi
+1. The command and rack range are validated.
+2. Arduino returns `BUSY`.
+3. X/Z axes move to the target rack cell.
+4. The Y axis retrieves the package from the rack.
+5. The package is moved to the exit/drop-off point.
+6. Arduino returns `OK:RETRIEVE_DONE` on success or `ERR:*` on failure.
 
-`RETRIEVE:<col>:<row>` komutu geldiginde:
+## Development Notes
 
-1. Komut ve raf araligi dogrulanir.
-2. Arduino `BUSY` cevabi verir.
-3. X/Z eksenleri hedef raf hucresine gider.
-4. Y ekseni paketi raftan alir.
-5. Paket cikis/teslim noktasina tasinir.
-6. Basariliysa `OK:RETRIEVE_DONE`, hata varsa `ERR:*` doner.
-
-
-<img width="571" height="453" alt="Screenshot 2026-05-24 at 18 04 35" src="https://github.com/user-attachments/assets/9d21c560-953d-40d5-8ad4-d53825532051" />
-
-## Gelistirme Notlari
-
-- `ASRS_Main_Single.ino`, Arduino IDE ile hizli yukleme icin tutulur.
-- `Code/` ve `library/` altindaki moduler yapi, kodun okunabilirligini ve bakimini kolaylastirir.
-- ERP/API tarafindaki komut formatlari ile Arduino parser ayni kalmalidir.
-- Arduino, RFID UID okumaz; RFID okuma Raspberry Pi tarafindadir.
+- `ASRS_Main_Single.ino` is kept for quick Arduino IDE uploads.
+- The modular structure under `Code/` and `library/` improves readability and maintenance.
+- ERP/API command formats and the Arduino parser must stay compatible.
+- Arduino does not read RFID UIDs; RFID scanning is handled by Raspberry Pi.

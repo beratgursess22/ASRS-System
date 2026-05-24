@@ -1,0 +1,226 @@
+ERP Dashboard and AS/RS Command Integration Plan
+================================================
+
+Goal
+----
+Build a safe command flow from the ERP dashboard to the physical AS/RS system.
+The dashboard triggers location-based RETRIEVE operations, RFID scans trigger
+automatic STORE operations, and Arduino receives validated movement commands.
+
+
+Project-Specific Rules
+----------------------
+1. The system works with rack locations, not product-to-RFID ownership.
+2. Each RFID card is mapped to one fixed rack cell: row and column.
+3. When an RFID card is scanned, the system does not search for a random empty
+   cell; it uses the mapped cell for that card.
+4. RETRIEVE is triggered from the dashboard by selecting a rack cell.
+5. STORE is triggered automatically by an RFID scan.
+6. Arduino command format:
+   - STORE:<col>:<row>
+   - RETRIEVE:<col>:<row>
+   - HOME
+   - STATUS
+
+
+1) Data Model
+-------------
+1. RackCells table:
+   - Id
+   - Row
+   - Col
+   - IsOccupied
+   - LastCommandId
+   - UpdatedAt
+
+2. AsrsCommands table:
+   - Id
+   - Type (STORE/RETRIEVE/HOME/STATUS)
+   - Row
+   - Col
+   - Source (Dashboard/RFID)
+   - Status (Queued/Sent/Busy/Done/Failed)
+   - Error
+   - CreatedAt
+   - SentAt
+   - CompletedAt
+
+3. RfidEvents table:
+   - Id
+   - CardUid
+   - TriggeredAt
+   - ResultCommandId
+   - Result
+
+4. RfidRackMaps table:
+   - Id
+   - CardUid (unique)
+   - Row
+   - Col
+   - IsActive
+   - UpdatedAt
+
+5. Constraints:
+   - RackCells(Row, Col) must be unique.
+   - RfidRackMaps(CardUid) must be unique.
+   - Each active CardUid must point to only one row/column location.
+
+
+2) API Layer (ASRS.API)
+-----------------------
+1. POST /api/asrs/retrieve
+   - Input: row, col
+   - Creates a RETRIEVE command if the cell exists and is occupied.
+
+2. POST /api/asrs/rfid-scan
+   - Input: cardUid
+   - Normalizes the UID.
+   - Looks up the UID in RfidRackMaps.
+   - Creates a STORE command for the mapped row/column if the cell is empty.
+   - Returns RFID_NOT_MAPPED if there is no active mapping.
+
+3. GET /api/asrs/commands/next
+   - Used by a Raspberry Pi pull-based bridge to fetch the next queued command.
+   - Disabled when the API serial worker is active.
+
+4. POST /api/asrs/commands/{id}/ack
+   - Receives BUSY/OK/ERR feedback from the bridge or Arduino side.
+   - Updates the command lifecycle and rack occupancy.
+
+5. GET /api/asrs/rack-state
+   - Returns the occupancy state of all rack cells for the dashboard.
+
+6. GET /api/asrs/system-status
+   - Returns queue state, command counts, Arduino state, and the last command.
+
+7. GET /api/asrs/rfid-maps
+   - Returns active RFID-to-rack mappings.
+
+
+3) Command Orchestration
+------------------------
+1. Commands follow this lifecycle:
+   - Queued -> Sent -> Busy -> Done/Failed
+2. The oldest queued command is processed first.
+3. When a STORE command completes successfully, the target RackCell is marked occupied.
+4. When a RETRIEVE command completes successfully, the target RackCell is marked empty.
+5. If a command fails, the RackCell state is not changed and the error is stored.
+6. Timeouts should mark the command as Failed.
+
+
+4) Command Execution Modes
+--------------------------
+Mode A: API Serial Worker
+  - ASRS.API runs AsrsSerialWorker.
+  - The worker polls queued commands from the database.
+  - It writes commands directly to Arduino through the configured serial port.
+  - Arduino responses update command status.
+
+Mode B: Raspberry Pi Pull Bridge
+  - Raspberry Pi calls /commands/next.
+  - It sends the command to Arduino over USB serial.
+  - It reports BUSY/OK/ERR through /commands/{id}/ack.
+  - This mode is disabled while API serial worker mode is enabled.
+
+
+5) Raspberry Pi Bridge Responsibilities
+---------------------------------------
+1. Read RFID card UID from MFRC522.
+2. Send UID to POST /api/asrs/rfid-scan.
+3. Optionally, in pull-bridge mode:
+   - Fetch the next queued command.
+   - Send STORE/RETRIEVE/HOME/STATUS to Arduino.
+   - Read Arduino responses.
+   - Send acknowledgements back to the API.
+4. Reconnect on communication failures.
+5. Log all important events.
+
+
+6) Dashboard (ASRS.Web)
+-----------------------
+1. Left/central panel:
+   - AS/RS visual representation and rack status.
+
+2. Rack grid:
+   - Shows row/column cells.
+   - Uses color or state indicators for empty/occupied cells.
+   - Clicking an occupied cell can trigger RETRIEVE.
+
+3. RFID STORE feedback:
+   - Shows that an RFID scan created an automatic STORE command.
+
+4. Live monitoring:
+   - Command history.
+   - Last command status.
+   - Queue state: idle, active, busy, failed.
+
+
+7) Index and Protocol Standards
+-------------------------------
+1. UI may display one-based coordinates.
+2. API and Arduino use zero-based coordinates.
+3. Arduino coordinate ranges:
+   - col: 0..3
+   - row: 0..2
+4. Conversion should be centralized:
+   - uiToArduino(row, col)
+   - arduinoToUi(row, col)
+
+
+8) Security and Authorization
+-----------------------------
+1. Command endpoints should be protected with role-based authorization.
+2. Typical roles:
+   - Administrator
+   - Warehouse
+3. Device-to-API communication should use a device credential such as API key or JWT.
+4. Audit logs should record who triggered which command and when.
+
+
+9) Testing and Deployment
+-------------------------
+1. Unit tests:
+   - RFID UID normalization
+   - RFID-to-rack map resolution
+   - Command state machine
+   - Coordinate mapper
+
+2. Integration tests:
+   - Dashboard -> API -> command queue
+   - RFID scan -> API -> STORE command
+   - RETRIEVE request -> API -> command queue
+
+3. Hardware-in-loop tests:
+   - Real Arduino with STORE/RETRIEVE commands
+   - Raspberry Pi RFID scan flow
+   - API serial worker flow
+
+4. Failure tests:
+   - Serial timeout
+   - Arduino ERR response
+   - API unavailable
+   - Reconnect scenarios
+
+
+Recommended Implementation Order
+--------------------------------
+Sprint 1:
+- Database model, API command lifecycle, rack state endpoint.
+
+Sprint 2:
+- Dashboard grid, RETRIEVE action, live status display.
+
+Sprint 3:
+- RFID scan endpoint and RFID-to-rack map management.
+
+Sprint 4:
+- Raspberry Pi bridge, Arduino integration, stabilization.
+
+
+Summary
+-------
+- STORE is triggered by RFID. The system finds the mapped rack cell and sends STORE col/row to Arduino.
+- RETRIEVE is triggered by dashboard cell selection and sends RETRIEVE col/row to Arduino.
+- Business rules and decisions live in Web/API.
+- Physical movement is executed by Arduino.
+- Raspberry Pi connects RFID and, optionally, serial command execution with the software layer.

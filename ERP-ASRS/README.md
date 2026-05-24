@@ -1,8 +1,8 @@
 # ERP-ASRS
 
-ERP-ASRS, ASRS-System projesinin .NET tabanli ERP, web arayuzu, API, is kurallari ve veritabani katmanlarini iceren cozumudur. Bu klasor yazilim tarafindaki karar merkezidir: kullanici islemleri, stok ve uretim surecleri, satin alma, kalite kontrol ve fiziksel ASRS mekanizmasina gidecek komutlar burada yonetilir.
+`ERP-ASRS` contains the .NET-based ERP, web interface, API, business logic, and database layers of ASRS-System. It is the software decision center of the project: user operations, stock and production flows, purchasing, quality control, and ASRS commands are managed here.
 
-## Kullanilan Teknolojiler
+## Technologies
 
 - .NET 9
 - ASP.NET Core MVC
@@ -15,58 +15,59 @@ ERP-ASRS, ASRS-System projesinin .NET tabanli ERP, web arayuzu, API, is kurallar
 - System.IO.Ports
 - Razor Views, Bootstrap, CSS, JavaScript
 
-## Klasor Yapisi
+## Folder Structure
 
 ```text
 ERP-ASRS/
-|-- ASRS.Core/      # Entity, DTO, enum ve servis interface tanimlari
-|-- ASRS.DAL/       # AppDbContext, EF Core konfigurasyonu ve migration dosyalari
-|-- ASRS.BLL/       # Is kurallari ve servis implementasyonlari
-|-- ASRS.Web/       # ASP.NET Core MVC web arayuzu
-|-- ASRS.API/       # RFID, ASRS komut kuyrugu ve seri haberlesme API'si
-|-- ASRS.sln        # Visual Studio/.NET solution dosyasi
-|-- README.md       # Bu dokuman
-`-- *.txt           # Mimari ve entegrasyon notlari
+|-- ASRS.Core/      # Entities, DTOs, enums, and service interfaces
+|-- ASRS.DAL/       # AppDbContext, EF Core configuration, migrations
+|-- ASRS.BLL/       # Business rules and service implementations
+|-- ASRS.Web/       # ASP.NET Core MVC web interface
+|-- ASRS.API/       # RFID, ASRS command queue, and serial communication API
+|-- ASRS.sln        # Visual Studio/.NET solution file
+|-- README.md       # This document
+`-- *.txt           # Architecture and integration notes
 ```
 
-## Katmanli Mimari
+## Layered Architecture
 
-<img width="656" height="618" alt="Screenshot 2026-05-24 at 18 00 59" src="https://github.com/user-attachments/assets/0a6a395b-057d-4df6-876e-156b2c54d65a" />
+```text
+ASRS.Web --\
+            +-- ASRS.BLL -- ASRS.DAL -- ASRS.Core
+ASRS.API --/
+```
 
+`ASRS.Web` and `ASRS.API` use business rules through the BLL layer. Database access is centralized in the DAL layer. The Core layer contains the shared domain models and contracts.
 
-Bu yapiyla web arayuzu ve API, is kurallarini BLL uzerinden kullanir. Veritabani erisimi DAL katmaninda toplanir. Core katmani ise sistemin ortak modellerini ve sozlesmelerini barindirir.
-
-## Projeler
+## Projects
 
 ### ASRS.Core
 
-Sistemin cekirdek model katmanidir. Veritabani tablolarina karsilik gelen entity siniflari, katmanlar arasi veri tasiyan DTO'lar, enum'lar ve servis interface'leri burada bulunur.
+The core domain layer contains entity classes, DTOs, enums, and service interfaces.
 
-Onemli entity gruplari:
+Important entity groups:
 
-- Kimlik ve organizasyon: `AppUser`, `AppRole`, `Department`
-- Katalog ve stok: `Product`, `Material`, `BillOfMaterial`
-- Uretim: `WorkOrder`
-- Satin alma: `PurchaseRequest`, `PurchaseRequestItem`, `PurchaseOrder`, `PurchaseOrderItem`
-- Tedarikci: `Supplier`, `SupplierItemPrice`
-- Kalite: `QualityInspection`, `QualityInspectionItem`, `QualityDefect`, `CapaAction`
-- ASRS entegrasyonu: `RackCell`, `RfidRackMap`, `AsrsCommand`, `RfidEvent`
+- Identity and organization: `AppUser`, `AppRole`, `Department`
+- Catalog and stock: `Product`, `Material`, `BillOfMaterial`
+- Production: `WorkOrder`
+- Purchasing: `PurchaseRequest`, `PurchaseRequestItem`, `PurchaseOrder`, `PurchaseOrderItem`
+- Suppliers: `Supplier`, `SupplierItemPrice`
+- Quality: `QualityInspection`, `QualityInspectionItem`, `QualityDefect`, `CapaAction`
+- ASRS integration: `RackCell`, `RfidRackMap`, `AsrsCommand`, `RfidEvent`
 
 ### ASRS.DAL
 
-Veritabani erisim katmanidir. `AppDbContext`, ASP.NET Identity tablolarini ve proje tablolarini ayni context uzerinde yonetir.
+The data access layer contains `AppDbContext`, Entity Framework Core configuration, and migrations. `AppDbContext` manages both ASP.NET Identity tables and project-specific tables.
 
-Bu katmanda:
+This layer includes:
 
-- DbSet tanimlari
-- Entity iliskileri
-- Unique index tanimlari
-- EF Core migration dosyalari
-- 3x4 raf hucre seed'i
+- DbSet definitions
+- Entity relationships
+- Unique indexes
+- EF Core migration files
+- 3x4 rack cell seed data
 
-bulunur.
-
-Aktif DbSet'ler:
+Active DbSets:
 
 ```text
 Departments, Products, Materials, BillOfMaterials, WorkOrders,
@@ -77,9 +78,9 @@ QualityDefects, CapaActions, RackCells, RfidRackMaps, AsrsCommands, RfidEvents
 
 ### ASRS.BLL
 
-Is kurallarinin uygulandigi katmandir. Controller'larin dogrudan veritabani mantigi yazmasi yerine servisler kullanilir.
+The business logic layer contains the service implementations used by the controllers.
 
-Servisler:
+Services:
 
 - `UserService`
 - `ProductService`
@@ -95,9 +96,9 @@ Servisler:
 
 ### ASRS.Web
 
-Kullanici arayuzudur. ASP.NET Core MVC, Razor View ve Bootstrap/CSS ile gelistirilmistir.
+The web application is built with ASP.NET Core MVC, Razor Views, Bootstrap, and custom CSS/JavaScript.
 
-Controller gruplari:
+Controller groups:
 
 - `AccountController`
 - `DashboardController`
@@ -112,13 +113,13 @@ Controller gruplari:
 - `CapaController`
 - `AsrsProxyController`
 
-Web tarafinda ayrica `.step` ve `.stp` dosyalari static olarak yayinlanacak sekilde ayarlanmistir. `wwwroot/models/` ve `wwwroot/3d/step-viewer/` altinda ASRS sistem model gosterimi icin dosyalar bulunur.
+The web application is also configured to serve `.step` and `.stp` model files. ASRS model and viewer assets are stored under `wwwroot/models/` and `wwwroot/3d/step-viewer/`.
 
 ### ASRS.API
 
-Donanim entegrasyonu ve ASRS komut yonetimi icin kullanilan API katmanidir. Swagger aktiftir. API, MySQL veritabanina baglanir ve `AsrsSerialWorker` background service'i ile Arduino seri haberlesmesini opsiyonel olarak dogrudan yonetebilir.
+The API layer handles hardware integration and ASRS command management. Swagger is enabled. The API connects to the MySQL database and can optionally manage Arduino serial communication through the `AsrsSerialWorker` background service.
 
-Onemli endpoint'ler:
+Important endpoints:
 
 ```text
 POST /api/asrs/rfid-scan
@@ -130,30 +131,30 @@ GET  /api/asrs/system-status
 GET  /api/asrs/rfid-maps
 ```
 
-## ASRS Entegrasyon Mantigi
+## ASRS Integration Logic
 
-RFID depolama akisinda:
+RFID-based storage flow:
 
-1. Raspberry Pi kart UID bilgisini `POST /api/asrs/rfid-scan` endpoint'ine gonderir.
-2. API UID bilgisini `RfidUidNormalizer` ile normalize eder.
-3. `RfidRackMaps` tablosunda aktif UID-raf eslesmesi aranir.
-4. Eslesen `RackCell` bos ise `AsrsCommand` tablosuna `Store` komutu eklenir.
-5. `RfidEvent` ile olay kaydi tutulur.
+1. Raspberry Pi sends the scanned card UID to `POST /api/asrs/rfid-scan`.
+2. The API normalizes the UID with `RfidUidNormalizer`.
+3. The API looks for an active UID-to-rack mapping in `RfidRackMaps`.
+4. If the mapped `RackCell` is empty, a `Store` command is created in `AsrsCommands`.
+5. The event is recorded in `RfidEvents`.
 
-Geri alma akisinda:
+Retrieval flow:
 
-1. Web dashboard veya API `POST /api/asrs/retrieve` ile row/col bilgisi gonderir.
-2. Ilgili raf hucresi doluysa `Retrieve` komutu kuyruga alinir.
-3. Komut tamamlaninca raf hucresi bos olarak isaretlenir.
+1. The dashboard or API sends row/column information to `POST /api/asrs/retrieve`.
+2. If the selected rack cell is occupied, a `Retrieve` command is queued.
+3. When the command is completed, the rack cell is marked as empty.
 
-Komut calistirma icin iki mod vardir:
+There are two command execution modes:
 
-- API seri worker modu: `AsrsSerial:Enabled=true` ise API, kuyruktaki komutu dogrudan seri porttan Arduino'ya gonderir.
-- Raspberry pull modu: worker kapaliyken Raspberry Pi `/commands/next` ile komut cekebilir ve `/ack` ile sonucu API'ye bildirebilir.
+- API serial worker mode: when `AsrsSerial:Enabled=true`, the API sends queued commands directly to Arduino over a serial port.
+- Raspberry pull mode: when the worker is disabled, Raspberry Pi can pull commands from `/commands/next` and report results through `/ack`.
 
-## ASRS Seri Worker Ayarlari
+## ASRS Serial Worker Settings
 
-`ASRS.API/appsettings.json` veya environment konfigurasyonunda kullanilan ayarlar:
+Example configuration:
 
 ```json
 {
@@ -167,7 +168,7 @@ Komut calistirma icin iki mod vardir:
 }
 ```
 
-Worker Arduino'ya su formatta komut gonderir:
+The worker sends commands to Arduino in this format:
 
 ```text
 STORE:<col>:<row>
@@ -176,52 +177,53 @@ HOME
 STATUS
 ```
 
-Arduino'dan gelen `BUSY`, `OK:*`, `ERR:*` ve `READY` cevaplarina gore `AsrsCommand` durumu guncellenir.
+Arduino responses such as `BUSY`, `OK:*`, `ERR:*`, and `READY` are used to update `AsrsCommand` status.
 
-## Veritabani
+## Database
 
-Veritabani MySQL uzerindedir. Varsayilan connection string `appsettings.json` icinden okunur. API tarafinda connection string bulunamazsa kodda fallback olarak su deger kullanilir:
+The database runs on MySQL. Connection strings are read from `appsettings.json`. If the API connection string is missing, the code falls back to:
 
+```text
+Server=localhost;Database=asrs_db;User=root;Password=123456;
+```
 
-Migration dosyalari:
+Migration files are located in:
 
 ```text
 ASRS.DAL/Migrations/
 ```
 
-Veritabani guncellemek icin:
+Apply migrations:
 
 ```bash
 dotnet ef database update --project ASRS.DAL --startup-project ASRS.Web
 ```
 
-<img width="810" height="604" alt="Screenshot 2026-05-24 at 18 06 40" src="https://github.com/user-attachments/assets/3229c2ba-be49-4ea5-80ad-241b6f494e6d" />
+## Running
 
-## Calistirma
-
-Cozumu derlemek icin:
+Build the solution:
 
 ```bash
 dotnet restore
 dotnet build
 ```
 
-Web uygulamasi:
+Run the web application:
 
 ```bash
 cd ASRS.Web
 dotnet run
 ```
 
-API uygulamasi:
+Run the API application:
 
 ```bash
 cd ASRS.API
 dotnet run
 ```
 
-## Notlar
+## Notes
 
-- `ASRS.Web/Program.cs` icinde kapsamli seed bloklari vardir; mevcut durumda yorum satiri halindedir.
-- `ASRS.API` acilista varsayilan RFID-raf eslesmelerini `AsrsRfidMapSeeder` ile seed eder.
-- Raf modeli kod tarafinda 0-based tutulur: `row=0..2`, `col=0..3`. UI tarafinda gerekiyorsa 1-based gosterim yapilir.
+- `ASRS.Web/Program.cs` contains extensive seed blocks, but they are currently commented out.
+- `ASRS.API` seeds default RFID-rack mappings at startup through `AsrsRfidMapSeeder`.
+- Rack coordinates are stored as zero-based values in code: `row=0..2`, `col=0..3`. UI layers may display them as one-based values when needed.

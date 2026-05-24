@@ -1,0 +1,208 @@
+Raspberry Pi, RFID, Arduino, and ERP Integration Notes
+======================================================
+
+This document describes the intended integration flow between the RFID reader,
+Raspberry Pi, web/API layer, database, and Arduino motion controller.
+
+
+1) Basic RFID-to-Storage Flow
+-----------------------------
+
+1. An RFID card is scanned.
+2. Raspberry Pi reads the UID from the RFID reader.
+3. Raspberry Pi sends an HTTP request to the web/API server:
+
+   POST /api/asrs/rfid-scan
+   Body: { "cardUid": "AA BB CC DD" }
+
+4. The API checks the database and finds the rack cell mapped to that card.
+5. The API creates a STORE command if the mapped cell is empty.
+6. The command is sent to Arduino either by:
+   - API serial worker, or
+   - Raspberry Pi pull bridge
+7. Arduino receives a serial command:
+
+   STORE:<col>:<row>\n
+
+8. Arduino runs the motors and reports the result.
+9. The API updates command status and rack occupancy.
+
+
+2) High-Level Architecture
+--------------------------
+
+```text
+RFID Reader
+    |
+    v
+Raspberry Pi (Python)
+    |
+    | HTTP
+    v
+ASRS.API / ERP Web Server
+    |
+    | MySQL
+    v
+Database
+    |
+    | command queue
+    v
+Arduino Mega
+    |
+    v
+Stepper motors and AS/RS mechanism
+```
+
+The Raspberry Pi acts as a bridge between field devices and the ERP/API layer.
+Arduino is responsible for real-time motor control. The web/API layer is
+responsible for business rules, database records, and command generation.
+
+
+3) ERP Platform Purpose
+-----------------------
+
+The full platform is not only a warehouse automation system. It is designed as
+an ERP-like management platform that can coordinate warehouse, purchasing,
+quality, production, and supplier processes.
+
+The ERP layer provides:
+
+- User authentication and authorization
+- Role-based access control
+- Product and material management
+- Work order tracking
+- Purchase request and purchase order flows
+- Supplier and pricing management
+- Quality inspection and CAPA tracking
+- AS/RS rack monitoring and command creation
+
+
+4) Layered Software Architecture
+--------------------------------
+
+The software uses a layered architecture:
+
+```text
+ASRS.Web --\
+            +-- ASRS.BLL -- ASRS.DAL -- ASRS.Core
+ASRS.API --/
+```
+
+Layer responsibilities:
+
+- ASRS.Core:
+  Domain entities, DTOs, enums, and service interfaces.
+
+- ASRS.DAL:
+  Entity Framework Core context, migrations, relationships, and MySQL access.
+
+- ASRS.BLL:
+  Business rules and service implementations.
+
+- ASRS.Web:
+  MVC web interface, dashboard, views, and user-facing workflows.
+
+- ASRS.API:
+  Hardware-facing endpoints, RFID scan processing, command queue, and optional
+  Arduino serial communication.
+
+
+5) Hardware Responsibilities
+----------------------------
+
+Raspberry Pi:
+
+- Reads RFID cards through MFRC522.
+- Sends card UID to ASRS.API.
+- Can optionally pull queued commands from the API.
+- Can optionally forward commands to Arduino over USB serial.
+
+Arduino:
+
+- Receives serial commands.
+- Controls X, Y, and Z axis stepper motors.
+- Uses limit switches for homing.
+- Executes STORE, RETRIEVE, HOME, and STATUS commands.
+- Sends BUSY, OK, ERR, and READY responses.
+
+
+6) Database Concepts
+--------------------
+
+Current ASRS-related tables include:
+
+- RackCells:
+  Stores row/column coordinates and occupancy state.
+
+- RfidRackMaps:
+  Maps RFID card UIDs to fixed rack cells.
+
+- AsrsCommands:
+  Stores queued, sent, busy, completed, and failed commands.
+
+- RfidEvents:
+  Records RFID scan results and command creation outcomes.
+
+ERP-related tables include users, roles, departments, products, materials,
+BOM, work orders, purchase requests, purchase orders, suppliers, quality
+inspections, defects, and CAPA actions.
+
+
+7) Command Protocol
+-------------------
+
+Arduino command format:
+
+```text
+STORE:<col>:<row>
+RETRIEVE:<col>:<row>
+HOME
+STATUS
+```
+
+Arduino response format:
+
+```text
+READY
+BUSY
+OK:<message>
+ERR:<message>
+```
+
+Coordinate convention:
+
+- Arduino uses zero-based coordinates.
+- col: 0..3
+- row: 0..2
+
+
+8) Development Roadmap
+----------------------
+
+Completed or implemented areas:
+
+- Layered .NET solution structure
+- ASP.NET Core Identity integration
+- ERP modules for products, materials, BOM, work orders, purchasing, suppliers,
+  quality, defects, and CAPA
+- MySQL and EF Core data model
+- ASRS rack cells, RFID maps, commands, and RFID events
+- Arduino STORE/RETRIEVE serial protocol
+- Raspberry Pi RFID bridge
+
+Recommended next improvements:
+
+- Strengthen device authentication between Raspberry Pi and API.
+- Add automated tests for RFID mapping and command lifecycle.
+- Improve live dashboard polling or real-time updates.
+- Add hardware-in-loop test scripts.
+- Add recovery strategies for serial disconnects and movement timeouts.
+
+
+9) Summary
+----------
+
+The system combines ERP software, RFID identification, a Raspberry Pi bridge,
+and Arduino-based motion control. The ERP/API layer decides what should happen,
+the database records the state, Raspberry Pi connects the field devices, and
+Arduino performs the physical storage/retrieval movement.
