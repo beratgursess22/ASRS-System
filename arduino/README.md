@@ -155,6 +155,9 @@ Sahada ozellikle su degerler mekanige gore test edilmelidir:
 7. Y ekseni paketi rafa birakir.
 8. Basariliysa `OK:STORE_DONE`, hata varsa `ERR:*` doner.
 
+<img width="562" height="535" alt="Screenshot 2026-05-24 at 18 04 41" src="https://github.com/user-attachments/assets/77b763ad-7f64-455c-9f5f-836457b0e2e1" />
+
+
 ## RETRIEVE Akisi
 
 `RETRIEVE:<col>:<row>` komutu geldiginde:
@@ -165,6 +168,9 @@ Sahada ozellikle su degerler mekanige gore test edilmelidir:
 4. Y ekseni paketi raftan alir.
 5. Paket cikis/teslim noktasina tasinir.
 6. Basariliysa `OK:RETRIEVE_DONE`, hata varsa `ERR:*` doner.
+
+
+<img width="571" height="453" alt="Screenshot 2026-05-24 at 18 04 35" src="https://github.com/user-attachments/assets/9d21c560-953d-40d5-8ad4-d53825532051" />
 
 ## Gelistirme Notlari
 
