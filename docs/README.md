@@ -86,6 +86,16 @@ Degerlendirilen kriterler:
 
 Rapor sonucuna gore Retrieval & Storage Speed ve Safety en kritik kriterler arasindadir. Tutarlilik orani kabul edilebilir sinir olan 0.10'un altinda kaldigi icin AHP karsilastirmalari tutarli kabul edilmistir.
 
+<img width="150" height="97" alt="Screenshot 2026-05-24 at 18 17 44" src="https://github.com/user-attachments/assets/d81a059a-9f6b-4226-a9f9-bb8c33f69118" />
+<img width="168" height="133" alt="Screenshot 2026-05-24 at 18 17 39" src="https://github.com/user-attachments/assets/b13ca69c-8033-46fb-9973-b2d53610de25" />
+<img width="417" height="127" alt="Screenshot 2026-05-24 at 18 17 35" src="https://github.com/user-attachments/assets/b837a34c-66c8-40d8-a8b3-19448aad72cd" />
+
+
+
+
+
+
+
 ### Maliyet-Fayda ve Geri Odeme Analizi
 
 Cost-benefit ve payback analizinde CAPEX, OPEX, is gucu ihtiyaci, bakim maliyeti, operasyonel tasarruf ve uzun vadeli ekonomik uygunluk birlikte incelenmistir.
