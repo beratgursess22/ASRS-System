@@ -32,9 +32,8 @@ ERP-ASRS/
 ## Katmanli Mimari
 
 ```text
-ASRS.Web --\
-            +-- ASRS.BLL -- ASRS.DAL -- ASRS.Core
-ASRS.API --/
+<img width="656" height="618" alt="Screenshot 2026-05-24 at 18 00 59" src="https://github.com/user-attachments/assets/0a6a395b-057d-4df6-876e-156b2c54d65a" />
+
 ```
 
 Bu yapiyla web arayuzu ve API, is kurallarini BLL uzerinden kullanir. Veritabani erisimi DAL katmaninda toplanir. Core katmani ise sistemin ortak modellerini ve sozlesmelerini barindirir.
