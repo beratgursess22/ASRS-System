@@ -1,329 +1,231 @@
-# ASRS-ERP Sistem Durum Dokumani
+# ERP-ASRS
 
-Bu dokuman, projede bugune kadar yapilmis tum temel yapilari gercek kod durumuna gore ozetlemek icin bastan yazilmistir.
+ERP-ASRS, ASRS-System projesinin .NET tabanli ERP, web arayuzu, API, is kurallari ve veritabani katmanlarini iceren cozumudur. Bu klasor yazilim tarafindaki karar merkezidir: kullanici islemleri, stok ve uretim surecleri, satin alma, kalite kontrol ve fiziksel ASRS mekanizmasina gidecek komutlar burada yonetilir.
 
-Son guncelleme: 4 Nisan 2026
-Durum: Aktif gelistirme
-
-## 1) Proje Ozeti
-
-ASRS-System iki ana parcadan olusuyor:
-
-- ERP-ASRS: .NET 9 tabanli ERP ve operasyon yonetimi (MVC + katmanli mimari)
-- arduino: Arduino Mega icin ASRS hareket kontrol yazilimi (Stepper + seri protokol)
-
-Temel hedef:
-
-- Urun, malzeme, BOM, is emri, satin alma talebi/siparisi ve tedarikci sureclerini tek merkezde yonetmek
-- Fiziksel depolama mekanizmasina (Arduino/Raspberry Pi) komut akisini hazirlamak
-
-## 2) Katmanli Mimari (ERP-ASRS)
-
-ERP-ASRS cozumunde 5 proje var:
-
-- ASRS.Core
-  - Entity, DTO, Enum ve servis interface tanimlari
-- ASRS.DAL
-  - AppDbContext, Entity Framework Core konfiglari, migration dosyalari
-- ASRS.BLL
-  - Is kurallari ve servis implementasyonlari
-- ASRS.Web
-  - MVC controller ve Razor view katmani
-- ASRS.API
-  - Su an template asamasinda (yalnizca ornek weather endpoint'i var)
-
-## 3) Bugune Kadar Yapilanlar
-
-### 3.1 Tamamlanan Ana Moduller
-
-- Kimlik dogrulama ve yetkilendirme altyapisi
-  - ASP.NET Identity entegrasyonu (AppUser/AppRole)
-  - Cookie tabanli giris/cikis ve AccessDenied yonlendirmeleri
-  - Rol bazli yetki kontrolleri (Controller seviyesinde Authorize)
-
-- Urun yonetimi
-  - Urun CRUD
-  - Stok ve minimum stok alanlari
-  - Varsayilan fiyat ve para birimi alanlari
-
-- Malzeme yonetimi
-  - Malzeme CRUD
-  - Urunden bagimsiz ham madde/bilesen takibi
-
-- BOM (Bill of Materials) yonetimi
-  - Urun-malzeme karmasi bilesen tanimi
-  - BOM satirlarinda stok yeterlilik bilgisi
-  - Ic ice BOM gereksinim hesabi (servis katmaninda)
-
-- Is emri yonetimi
-  - Is emri olusturma/listeleme/detay/silme
-  - Durum gecisleri ve durum sonuc enum yapisi
-  - Stok tuketim bayraklari (migration ile eklenmis)
-
-- Satin alma sureci
-  - Purchase Request modulu
-  - Purchase Order modulu
-  - Siparis kalem bazli miktar/fiyat/teslim alma islemleri
-  - PO kalem bolme (SplitItem)
-  - PO kaleminde kalan miktari kismi iptal etme (CancelRemainingItemQuantity)
-  - PR kalemlerini Pending durumundayken revize etme (UpdateItem)
-  - PR durumunu manuel "Received" yapma kapatildi; teslim alma PO uzerinden stok artisiyla ilerliyor
-
-- Tedarikci ve fiyat listesi yonetimi
-  - Tedarikci CRUD
-  - Tedarikci-urun/malzeme fiyat kayitlari
-  - PO basliginda tedarikci secildiginde uygun fiyatlarin kalemlere otomatik yansimasi
-
-- Kalite kontrol sureci (yeni)
-  - QualityInspection / QualityInspectionItem yapisi
-  - Uygunsuzluk kaydi (QualityDefect)
-  - CAPA aksiyon takibi (CapaAction)
-  - Kontrol tipleri: Incoming, InProcess, Final
-  - Durumlar: Pending, InReview, Passed, ConditionalPass, Rejected, Closed
-  - Yeni kontrol ekraninda PurchaseOrder ve PurchaseOrderItem secimleri teslim alinmis (Received) siparislerden gelir
-  - WorkOrder secimi teslim alinmis siparislere bagli is emirlerinden gelir
-
-### 3.2 Son Kod Degisikligi Ozeti (27 Mart 2026)
-
-HEAD commit: improve PR PO side (69c655a)
-
-- Yeni DTO'lar:
-  - SplitPurchaseOrderItemDto
-  - CancelRemainingPurchaseOrderItemDto
-- PurchaseOrder tarafinda:
-  - Kalem bolme akisi eklendi
-  - Kalan miktar kismi iptal akisi eklendi
-  - Kalan miktar ve alinan miktar uyumlulugu icin ek dogrulamalar eklendi
-- PurchaseRequest tarafinda:
-  - Pending durumunda kalem eksik miktar/not duzenleme eklendi
-  - PR durumunu manuel Received yapma ve PR uzerinden dogrudan stok yazma kaldirildi
-- Web arayuzu:
-  - PurchaseOrder detay ekranina kalem bolme ve kismi iptal formlari eklendi
-  - PurchaseRequest detay ekranina kalem revizyon islemleri eklendi
-
-### 3.3 Arayuz (ASRS.Web) Durumu
-
-Controller yapisi:
-
-- Account
-- Dashboard
-- User
-- Product
-- Material
-- WorkOrder
-- PurchaseRequest
-- PurchaseOrder
-- Supplier
-- Quality
-- Capa
-
-Razor sayfa gruplari:
-
-- Account, Dashboard, User
-- Product (BOM dahil)
-- Material
-- WorkOrder
-- PurchaseRequest
-- PurchaseOrder
-- Supplier
-- Quality
-- Capa
-- Shared layout/error/validation partial
-
-### 3.4 Veri Modeli Durumu
-
-Aktif entity setleri (DbSet):
-
-- Departments
-- Products
-- Materials
-- BillOfMaterials
-- WorkOrders
-- PurchaseRequests
-- PurchaseRequestItems
-- PurchaseOrders
-- PurchaseOrderItems
-- Suppliers
-- SupplierItemPrices
-- QualityInspections
-- QualityInspectionItems
-- QualityDefects
-- CapaActions
-
-Identity tablolari da ayni context altinda yonetiliyor.
-
-### 3.5 Migration Gecmisi (Uygulanan Gelisim Adimlari)
-
-Kodda bulunan migrationlar:
-
-1. 20260307154124_InitialCreate
-2. 20260309171505_AddProduct
-3. 20260311111147_AddWorkOrder
-4. 20260311121943_AddBillOfMaterials
-5. 20260312183241_AddMaterials
-6. 20260314115218_AddWorkOrderStockConsumptionFlags
-7. 20260318184605_AddPurchaseRequestModule
-8. 20260319172558_AddPurchaseOrderModule
-9. 20260319182535_AddDefaultPricingToProductAndMaterial
-10. 20260320125637_AddSupplierModule
-11. 20260320170719_AddSupplierItemPricing
-12. 20260404150817_AddQualityModule
-
-Bu siralama, projenin urun/malzeme temelinden satin alma ve tedarikci modullerine genisledigini gosteriyor.
-
-## 4) Mevcut Durum Analizi
-
-### 4.1 Uretimde Kullanilabilir Olgun Moduller
-
-- Web tarafinda temel ERP akislari (urun, malzeme, BOM, is emri, satin alma, tedarikci)
-- Rol bazli erisim kontrolu
-- EF Core + MySQL veri modeli
-
-### 4.2 Hala Gelisim Gerektiren Alanlar
-
-- ASRS.API
-  - Su an yalnizca minimal template (GET /weatherforecast)
-  - Cihaz/RFID/komut endpointleri daha yazilmamis
-
-- Arayuz menu tutarliligi
-  - Quality/Capa ekranlari eklendi ve menu baglantisi duzeltildi
-  - Lojistik ve diger placeholder menu linkleri icin ilgili controller/view ciftleri hala tamamlanmali
-
-- Seed verileri
-  - Program.cs icinde kapsamli seed bloklari mevcut
-  - Ancak su an yorum satiri durumunda
-  - Yorum satiri kaldirilmadan sifirdan kurulumda varsayilan admin kullanicisi olusmaz
-
-- Test ve gozlemlenebilirlik
-  - Otomatik test katmani ve detayli merkezi loglama guclendirilmeli
-
-## 5) Arduino Tarafi (Fiziksel Hareket Katmani)
-
-arduino/ASRS_Main altinda step motor ve seri komut tabanli bir kontrol yapisi var.
-
-Temel ozellikler:
-
-- Komut protokolu
-  - STORE:col:row
-  - RETRIEVE:col:row
-  - HOME
-  - STATUS
-
-- Durum mesajlari
-  - READY, BUSY, OK, ERROR
-
-- Eksen ve raf tanimlari
-  - X/Z homing
-  - Raf kolon/kat pozisyonlari config uzerinden tanimli
-
-- Operasyon akislar
-  - Paketi giristen alip rafa birakma
-  - Raftan alip cikisa getirme
-
-Not: Arduino ve ERP-ASRS API entegrasyonu bir sonraki asama olarak gorunuyor.
-
-## 6) Teknoloji Yigini
+## Kullanilan Teknolojiler
 
 - .NET 9
 - ASP.NET Core MVC
-- ASP.NET Identity
-- Entity Framework Core
-- MySQL (Pomelo)
-- Arduino C++ (Mega 2560 odakli)
+- ASP.NET Core Web API
+- ASP.NET Core Identity
+- Entity Framework Core 9
+- Pomelo EntityFrameworkCore MySQL Provider
+- MySQL
+- Swagger / Swashbuckle
+- System.IO.Ports
+- Razor Views, Bootstrap, CSS, JavaScript
 
-## 7) Kurulum ve Calistirma
+## Klasor Yapisi
 
-### 7.1 Gereksinimler
+```text
+ERP-ASRS/
+|-- ASRS.Core/      # Entity, DTO, enum ve servis interface tanimlari
+|-- ASRS.DAL/       # AppDbContext, EF Core konfigurasyonu ve migration dosyalari
+|-- ASRS.BLL/       # Is kurallari ve servis implementasyonlari
+|-- ASRS.Web/       # ASP.NET Core MVC web arayuzu
+|-- ASRS.API/       # RFID, ASRS komut kuyrugu ve seri haberlesme API'si
+|-- ASRS.sln        # Visual Studio/.NET solution dosyasi
+|-- README.md       # Bu dokuman
+`-- *.txt           # Mimari ve entegrasyon notlari
+```
 
-- .NET 9 SDK
-- MySQL 8+
-- (Opsiyonel) Arduino IDE
+## Katmanli Mimari
 
-### 7.2 Veritabani Baglantisi
+```text
+ASRS.Web --\
+            +-- ASRS.BLL -- ASRS.DAL -- ASRS.Core
+ASRS.API --/
+```
 
-ASRS.Web/appsettings.json icindeki DefaultConnection ayarini ortamina gore duzenle.
+Bu yapiyla web arayuzu ve API, is kurallarini BLL uzerinden kullanir. Veritabani erisimi DAL katmaninda toplanir. Core katmani ise sistemin ortak modellerini ve sozlesmelerini barindirir.
 
-Ornek mevcut baglanti:
+## Projeler
 
+### ASRS.Core
+
+Sistemin cekirdek model katmanidir. Veritabani tablolarina karsilik gelen entity siniflari, katmanlar arasi veri tasiyan DTO'lar, enum'lar ve servis interface'leri burada bulunur.
+
+Onemli entity gruplari:
+
+- Kimlik ve organizasyon: `AppUser`, `AppRole`, `Department`
+- Katalog ve stok: `Product`, `Material`, `BillOfMaterial`
+- Uretim: `WorkOrder`
+- Satin alma: `PurchaseRequest`, `PurchaseRequestItem`, `PurchaseOrder`, `PurchaseOrderItem`
+- Tedarikci: `Supplier`, `SupplierItemPrice`
+- Kalite: `QualityInspection`, `QualityInspectionItem`, `QualityDefect`, `CapaAction`
+- ASRS entegrasyonu: `RackCell`, `RfidRackMap`, `AsrsCommand`, `RfidEvent`
+
+### ASRS.DAL
+
+Veritabani erisim katmanidir. `AppDbContext`, ASP.NET Identity tablolarini ve proje tablolarini ayni context uzerinde yonetir.
+
+Bu katmanda:
+
+- DbSet tanimlari
+- Entity iliskileri
+- Unique index tanimlari
+- EF Core migration dosyalari
+- 3x4 raf hucre seed'i
+
+bulunur.
+
+Aktif DbSet'ler:
+
+```text
+Departments, Products, Materials, BillOfMaterials, WorkOrders,
+PurchaseRequests, PurchaseRequestItems, PurchaseOrders, PurchaseOrderItems,
+Suppliers, SupplierItemPrices, QualityInspections, QualityInspectionItems,
+QualityDefects, CapaActions, RackCells, RfidRackMaps, AsrsCommands, RfidEvents
+```
+
+### ASRS.BLL
+
+Is kurallarinin uygulandigi katmandir. Controller'larin dogrudan veritabani mantigi yazmasi yerine servisler kullanilir.
+
+Servisler:
+
+- `UserService`
+- `ProductService`
+- `MaterialService`
+- `BomService`
+- `WorkOrderService`
+- `PurchaseRequestService`
+- `PurchaseOrderService`
+- `SupplierService`
+- `QualityInspectionService`
+- `QualityDefectService`
+- `CapaService`
+
+### ASRS.Web
+
+Kullanici arayuzudur. ASP.NET Core MVC, Razor View ve Bootstrap/CSS ile gelistirilmistir.
+
+Controller gruplari:
+
+- `AccountController`
+- `DashboardController`
+- `UserController`
+- `ProductController`
+- `MaterialController`
+- `WorkOrderController`
+- `PurchaseRequestController`
+- `PurchaseOrderController`
+- `SupplierController`
+- `QualityController`
+- `CapaController`
+- `AsrsProxyController`
+
+Web tarafinda ayrica `.step` ve `.stp` dosyalari static olarak yayinlanacak sekilde ayarlanmistir. `wwwroot/models/` ve `wwwroot/3d/step-viewer/` altinda ASRS sistem model gosterimi icin dosyalar bulunur.
+
+### ASRS.API
+
+Donanim entegrasyonu ve ASRS komut yonetimi icin kullanilan API katmanidir. Swagger aktiftir. API, MySQL veritabanina baglanir ve `AsrsSerialWorker` background service'i ile Arduino seri haberlesmesini opsiyonel olarak dogrudan yonetebilir.
+
+Onemli endpoint'ler:
+
+```text
+POST /api/asrs/rfid-scan
+POST /api/asrs/retrieve
+GET  /api/asrs/commands/next
+POST /api/asrs/commands/{id}/ack
+GET  /api/asrs/rack-state
+GET  /api/asrs/system-status
+GET  /api/asrs/rfid-maps
+```
+
+## ASRS Entegrasyon Mantigi
+
+RFID depolama akisinda:
+
+1. Raspberry Pi kart UID bilgisini `POST /api/asrs/rfid-scan` endpoint'ine gonderir.
+2. API UID bilgisini `RfidUidNormalizer` ile normalize eder.
+3. `RfidRackMaps` tablosunda aktif UID-raf eslesmesi aranir.
+4. Eslesen `RackCell` bos ise `AsrsCommand` tablosuna `Store` komutu eklenir.
+5. `RfidEvent` ile olay kaydi tutulur.
+
+Geri alma akisinda:
+
+1. Web dashboard veya API `POST /api/asrs/retrieve` ile row/col bilgisi gonderir.
+2. Ilgili raf hucresi doluysa `Retrieve` komutu kuyruga alinir.
+3. Komut tamamlaninca raf hucresi bos olarak isaretlenir.
+
+Komut calistirma icin iki mod vardir:
+
+- API seri worker modu: `AsrsSerial:Enabled=true` ise API, kuyruktaki komutu dogrudan seri porttan Arduino'ya gonderir.
+- Raspberry pull modu: worker kapaliyken Raspberry Pi `/commands/next` ile komut cekebilir ve `/ack` ile sonucu API'ye bildirebilir.
+
+## ASRS Seri Worker Ayarlari
+
+`ASRS.API/appsettings.json` veya environment konfigurasyonunda kullanilan ayarlar:
+
+```json
+{
+  "AsrsSerial": {
+    "Enabled": false,
+    "PortName": "/dev/ttyUSB0",
+    "BaudRate": 9600,
+    "PollIntervalMs": 400,
+    "CommandTimeoutSec": 180
+  }
+}
+```
+
+Worker Arduino'ya su formatta komut gonderir:
+
+```text
+STORE:<col>:<row>
+RETRIEVE:<col>:<row>
+HOME
+STATUS
+```
+
+Arduino'dan gelen `BUSY`, `OK:*`, `ERR:*` ve `READY` cevaplarina gore `AsrsCommand` durumu guncellenir.
+
+## Veritabani
+
+Veritabani MySQL uzerindedir. Varsayilan connection string `appsettings.json` icinden okunur. API tarafinda connection string bulunamazsa kodda fallback olarak su deger kullanilir:
+
+```text
 Server=localhost;Database=asrs_db;User=root;Password=123456;
+```
 
-### 7.3 Migration Uygulama
+Migration dosyalari:
 
-ERP-ASRS klasorunde:
+```text
+ASRS.DAL/Migrations/
+```
 
+Veritabani guncellemek icin:
+
+```bash
 dotnet ef database update --project ASRS.DAL --startup-project ASRS.Web
+```
 
-### 7.4 Web Uygulamasini Calistirma
+## Calistirma
 
-ERP-ASRS klasorunde:
+Cozumu derlemek icin:
 
-dotnet run --project ASRS.Web
+```bash
+dotnet restore
+dotnet build
+```
 
-### 7.5 API Projesini Calistirma (Gelistirme/Test)
+Web uygulamasi:
 
-ERP-ASRS klasorunde:
+```bash
+cd ASRS.Web
+dotnet run
+```
 
-dotnet run --project ASRS.API
+API uygulamasi:
 
-Not: API su an template seviyesinde oldugu icin islevsel ERP endpointlerini icermez.
+```bash
+cd ASRS.API
+dotnet run
+```
 
-### 7.6 Ilk Giris ve Seed Notu (Kritik)
+## Notlar
 
-- Web uygulamasinda varsayilan acilis rotasi `/Account/Login` oldugu icin en az bir aktif kullanici gerekir.
-- Program.cs icindeki seed blogu yorum satirinda oldugundan sifir veritabaninda hazir admin kullanicisi yoktur.
-- Bu nedenle ilk kurulumda:
-  - ya seed bloklari kontrollu sekilde acilmali,
-  - ya da SQL/Identity uzerinden manuel ilk yonetici kullanicisi olusturulmalidir.
-
-### 7.7 Rol Notu
-
-- Kod tarafinda aktif yetkilerde su roller kullaniliyor: `Yonetici`, `Depo`, `Uretim`, `Satin Alma`.
-- Kalite modulu icin aktif roller: `Yonetici`, `Kalite`.
-- Seed acilirsa rol listesinin bu yetkilerle uyumlu oldugunu kontrol etmek gerekir.
-
-## 8) Rol ve Yetki Ozet Tablosu
-
-Kodda kullanilan roller:
-
-- Yonetici
-- Depo
-- Lojistik
-- Uretim
-- Kalite
-- Montaj
-- Satin Alma
-
-Aktif kullanilan ana yetki desenleri:
-
-- Yonetici: Tum modullere tam erisim
-- Depo: Urun/malzeme/BOM tarafinda yazma islemleri
-- Uretim: Is emri yonetimi
-- Satin Alma: Talep/siparis/tedarikci yonetimi
-
-## 9) Yol Haritasi (Bir Sonraki Mantikli Adimlar)
-
-1. ASRS.API icine gercek endpointlerin eklenmesi
-   - RFID okutma
-   - Komut olusturma
-   - Durum geri bildirimi
-
-2. Seed mekanizmasinin kontrollu acilmasi
-   - Development ortamina ozel
-   - Tekrar calistirmaya dayanikli
-
-3. Test altyapisinin genisletilmesi
-   - Servis katmani birim testleri
-   - Kritik is akislarina entegrasyon testleri
-
-4. Donanim entegrasyon testleri
-   - Raspberry Pi -> API -> Arduino uc uca akisin dogrulanmasi
-
-## 10) Kisa Sonuc
-
-Proje, ERP tarafinda beklenenden daha olgun bir noktaya gelmis durumda:
-
-- Temel domain modelleri tamam
-- Operasyonel modullerin buyuk bolumu calisiyor
-- Satin alma ve tedarikci modulleri sisteme eklenmis
-
-Ana eksik halka, API ve donanimla uc uca canli entegrasyonun tamamlanmasi.
+- `ASRS.Web/Program.cs` icinde kapsamli seed bloklari vardir; mevcut durumda yorum satiri halindedir.
+- `ASRS.API` acilista varsayilan RFID-raf eslesmelerini `AsrsRfidMapSeeder` ile seed eder.
+- Raf modeli kod tarafinda 0-based tutulur: `row=0..2`, `col=0..3`. UI tarafinda gerekiyorsa 1-based gosterim yapilir.
