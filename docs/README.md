@@ -67,6 +67,11 @@ ABC analizi, urunlerin geri alma talep frekansina gore raf yerlesimini optimize 
 
 Bu yaklasim seyahat mesafesini, islem suresini ve gereksiz enerji tuketimini azaltmayi hedefler.
 
+<img width="321" height="193" alt="Screenshot 2026-05-24 at 18 16 06" src="https://github.com/user-attachments/assets/000b0e53-b6e9-40b8-9d58-3eb68fbf5827" />
+<img width="320" height="187" alt="Screenshot 2026-05-24 at 18 16 16" src="https://github.com/user-attachments/assets/2302b0cc-c4c4-4528-ad4c-c58794cf1dde" />
+<img width="422" height="128" alt="Screenshot 2026-05-24 at 18 16 10" src="https://github.com/user-attachments/assets/77ff729a-8157-492c-bab6-316b5a112f0b" />
+
+
 ### AHP Performans Degerlendirmesi
 
 AHP yontemi, SmartRack ile forklift tabanli geleneksel depo yaklasimini performans kriterleri uzerinden karsilastirmak icin kullanilmistir.
