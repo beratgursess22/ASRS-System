@@ -119,10 +119,6 @@ ERP-ASRS/ASRS.API/appsettings.json
 
 Default connection string:
 
-```text
-Server=localhost;Database=asrs_db;User=asrs_user;Password=123456;
-```
-
 If your MySQL username or password is different, update the connection string in both files.
 
 ### 3. Build the ERP Solution
