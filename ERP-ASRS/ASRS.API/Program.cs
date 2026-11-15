@@ -5,11 +5,17 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var conn = builder.Configuration.GetConnectionString("DefaultConnection")
-          ?? "Server=localhost;Database=asrs_db;User=root;Password=123456;";
+var conn = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(conn))
+{
+    Console.Error.WriteLine("Configure ConnectionStrings__DefaultConnection before starting ASRS.API.");
+    return 1;
+}
+
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseMySql(conn, ServerVersion.AutoDetect(conn)));
 builder.Services.AddHostedService<AsrsSerialWorker>();
@@ -26,6 +32,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();
+return 0;

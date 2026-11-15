@@ -103,23 +103,16 @@ Create the MySQL database and user:
 ```sql
 CREATE DATABASE asrs_db;
 
-CREATE USER 'asrs_user'@'localhost' IDENTIFIED BY '123456';
+CREATE USER 'asrs_user'@'localhost' IDENTIFIED BY '<your-mysql-password>';
 GRANT ALL PRIVILEGES ON asrs_db.* TO 'asrs_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
 Creating the database only creates an empty database. The project tables are created by running the Entity Framework migration command in the next steps.
 
-The default connection string is stored in:
+Set `ConnectionStrings__DefaultConnection` in the environment of each application you run (API or MVC). Use the MySQL connection string for that environment and keep the password outside the repository. The API requires a connection string at startup.
 
-```text
-ERP-ASRS/ASRS.Web/appsettings.json
-ERP-ASRS/ASRS.API/appsettings.json
-```
-
-Default connection string:
-
-If your MySQL username or password is different, update the connection string in both files.
+For a software-only API pilot, set `AsrsSerial__Enabled=false` in the API process environment. Set `ASPNETCORE_URLS` to control the listening address. After startup, `GET /health` checks that the API is responding.
 
 ### 3. Build the ERP Solution
 
