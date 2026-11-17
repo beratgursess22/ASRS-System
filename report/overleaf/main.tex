@@ -8,7 +8,7 @@
 
 \begin{document}
 
-\title{Comparative Analysis of Edge and Cloud Computing Architectures for Automated Storage and Retrieval Systems (AS/RS)}
+\title{Comparative Performance Analysis of Edge and Cloud Computing Architectures for Automated Storage and Retrieval Systems (AS/RS)}
 
 \author{\IEEEauthorblockN{Asude Hazal PEKER}
 \IEEEauthorblockA{Department of Computer Engineering\\
@@ -57,9 +57,9 @@ Based on the identified gap, the study addresses the following research question
 \section{Methodology}
 
 \subsection{Research Design}
-The study uses a repeated-measures experimental design on a single AS/RS prototype. Computing location and network condition are the independent variables. Timing, resource utilization, network traffic, and reliability outcomes are the dependent variables. Hardware, application version, database schema, RFID-to-rack mappings, initial rack occupancy, command type, and gateway behavior are controlled variables.
+The study uses a repeated-measures experimental design on a single AS/RS prototype. Computing location, network condition, and operation type are the independent variables. Response time, task completion time, resource utilization, network traffic, and command execution outcome are the dependent variables. Hardware, application version, database schema, RFID-to-rack mappings, initial rack state, command logic, and gateway behavior are controlled variables.
 
-The unit of observation is one STORE workflow initiated by an RFID UID. A run begins when the gateway accepts a scan event and ends when the run reaches its defined terminal outcome: successful command completion, explicit failure, or timeout. RETRIEVE operations remain part of the system, but the primary comparison uses STORE to avoid mixing workflows with different initial conditions and mechanical paths.
+The unit of observation is one STORE or RETRIEVE workflow. A run begins when the corresponding request is issued and ends when it reaches its defined terminal outcome: successful command completion, explicit failure, or timeout. Both operation types are measured in every primary scenario. STORE runs begin with an empty target cell, whereas RETRIEVE runs begin with an occupied target cell; the database and physical rack will be returned to the required baseline before the next run.
 
 \subsection{Experimental Testbed}
 Table~\ref{tab:testbed} summarizes the testbed. The physical system contains a Raspberry Pi 4 with 4~GB RAM, an Arduino Mega 2560, a RAMPS~1.6 board, DRV8825 stepper drivers, NEMA~17 motors, limit switches, an MFRC522 RFID reader, and a twelve-cell rack. The Arduino performs low-level motion control. The Raspberry Pi reads RFID data and communicates with the Arduino over a 9600-baud serial connection.
@@ -75,7 +75,7 @@ Component & Configuration \\
 \midrule
 Edge host & Raspberry Pi 4, 4~GB RAM, Ubuntu Server 24.04.5 LTS (arm64) \\
 Cloud host & Azure Standard\_B2als\_v2 VM, 2 vCPU, 4~GiB RAM, Spain Central, Ubuntu Server 24.04.5 LTS (x64) \\
-Application & ASP.NET Core 9.0.23 API and Entity Framework Core \\
+Application & ASP.NET Core 9.0.23 MVC/Web API and Entity Framework Core \\
 Data layer & Local MySQL instance in each architecture; identical schema and initial data \\
 Controller & Arduino Mega 2560 with RAMPS~1.6 and DRV8825 drivers \\
 Identification & MFRC522 reader and normalized RFID UIDs \\
@@ -92,9 +92,9 @@ The Cloud deployment has been prepared on an Azure virtual machine in the Spain 
 The Edge deployment has been prepared on a Raspberry Pi booting Ubuntu Server from USB storage. The same ASP.NET Core runtime version, a local MySQL server, the same database schema, the API, and a systemd service have been installed. The Edge health endpoint and local database connection have also been verified. Both databases contain twelve rack cells and the same twelve active RFID-to-cell mappings. The physical RFID reader, gateway-to-Arduino command path, instrumentation, and network-emulation scripts have not yet been commissioned; therefore, no physical performance result is reported at this stage.
 
 \subsection{Architecture Configurations}
-In the \textit{Edge} configuration, the Pi gateway sends the UID to the API over the local loopback interface. UID normalization, RFID-map validation, rack-cell lookup, command creation, and persistence execute on the Raspberry Pi against its local MySQL database. The gateway obtains the queued command, sends it to the Arduino, and reports the Arduino response to the local API. Internet access is not required for this core workflow.
+In the \textit{Edge} configuration, the RFID input and dashboard requests are handled by services on the Raspberry Pi. UID normalization, RFID-map validation, rack-cell lookup, command creation, Web HMI access, and persistence use the Edge API and local MySQL database. The Pi-side gateway obtains the queued command, sends it to the Arduino over USB serial, and reports the Arduino response to the local API. Internet access is not required for this core workflow.
 
-In the \textit{Cloud} configuration, the same gateway sends the UID to the Azure API. Validation, lookup, decision-making, command generation, and persistence execute on the Azure VM. The gateway polls the Cloud command endpoint, forwards the returned command to the Arduino, and acknowledges the observed Arduino state. No rack-planning or UID-validation logic is moved into the gateway.
+In the \textit{Cloud} configuration, the same gateway sends the UID or dashboard request to the Azure API. Validation, lookup, decision-making, command generation, and persistence execute on the restricted Azure VM and its co-located MySQL database. The gateway polls the Cloud command endpoint, forwards the returned command to the Arduino over the same USB serial path, and acknowledges the observed Arduino state. No rack-planning or UID-validation logic is moved into the gateway. Co-locating the API and database on the VM more closely matches the Edge API--database topology.
 
 The gateway software and serial path are held constant; only the API base URL changes. The API's internal serial worker is disabled in both measured configurations so that the Edge and Cloud paths do not use different dispatch mechanisms. A command identifier accompanies queue retrieval and acknowledgement. The gateway will maintain a local record of dispatched identifiers and will not write the same identifier to the serial port twice after an HTTP retry. This idempotency rule is required because a lost acknowledgement must not cause a second physical movement.
 
@@ -104,46 +104,45 @@ The API receives a JSON object containing \texttt{cardUid}. It normalizes the UI
 Both databases start from the same baseline: the same schema, twelve rack cells, twelve active UID mappings, and the same occupancy state. A clean \texttt{mysqldump} snapshot will be restored before each experimental condition. Command and event tables will be checked after restoration to ensure that no unfinished command can influence the next condition.
 
 \subsection{Timing and Resource Instrumentation}
-The primary performance metric is the interval from gateway scan acceptance to receipt of the Arduino \texttt{BUSY} signal. This endpoint represents delivery and acceptance of a physical command without allowing the much longer mechanical motion to dominate the computing comparison. Supporting timestamps record client send, API receive, processing start and end, command persistence, gateway command receipt, serial write, Arduino \texttt{BUSY}, terminal Arduino response, and acknowledgement persistence.
+API response time, measured in milliseconds from client request transmission to receipt of the HTTP response, is the main computing-performance metric. Scan-to-command latency, measured from gateway scan acceptance to receipt of the Arduino \texttt{BUSY} signal, provides a supporting end-to-end measure of command delivery and acceptance. Task completion time will be measured separately when the physical system is available so that the much longer mechanical movement does not obscure API and network effects. Supporting timestamps record client send, API receive, processing start and end, command persistence, gateway command receipt, serial write, Arduino \texttt{BUSY}, terminal Arduino response, and acknowledgement persistence.
 
 Durations measured within one host will use monotonic high-resolution clocks. Wall-clock timestamps will be retained for correlating logs across machines. The Raspberry Pi clock is currently synchronized by the operating system's NTP service, and synchronization of both the Pi and Azure VM will be verified before measured trials. Server processing time will be measured separately from client-observed HTTP time. Physical completion time, from Arduino \texttt{BUSY} to \texttt{OK:STORE\_DONE}, will be reported as a separate supporting metric.
 
-Process CPU time and working-set memory are recorded for the API and gateway. Linux system-level sampling records Pi and VM CPU and memory use, while Azure Monitor records VM metrics and B-series CPU-credit state. Network-interface counters and application request logs provide transmitted and received bytes and request counts. CPU percentages from different processors are not interpreted as equivalent computational capacity; each is reported in the context of its host.
+The measurement set includes response time in milliseconds, task completion time when measurable, local CPU usage as a percentage, local RAM usage in megabytes, network usage in bytes per command, and command execution status for each STORE and RETRIEVE operation. C\# timestamps, \texttt{Stopwatch}, and structured logs will collect application events. Process CPU time and working-set memory will be recorded for the API and gateway. Linux system-level sampling will record Pi and VM CPU and memory use, while Azure Monitor will record VM metrics and B-series CPU-credit state. Network-interface counters and application request logs will provide transmitted and received bytes and request counts. CPU percentages from different processors will not be interpreted as equivalent computational capacity; each will be reported in the context of its host.
 
 \section{Experiments}
 
 \subsection{Software-Only Deployment Validation}
 Before connecting the RFID reader or Arduino, separate software-only pilots were executed on the Cloud VM and the Raspberry Pi. In both pilots the serial worker was explicitly disabled, preventing motor-command dispatch. Synthetic requests exercised three paths: an invalid UID format returned HTTP~400 with \texttt{INVALID\_RFID\_UID\_FORMAT}; a valid but unmapped UID returned HTTP~404 with \texttt{RFID\_NOT\_MAPPED}; and an active mapped UID returned HTTP~200 and created a queued STORE command and corresponding RFID event. Pilot commands were then terminated without hardware execution so that no queued item remained. These checks validate deployment and database flow only; they are not physical experiments and their timings will not be included in the comparative dataset.
 
-\subsection{Network Conditions}
-The main experiment contains one Edge baseline and six Cloud conditions, shown in Table~\ref{tab:conditions}. Linux \texttt{tc netem} on the Raspberry Pi will affect only traffic directed to the Cloud endpoint. Local loopback traffic and the Arduino serial connection will not be impaired. Delay values denote additional delay configured on Pi egress and are not labelled as round-trip delay. Before high-loss or interruption trials, an automatic rollback will be scheduled so that the rule is removed even if connectivity fails.
+\subsection{Experimental Matrix and Network Conditions}
+The primary matrix contains 36 planned physical trials, divided equally between STORE and RETRIEVE operations. The Edge architecture is tested under its normal local condition. The Cloud architecture is tested with the normal network and with 100~ms and 300~ms of added delay. Six additional trials are reserved for pilot repetition or reliability stress involving packet loss or link interruption, giving a maximum of 42 trials. Their allocation will be fixed before they are used and will not be selected in response to favorable results.
 
 \begin{table}[t]
-\caption{Planned Experimental Conditions}
+\caption{Planned Primary Experimental Matrix}
 \label{tab:conditions}
 \centering
 \footnotesize
-\begin{tabular}{cll}
+\begin{tabular}{lccc}
 \toprule
-ID & Architecture & Network treatment \\
+Scenario & STORE & RETRIEVE & Total \\
 \midrule
-E0 & Edge & Local baseline; no impairment \\
-C0 & Cloud & Normal network \\
-C1 & Cloud & 100~ms added Pi-egress delay \\
-C2 & Cloud & 300~ms added Pi-egress delay \\
-C3 & Cloud & 5\% Pi-egress packet loss \\
-C4 & Cloud & 10\% Pi-egress packet loss \\
-C5 & Cloud & Cloud-path connection interruption \\
+Edge--Normal & 6 & 6 & 12 \\
+Cloud--Normal & 4 & 4 & 8 \\
+Cloud--+100~ms & 4 & 4 & 8 \\
+Cloud--+300~ms & 4 & 4 & 8 \\
+\midrule
+Total & 18 & 18 & 36 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Each condition will use the same number, $r$, of measured repetitions. The experiment is limited to 42 measured runs, so $7r \leq 42$ and $r \leq 6$. The final value of $r$ will be fixed after the hardware pilot confirms the run duration and reset procedure; it will not be selected in response to observed comparative results. Condition order will be randomized or interleaved to reduce bias from thermal, battery, network, or mechanical drift.
+Linux \texttt{tc netem} will be applied only to Raspberry Pi traffic directed to the Cloud endpoint. This creates communication-path impairment without adding artificial server processing time. Local loopback traffic and the Arduino serial connection will not be impaired. The 100~ms and 300~ms values denote additional Pi-egress delay, not added round-trip time. Before a reserved high-loss or interruption trial, an automatic rollback will be scheduled so that the rule is removed even if connectivity fails. Trial order will be randomized or interleaved to reduce bias from thermal, network, or mechanical drift.
 
 \subsection{Metrics and Outcome Definitions}
 For every run, the result file will contain a run identifier, architecture, network condition, UID label, command identifier, timestamps, calculated durations, CPU and memory samples, byte counters, HTTP outcomes, Arduino signals, retry counts, and final command status. Secret values and database credentials will not be written to result files.
 
-A run is successful when exactly one command identifier is dispatched to the Arduino, the Arduino returns the expected terminal success signal, the API records the command as completed, and the intended rack cell reaches the expected occupancy state. A run is failed if it receives an explicit application or Arduino error. A run is timed out if the terminal condition is not reached within the predefined limit. Duplicate dispatch is counted whenever the same command identifier is written to serial more than once; a missed command is a valid accepted scan for which no command reaches the Arduino before timeout. Recovery time after connectivity restoration is recorded separately.
+A run is successful when exactly one command identifier is dispatched to the Arduino, the Arduino returns the expected terminal success signal, the API records the command as completed, and the intended rack cell reaches the expected occupancy state for STORE or RETRIEVE. A run is failed if it receives an explicit application or Arduino error. A run is timed out if the terminal condition is not reached within the predefined limit. Duplicate dispatch is counted whenever the same command identifier is written to serial more than once; a missed command is an accepted operation for which no command reaches the Arduino before timeout. Recovery time after connectivity restoration is recorded separately if reserved trials include link interruption.
 
 The analysis will report all observations together with median, interquartile range, minimum, and maximum for timing metrics. Success, failure, timeout, missed-command, and duplicate-command counts will summarize reliability. Resource and traffic measurements will be plotted by architecture and condition. Because the maximum number of physical runs is small, conclusions will emphasize effect magnitude, consistency, and observed failure modes rather than relying only on significance tests.
 
@@ -153,12 +152,12 @@ For each condition, the following procedure will be applied:
     \item Verify NTP synchronization, service health, serial connectivity, and available Azure CPU credits.
     \item Restore the clean database baseline and verify rack occupancy, RFID mappings, and an empty command queue.
     \item Apply the selected network treatment and record a Pi-to-API baseline round-trip measurement.
-    \item Start resource and network sampling, then initiate one RFID STORE workflow.
+    \item Start resource and network sampling, then initiate the scheduled STORE or RETRIEVE workflow.
     \item Wait for successful completion, explicit failure, or timeout; preserve application, gateway, and Arduino events under one run identifier.
     \item Remove the network treatment, validate the result record, and return the physical and database state to baseline before the next run.
 \end{enumerate}
 
-The connection-interruption condition requires additional care. The point at which connectivity is interrupted will be recorded relative to command dispatch because losing the network before dispatch is different from losing it after the Arduino has accepted a command. The gateway must allow an already accepted physical operation to finish safely while postponing remote acknowledgement until connectivity returns. It must not repeat the serial command during recovery.
+If a reserved trial uses connection interruption, the interruption point will be recorded relative to command dispatch because losing the network before dispatch differs from losing it after the Arduino has accepted a command. The gateway must allow an already accepted physical operation to finish safely while postponing remote acknowledgement until connectivity returns. It must not repeat the serial command during recovery.
 
 \subsection{Validity and Limitations}
 Several limitations will be considered when interpreting the results. First, the Raspberry Pi and Azure VM use different processor architectures and performance characteristics; equal CPU percentages do not imply equal work. Second, placing MySQL on the Azure VM reduces database-network variability but differs from a managed Cloud database deployment. Third, the experiment uses one prototype, one Cloud region, and one access-network path, limiting external generalization. Fourth, RFID reading, serial communication, and mechanical movement introduce variability that will be separated where possible through timestamp decomposition. Finally, .NET~9 is retained on both hosts for experimental consistency even though it has reached end of support; network exposure is therefore restricted and this version choice is not presented as a production recommendation.
