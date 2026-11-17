@@ -1,0 +1,174 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage{cite}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{url}
+
+\begin{document}
+
+\title{Comparative Analysis of Edge and Cloud Computing Architectures for Automated Storage and Retrieval Systems (AS/RS)}
+
+\author{\IEEEauthorblockN{Asude Hazal PEKER}
+\IEEEauthorblockA{Department of Computer Engineering\\
+Galatasaray University\\
+Istanbul, T\"urkiye}}
+
+\maketitle
+
+\begin{abstract}
+Automated Storage and Retrieval Systems (AS/RS) increasingly rely on networked computing for identification, storage-location assignment, command generation, and operational monitoring. The placement of these functions affects latency, resource consumption, network dependence, and reliability. This study defines a controlled experimental comparison of two implementations of the same physical AS/RS prototype. In the Edge architecture, the application programming interface (API), decision logic, and MySQL database execute on a Raspberry Pi. In the Cloud architecture, the same functions execute on an Azure virtual machine while the Raspberry Pi acts as a hardware gateway. Both architectures use the same database schema, RFID mappings, rack configuration, gateway logic, and Arduino motion controller. The experiment evaluates normal operation and controlled network impairment through response-time decomposition, scan-to-Arduino latency, processor and memory utilization, network traffic, and reliability outcomes. Software-only pilots have verified UID validation, rack lookup, command creation, and persistence in both deployments without enabling physical actuation. The proposed methodology separates computing and communication delay from mechanical execution time and is intended to reveal the advantages, disadvantages, and operational trade-offs of each architecture rather than assume that either placement is universally superior.
+\end{abstract}
+
+\begin{IEEEkeywords}
+AS/RS, edge computing, cloud computing, industrial Internet of Things, latency, reliability, smart warehousing
+\end{IEEEkeywords}
+
+\section{Introduction}
+Automated Storage and Retrieval Systems (AS/RS) coordinate sensing, decision-making, and electromechanical motion to store and retrieve items with limited manual intervention. As these systems are connected to enterprise applications and Industrial Internet of Things (IIoT) platforms, a central architectural decision is where the application logic and data processing should execute. Cloud computing offers centralized storage, comparatively scalable resources, and remote accessibility, whereas edge computing places computation close to the controlled equipment and can reduce dependence on a wide-area network \cite{andriulo2024,nouhas2023,dritsas2025}.
+
+This choice is especially relevant for cyber-physical warehouse systems. A delayed or lost message can affect not only a user interface but also the dispatch and recorded state of a physical command. At the same time, moving all computation to a local device constrains processing and storage capacity and increases the maintenance responsibility at the installation site. The appropriate architecture therefore depends on measurable trade-offs among latency, resource utilization, network traffic, and reliability.
+
+This study investigates these trade-offs on one physical AS/RS prototype rather than comparing unrelated platforms. The same RFID-to-command workflow is deployed in two locations: locally on a Raspberry Pi and remotely on a Microsoft Azure virtual machine. The controlled comparison keeps the application version, database schema, rack state, command protocol, and Pi-side gateway path consistent. Network delay, packet loss, and connection interruption are then introduced only on the Cloud path.
+
+The contribution of the study is a reproducible experimental methodology that (i) separates server processing time from communication delay, (ii) distinguishes command-delivery latency from mechanical execution time, (iii) observes both application and system resource usage, and (iv) records missed, failed, and duplicate command behavior under degraded connectivity. The study is designed as a comparative evaluation; it does not presume that one architecture will dominate every metric.
+
+\section{Literature Review}
+
+\subsection{Edge and Cloud Computing in IoT and IIoT}
+The growth of IoT systems has increased demand for remote storage, centralized management, and scalable computation. Cloud platforms satisfy many of these requirements, but the communication path to a remote data center can add variable delay and introduces dependence on network availability. Edge computing moves selected processing closer to sensors and actuators, which can shorten the communication path and allow local operation, although edge devices generally have more limited compute, memory, and storage resources. Reviews by Andriulo et al. \cite{andriulo2024} and Nouhas et al. \cite{nouhas2023} describe these architectural differences and show that placement decisions depend on application requirements rather than a single universal criterion.
+
+Industrial environments make this trade-off more consequential because computing services interact with operational technology. Dritsas and Trigka \cite{dritsas2025} review cloud computing in IIoT and emphasize its role in data management and industrial applications. Wang et al. \cite{wang2022} address low-latency data collection and interoperability in manufacturing systems, illustrating why communication architecture is part of end-to-end industrial performance. Experimental robotics research likewise shows that moving computation closer to machines can provide operational benefits while leaving open challenges in networking and platform maturity \cite{groshev2023}.
+
+These findings motivate an application-specific experiment. General advantages such as scalability or proximity do not directly quantify the performance of the RFID, database, command-queue, and serial-control path of an AS/RS. A controlled deployment of the same software workflow in both locations is therefore needed.
+
+\subsection{Computing Architectures in Warehouse Systems}
+Research on AS/RS frequently concentrates on operational policies, modelling, simulation, and warehouse performance. Ferrari and Mangano \cite{ferrari2023} report that modelling and simulation studies are fragmented and that validation is often overlooked. This observation supports the use of a physical prototype and explicit validation stages in addition to a conceptual architecture.
+
+Cloud-oriented warehouse work demonstrates the value of centralized service organization. Chen and Liu \cite{chen2024} propose a cloud-native warehouse management and control platform for AS/RS applications, with data, service, and application layers intended to improve management flexibility. This architectural contribution, however, does not by itself determine the latency or failure behavior of a remote control path under changing network conditions.
+
+Other studies bring computation closer to warehouse data sources. Lin et al. \cite{lin2021} implement distributed edge computing for intelligent warehouse monitoring and demonstrate local processing with remote communication. Gomes and Pardal \cite{gomes2018} compare alternative deployments of a latency-sensitive RFID smart-warehouse application and report lower event latency when computation is placed closer to the application site. Their workload and infrastructure differ from a motor-driven AS/RS, but the study directly supports examining network placement in an RFID-based warehouse context.
+
+The reviewed work establishes that computing location can affect industrial and warehouse applications, yet no reviewed study provides the required controlled comparison for the present prototype: identical AS/RS software, database contents, rack state, RFID input, and Arduino protocol executed once on a Raspberry Pi and once on a remote virtual machine. Moreover, latency alone is insufficient for this system because network impairment can create timeouts, stale command states, or duplicate physical dispatches. The experiment must therefore evaluate timing, resource use, network cost, and reliability together.
+
+\subsection{Research Questions}
+Based on the identified gap, the study addresses the following research questions:
+
+\noindent\textbf{RQ1:} How does the placement of AS/RS decision-making and persistence on the Edge or in the Cloud affect API response time, server processing time, and scan-to-Arduino command latency?
+
+\noindent\textbf{RQ2:} How do added network delay, packet loss, and complete connection interruption affect the reliability and recovery behavior of the Cloud architecture relative to the local Edge baseline?
+
+\noindent\textbf{RQ3:} What trade-offs do the two architectures exhibit in Raspberry Pi resource utilization, Cloud virtual-machine resource utilization, and network traffic?
+
+\section{Methodology}
+
+\subsection{Research Design}
+The study uses a repeated-measures experimental design on a single AS/RS prototype. Computing location and network condition are the independent variables. Timing, resource utilization, network traffic, and reliability outcomes are the dependent variables. Hardware, application version, database schema, RFID-to-rack mappings, initial rack occupancy, command type, and gateway behavior are controlled variables.
+
+The unit of observation is one STORE workflow initiated by an RFID UID. A run begins when the gateway accepts a scan event and ends when the run reaches its defined terminal outcome: successful command completion, explicit failure, or timeout. RETRIEVE operations remain part of the system, but the primary comparison uses STORE to avoid mixing workflows with different initial conditions and mechanical paths.
+
+\subsection{Experimental Testbed}
+Table~\ref{tab:testbed} summarizes the testbed. The physical system contains a Raspberry Pi 4 with 4~GB RAM, an Arduino Mega 2560, a RAMPS~1.6 board, DRV8825 stepper drivers, NEMA~17 motors, limit switches, an MFRC522 RFID reader, and a twelve-cell rack. The Arduino performs low-level motion control. The Raspberry Pi reads RFID data and communicates with the Arduino over a 9600-baud serial connection.
+
+\begin{table}[t]
+\caption{Experimental Testbed}
+\label{tab:testbed}
+\centering
+\footnotesize
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.25\columnwidth} >{\raggedright\arraybackslash}p{0.66\columnwidth}}
+\toprule
+Component & Configuration \\
+\midrule
+Edge host & Raspberry Pi 4, 4~GB RAM, Ubuntu Server 24.04.5 LTS (arm64) \\
+Cloud host & Azure Standard\_B2als\_v2 VM, 2 vCPU, 4~GiB RAM, Spain Central, Ubuntu Server 24.04.5 LTS (x64) \\
+Application & ASP.NET Core 9.0.23 API and Entity Framework Core \\
+Data layer & Local MySQL instance in each architecture; identical schema and initial data \\
+Controller & Arduino Mega 2560 with RAMPS~1.6 and DRV8825 drivers \\
+Identification & MFRC522 reader and normalized RFID UIDs \\
+Rack & Twelve storage cells arranged as three rows by four columns \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Both computing hosts use .NET 9.0.23 to avoid introducing a runtime-version difference. The Edge database executes on the Raspberry Pi. The Cloud database executes on the same Azure VM as the Cloud API, preserving the API--database co-location used on the Edge while avoiding an additional managed-database network hop. This choice improves topological comparability but does not make the two processors equivalent.
+
+\subsection{Architecture Configurations}
+In the \textit{Edge} configuration, the Pi gateway sends the UID to the API over the local loopback interface. UID normalization, RFID-map validation, rack-cell lookup, command creation, and persistence execute on the Raspberry Pi against its local MySQL database. The gateway obtains the queued command, sends it to the Arduino, and reports the Arduino response to the local API. Internet access is not required for this core workflow.
+
+In the \textit{Cloud} configuration, the same gateway sends the UID to the Azure API. Validation, lookup, decision-making, command generation, and persistence execute on the Azure VM. The gateway polls the Cloud command endpoint, forwards the returned command to the Arduino, and acknowledges the observed Arduino state. No rack-planning or UID-validation logic is moved into the gateway.
+
+The gateway software and serial path are held constant; only the API base URL changes. The API's internal serial worker is disabled in both measured configurations so that the Edge and Cloud paths do not use different dispatch mechanisms. A command identifier accompanies queue retrieval and acknowledgement. The gateway will maintain a local record of dispatched identifiers and will not write the same identifier to the serial port twice after an HTTP retry. This idempotency rule is required because a lost acknowledgement must not cause a second physical movement.
+
+\subsection{Application and Database Flow}
+The API receives a JSON object containing \texttt{cardUid}. It normalizes the UID, checks for an active RFID mapping, verifies that the mapped rack cell exists and is empty, and creates a queued STORE command. It also records an RFID event. The gateway requests the oldest queued command through \texttt{GET /api/asrs/commands/next}; retrieval marks the command as sent. Arduino responses are reported through \texttt{POST /api/asrs/commands/\{id\}/ack}. A \texttt{BUSY} response marks execution as active, an \texttt{OK} response completes the command and updates rack occupancy, and an \texttt{ERR} response records failure information.
+
+Both databases start from the same baseline: the same schema, twelve rack cells, twelve active UID mappings, and the same occupancy state. A clean \texttt{mysqldump} snapshot will be restored before each experimental condition. Command and event tables will be checked after restoration to ensure that no unfinished command can influence the next condition.
+
+\subsection{Timing and Resource Instrumentation}
+The primary performance metric is the interval from gateway scan acceptance to receipt of the Arduino \texttt{BUSY} signal. This endpoint represents delivery and acceptance of a physical command without allowing the much longer mechanical motion to dominate the computing comparison. Supporting timestamps record client send, API receive, processing start and end, command persistence, gateway command receipt, serial write, Arduino \texttt{BUSY}, terminal Arduino response, and acknowledgement persistence.
+
+Durations measured within one host use monotonic high-resolution clocks. Wall-clock timestamps are retained for correlating logs across machines; the Pi and Azure VM are synchronized using NTP. Server processing time is measured separately from client-observed HTTP time. Physical completion time, from Arduino \texttt{BUSY} to \texttt{OK:STORE\_DONE}, is reported as a separate supporting metric.
+
+Process CPU time and working-set memory are recorded for the API and gateway. Linux system-level sampling records Pi and VM CPU and memory use, while Azure Monitor records VM metrics and B-series CPU-credit state. Network-interface counters and application request logs provide transmitted and received bytes and request counts. CPU percentages from different processors are not interpreted as equivalent computational capacity; each is reported in the context of its host.
+
+\section{Experiments}
+
+\subsection{Software-Only Deployment Validation}
+Before connecting the RFID reader or Arduino, separate software-only pilots were executed on the Cloud VM and the Raspberry Pi. In both pilots the serial worker was explicitly disabled, preventing motor-command dispatch. Synthetic requests exercised three paths: an invalid UID format returned HTTP~400 with \texttt{INVALID\_RFID\_UID\_FORMAT}; a valid but unmapped UID returned HTTP~404 with \texttt{RFID\_NOT\_MAPPED}; and an active mapped UID returned HTTP~200 and created a queued STORE command and corresponding RFID event. Pilot commands were then terminated without hardware execution so that no queued item remained. These checks validate deployment and database flow only; they are not physical experiments and their timings will not be included in the comparative dataset.
+
+\subsection{Network Conditions}
+The main experiment contains one Edge baseline and six Cloud conditions, shown in Table~\ref{tab:conditions}. Linux \texttt{tc netem} on the Raspberry Pi will affect only traffic directed to the Cloud endpoint. Local loopback traffic and the Arduino serial connection will not be impaired. Delay values denote additional delay configured on Pi egress and are not labelled as round-trip delay. Before high-loss or interruption trials, an automatic rollback will be scheduled so that the rule is removed even if connectivity fails.
+
+\begin{table}[t]
+\caption{Planned Experimental Conditions}
+\label{tab:conditions}
+\centering
+\footnotesize
+\begin{tabular}{cll}
+\toprule
+ID & Architecture & Network treatment \\
+\midrule
+E0 & Edge & Local baseline; no impairment \\
+C0 & Cloud & Normal network \\
+C1 & Cloud & 100~ms added Pi-egress delay \\
+C2 & Cloud & 300~ms added Pi-egress delay \\
+C3 & Cloud & 5\% Pi-egress packet loss \\
+C4 & Cloud & 10\% Pi-egress packet loss \\
+C5 & Cloud & Cloud-path connection interruption \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each condition will use the same number, $r$, of measured repetitions. The experiment is limited to 42 measured runs, so $7r \leq 42$ and $r \leq 6$. The final value of $r$ will be fixed after the hardware pilot confirms the run duration and reset procedure; it will not be selected in response to observed comparative results. Condition order will be randomized or interleaved to reduce bias from thermal, battery, network, or mechanical drift.
+
+\subsection{Metrics and Outcome Definitions}
+For every run, the result file will contain a run identifier, architecture, network condition, UID label, command identifier, timestamps, calculated durations, CPU and memory samples, byte counters, HTTP outcomes, Arduino signals, retry counts, and final command status. Secret values and database credentials will not be written to result files.
+
+A run is successful when exactly one command identifier is dispatched to the Arduino, the Arduino returns the expected terminal success signal, the API records the command as completed, and the intended rack cell reaches the expected occupancy state. A run is failed if it receives an explicit application or Arduino error. A run is timed out if the terminal condition is not reached within the predefined limit. Duplicate dispatch is counted whenever the same command identifier is written to serial more than once; a missed command is a valid accepted scan for which no command reaches the Arduino before timeout. Recovery time after connectivity restoration is recorded separately.
+
+The analysis will report all observations together with median, interquartile range, minimum, and maximum for timing metrics. Success, failure, timeout, missed-command, and duplicate-command counts will summarize reliability. Resource and traffic measurements will be plotted by architecture and condition. Because the maximum number of physical runs is small, conclusions will emphasize effect magnitude, consistency, and observed failure modes rather than relying only on significance tests.
+
+\subsection{Experimental Procedure}
+For each condition, the following procedure will be applied:
+\begin{enumerate}
+    \item Verify NTP synchronization, service health, serial connectivity, and available Azure CPU credits.
+    \item Restore the clean database baseline and verify rack occupancy, RFID mappings, and an empty command queue.
+    \item Apply the selected network treatment and record a Pi-to-API baseline round-trip measurement.
+    \item Start resource and network sampling, then initiate one RFID STORE workflow.
+    \item Wait for successful completion, explicit failure, or timeout; preserve application, gateway, and Arduino events under one run identifier.
+    \item Remove the network treatment, validate the result record, and return the physical and database state to baseline before the next run.
+\end{enumerate}
+
+The connection-interruption condition requires additional care. The point at which connectivity is interrupted will be recorded relative to command dispatch because losing the network before dispatch is different from losing it after the Arduino has accepted a command. The gateway must allow an already accepted physical operation to finish safely while postponing remote acknowledgement until connectivity returns. It must not repeat the serial command during recovery.
+
+\subsection{Validity and Limitations}
+Several limitations will be considered when interpreting the results. First, the Raspberry Pi and Azure VM use different processor architectures and performance characteristics; equal CPU percentages do not imply equal work. Second, placing MySQL on the Azure VM reduces database-network variability but differs from a managed Cloud database deployment. Third, the experiment uses one prototype, one Cloud region, and one access-network path, limiting external generalization. Fourth, RFID reading, serial communication, and mechanical movement introduce variability that will be separated where possible through timestamp decomposition. Finally, .NET~9 is retained on both hosts for experimental consistency even though it has reached end of support; network exposure is therefore restricted and this version choice is not presented as a production recommendation.
+
+\section{Conclusion and Next Steps}
+This paper defines a controlled comparison of Edge and Cloud execution for the same AS/RS control workflow. The design holds the application, database state, gateway, and physical controller constant while varying computing location and the Cloud network path. Completed software-only pilots establish that both deployments perform UID validation, rack lookup, command generation, and persistence without physical actuation. The next implementation stage is the idempotent Pi gateway, followed by a hardware pilot, final selection of the repetition count within the 42-run limit, and execution of the measured conditions. The final paper will replace this forward-looking section with measured results, statistical summaries, and an evidence-based discussion of the observed trade-offs.
+
+\bibliographystyle{IEEEtran}
+\bibliography{asrs_references}
+
+\end{document}
