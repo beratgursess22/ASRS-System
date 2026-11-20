@@ -137,10 +137,6 @@ public class AsrsController : ControllerBase
 
         if (cmd is null) return NoContent();
 
-        cmd.Status = AsrsCommandStatus.Sent;
-        cmd.SentAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
-
         return Ok(new
         {
             id = cmd.Id,

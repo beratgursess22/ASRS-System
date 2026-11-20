@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import json
 import os
 import signal
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 
 import requests
@@ -15,13 +17,46 @@ API_URL = os.getenv("ASRS_API_URL", "http://localhost:5217/api/asrs/rfid-scan")
 HTTP_TIMEOUT_SEC = float(os.getenv("ASRS_HTTP_TIMEOUT_SEC", "8"))
 POLL_INTERVAL_SEC = float(os.getenv("ASRS_RFID_POLL_INTERVAL_SEC", "0.2"))
 SAME_CARD_COOLDOWN_SEC = float(os.getenv("ASRS_RFID_SAME_CARD_COOLDOWN_SEC", "2.5"))
+ARCHITECTURE = os.getenv("ASRS_ARCHITECTURE", "edge").strip().lower()
+EVENTS_PATH = Path(
+    os.getenv(
+        "ASRS_RFID_EVENTS_PATH",
+        str(
+            Path.home()
+            / ".local"
+            / "state"
+            / "asrs-gateway"
+            / ARCHITECTURE
+            / "rfid-events.jsonl"
+        ),
+    )
+)
 
 _running = True
+
+if ARCHITECTURE not in {"edge", "cloud"}:
+    raise ValueError("ASRS_ARCHITECTURE must be 'edge' or 'cloud'.")
 
 
 def log(message: str) -> None:
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{ts}] {message}", flush=True)
+
+
+def record_event(event: str, **fields) -> None:
+    payload = {
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
+        "monotonic_ns": time.monotonic_ns(),
+        "architecture": ARCHITECTURE,
+        "event": event,
+        **fields,
+    }
+    try:
+        EVENTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with EVENTS_PATH.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(payload, separators=(",", ":")) + "\n")
+    except OSError as ex:
+        log(f"EVENT_WRITE_FAILED event={event} error={ex}")
 
 
 def stop_handler(signum, frame):
@@ -32,13 +67,36 @@ def stop_handler(signum, frame):
 
 def post_uid(uid_hex: str) -> None:
     payload = {"cardUid": uid_hex}
+    request_started_ns = time.monotonic_ns()
+    record_event("rfid_request_started", card_uid=uid_hex)
     try:
         response = requests.post(API_URL, json=payload, timeout=HTTP_TIMEOUT_SEC)
+        duration_ms = (time.monotonic_ns() - request_started_ns) / 1_000_000
+        command_id = None
+        try:
+            response_payload = response.json()
+            if isinstance(response_payload, dict):
+                command_id = response_payload.get("commandId")
+        except requests.exceptions.JSONDecodeError:
+            pass
+        record_event(
+            "rfid_response_received",
+            card_uid=uid_hex,
+            command_id=command_id,
+            http_status=response.status_code,
+            duration_ms=duration_ms,
+        )
         body = response.text.strip()
         if len(body) > 300:
             body = body[:300] + "..."
         log(f"POST {API_URL} uid='{uid_hex}' -> {response.status_code} body={body}")
     except requests.RequestException as ex:
+        record_event(
+            "rfid_request_failed",
+            card_uid=uid_hex,
+            duration_ms=(time.monotonic_ns() - request_started_ns) / 1_000_000,
+            error_type=type(ex).__name__,
+        )
         log(f"POST_FAILED uid='{uid_hex}' error={ex}")
 
 
@@ -83,6 +141,7 @@ def main() -> int:
                 continue
 
             log(f"CARD_DETECTED uid='{uid_hex}'")
+            record_event("rfid_detected", card_uid=uid_hex)
             post_uid(uid_hex)
             last_uid = uid_hex
             last_sent_at = now

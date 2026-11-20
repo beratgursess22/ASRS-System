@@ -1,3 +1,4 @@
 requests==2.32.3
 mfrc522==0.0.7
+pyserial==3.5
 

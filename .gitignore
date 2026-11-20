@@ -33,3 +33,7 @@ Thumbs.db
 # Logs
 *.log
 .codex/
+
+# Python caches
+__pycache__/
+*.py[cod]
