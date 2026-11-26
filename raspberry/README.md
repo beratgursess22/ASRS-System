@@ -37,7 +37,9 @@ Raspberry Pi:
 - Reports `BUSY`, `OK`, and `ERR` signals to the API.
 - Persists dispatch state before serial output to prevent automatic duplicate movement.
 - Writes timestamped gateway events as JSON Lines for later measurements.
-- Prevents repeated sends of the same card within a short cooldown window.
+- Prevents repeated sends while the same card remains on the reader. The same
+  card is accepted again only after it has been removed for the configured
+  cooldown interval.
 - Writes success and error logs to stdout.
 - Cleans up GPIO on shutdown.
 

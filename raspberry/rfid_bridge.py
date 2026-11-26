@@ -38,6 +38,29 @@ if ARCHITECTURE not in {"edge", "cloud"}:
     raise ValueError("ASRS_ARCHITECTURE must be 'edge' or 'cloud'.")
 
 
+class CardPresenceGate:
+    """Allow one event per card presentation, then wait for card removal."""
+
+    def __init__(self, release_after_sec: float) -> None:
+        self.release_after_sec = release_after_sec
+        self.active_uid = ""
+        self.last_seen_at = 0.0
+
+    def observe(self, uid_hex: Optional[str], now: float) -> Optional[str]:
+        if uid_hex is None:
+            if self.active_uid and (now - self.last_seen_at) >= self.release_after_sec:
+                self.active_uid = ""
+            return None
+
+        if uid_hex == self.active_uid:
+            self.last_seen_at = now
+            return None
+
+        self.active_uid = uid_hex
+        self.last_seen_at = now
+        return uid_hex
+
+
 def log(message: str) -> None:
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{ts}] {message}", flush=True)
@@ -123,28 +146,19 @@ def main() -> int:
 
     reader = MFRC522()
     log(f"RFID bridge started. API_URL={API_URL}")
-
-    last_uid = ""
-    last_sent_at = 0.0
+    presence_gate = CardPresenceGate(SAME_CARD_COOLDOWN_SEC)
 
     try:
         while _running:
             uid_hex = read_uid_hex(reader)
-            if uid_hex is None:
+            accepted_uid = presence_gate.observe(uid_hex, time.monotonic())
+            if accepted_uid is None:
                 time.sleep(POLL_INTERVAL_SEC)
                 continue
 
-            now = time.time()
-            same_recent = uid_hex == last_uid and (now - last_sent_at) < SAME_CARD_COOLDOWN_SEC
-            if same_recent:
-                time.sleep(POLL_INTERVAL_SEC)
-                continue
-
-            log(f"CARD_DETECTED uid='{uid_hex}'")
-            record_event("rfid_detected", card_uid=uid_hex)
-            post_uid(uid_hex)
-            last_uid = uid_hex
-            last_sent_at = now
+            log(f"CARD_DETECTED uid='{accepted_uid}'")
+            record_event("rfid_detected", card_uid=accepted_uid)
+            post_uid(accepted_uid)
             time.sleep(POLL_INTERVAL_SEC)
     finally:
         GPIO.cleanup()
