@@ -295,8 +295,13 @@ Install Python dependencies:
 
 ```bash
 cd raspberry
-pip install -r requirements.txt
+sudo apt install build-essential python3-dev
+python -m pip install -r requirements.txt
+python -m pip install --no-deps mfrc522==0.0.7
 ```
+
+The separate `mfrc522` command avoids installing its legacy `RPi.GPIO`
+dependency alongside the `rpi-lgpio` compatibility module.
 
 Run the RFID bridge:
 

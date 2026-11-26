@@ -93,15 +93,23 @@ ASRS_RFID_EVENTS_PATH=~/.local/state/asrs-gateway/<architecture>/rfid-events.jso
 
 ```text
 requests==2.32.3
-mfrc522==0.0.7
 pyserial==3.5
+rpi-lgpio==0.6
+spidev==3.8
 ```
 
-Install:
+On Ubuntu Server, install the compiler and Python headers once, then install
+the Python packages in the project virtual environment:
 
 ```bash
-pip install -r requirements.txt
+sudo apt install build-essential python3-dev
+python -m pip install -r requirements.txt
+python -m pip install --no-deps mfrc522==0.0.7
 ```
+
+`rpi-lgpio` provides the `RPi.GPIO` API used by `mfrc522` on current
+gpiochip-based kernels. Do not install `RPi.GPIO` and `rpi-lgpio` in the same
+Python environment.
 
 ## Running
 

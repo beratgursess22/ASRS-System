@@ -1,4 +1,8 @@
 requests==2.32.3
-mfrc522==0.0.7
 pyserial==3.5
+rpi-lgpio==0.6
+spidev==3.8
+
+# Install mfrc522==0.0.7 separately with --no-deps. Its legacy metadata
+# requires RPi.GPIO, which conflicts with the rpi-lgpio compatibility module.
 
